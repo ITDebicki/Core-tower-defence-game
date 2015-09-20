@@ -1,0 +1,166 @@
+#flipContainer{
+    position: absolute;
+    height: 200px;
+    width: 200px;
+    top: 25px;
+    left: 25px;
+    perspective: 1000px;
+}
+.flipped{
+    transform: rotateY(180deg) translateX( 100% ); 
+    
+}
+#flipper {
+	transition: 0.6s;
+	transform-style: preserve-3d;
+    transform-origin: right center;
+	position: relative;
+}
+.front, .back {
+	backface-visibility: hidden;
+
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+/* front pane, placed above back */
+.front {
+	z-index: 2;
+	/* for firefox 31 */
+	transform: rotateY(0deg);
+}
+/* back, initially hidden pane */
+.back {
+	transform: rotateY(180deg);
+}
+.mainPageLoginPanel{
+    border-top-left-radius: 10px;
+    border-bottom-right-radius: 10px; 
+}
+.mainPageLoginPanel, .createAccountPanel{
+    line-height: 13px;
+    padding: 5 5 5 5;
+    background-color: lightgrey;
+    width: 160px;
+    height: 170px;
+}
+.createAccountPanel{
+    border-top-right-radius: 10px;
+    border-bottom-left-radius: 10px; 
+}
+#userEntry input{
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+.mainPageLoginPanel input{
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+div.startScreenMainButtons{
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+    align-content: center;
+    width: 160px;
+    height: 210px;
+    top: 140px;
+    left: calc(50% - 80px);
+    margin: 0 auto;
+}
+div.startScreenMainButtons button{
+    width: 160px;
+    height: 40px;
+    color:black;
+    text-align: center;
+    font-size: 1em;
+    border-radius: 25px;
+    margin-bottom: 30px;
+}
+
+div.startScreenMainButtons button:last{
+    margin-bottom: 0px;
+}
+
+.verticalText {
+	transform: rotate(90deg);
+	transform-origin: left top 0;
+    float: right;
+    position: absolute;
+    left: 160px;
+    width:130px;
+    color: dimgray;
+    /*text-align: center;*/
+    -webkit-transform: rotate(90deg);
+}
+
+
+#mainTitle{
+    left: calc(50% - 100px);
+    top: 50px;
+    text-align: center;
+    color: red;
+}
+
+#accountLoginButtons {
+    margin-top: 5px;
+}
+
+#forgotUsername {
+    margin-top: 10px;
+    margin-bottom: 5px;
+    width: 145px;
+    color: red;
+}
+
+#loggedInContainer{
+    position: absolute;
+    height: 75px;
+    width: 200px;
+    top: 25px;
+    left: 25px;
+    perspective: 1000px;
+    background-color: lightgrey;
+    border-radius: 10px;
+    padding: 5px 5px 5px 5px;
+}
+#usernameSpan{
+    float:left;
+    top: 2px;
+    margin-left: 10px;
+    margin-bottom: 6px;
+}
+.loggedInButtons{
+    margin-left: 10px;
+    margin-bottom: 6px;
+}
+.hidden{
+    display: none;
+    visibility: hidden;
+    -webkit-transition: all 1s ease;
+    -moz-transition: all 1s ease;
+    -ms-transition: all 1s ease;
+    -o-transition: all 1s ease;
+    transition: all 1s ease;
+}
+#userAvatarStart{
+    float: left;
+    height: 70px; 
+    width: 70px;
+    max-height: 70px;
+    max-width: 70px;
+    min-height: 70px;
+    min-width: 70px;
+}
+
+#accountLoginButtons{
+margin-top:-12px;
+}
+
+input[type="text"]{
+
+line-height: 10px; 
+}
+
+span{
+line-height: 10px
+}

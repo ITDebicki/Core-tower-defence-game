@@ -1,0 +1,68 @@
+<html>
+	<head>
+        <link rel="stylesheet" type="text/css" href="main.css">
+		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+		<script>
+            var _user = null;
+            var _userAvatarSrc = "restricted/images/avatars/defaultAvatar.png";
+			$("document").ready(function (){
+				//load default background
+                loadBackground("images/testBG.jpg");
+                clearScreenToStartScreen();
+			});
+			    
+			function loadBackground(image) {
+                $("#gameDiv").css("background-image","url(" + image + ")");
+			}
+            
+            function clearScreenToStartScreen(){
+                //clear screen
+                $("#gameDiv").slideUp(500,function(){
+                    showStartScreen()
+                    $(this).slideDown(100);
+                }); 
+            }
+
+            function showStartScreen(){
+                var screen = $("#gameDiv");
+                screen.empty();
+                loadElement("gameComponents/startGameScreen.html","startGameScreen");
+            }
+            
+            function loadElement(element,id){
+                var screen = $("#gameDiv");
+                screen.append('<div id="' + id +'"></div>')
+                $.get(element, function(data) {
+                    $("#" + id).append(data);
+                });
+            }
+            
+            function removeElement(id){
+                $("#" + id).remove();
+            }
+		</script>
+	</head>
+	<body>
+		<!-- title bar with navigation
+        <div id='headerMain'>
+		  <h1>Title</h1>
+		</div>
+		<div id='navigationBar'>
+			<nav>
+				<ul>
+					<li><a href="">Home</a></li>
+					<li><a href="">Stuff</a></li>
+					<li><a href="">More stuff</a></li>
+					<li><a href="">Contact us</a></li>
+					
+				</ul>
+				<div id="socialIcons">
+					<img id="twitterImg" src=images/test.png height = 20px />
+				</div>
+			</nav>
+
+		</div>
+        -->
+        <div id='gameDiv'></div>
+	</body>
+</html>

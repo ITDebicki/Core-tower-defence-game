@@ -1,0 +1,54 @@
+#overlay{
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 100%;
+    opacity: 0.01;
+    background-color: lightgray;
+}
+
+#wrapper{
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 100%;
+}
+
+#avatarImage{
+    position: relative;
+    top: 0px;
+    left: 0px;
+    height: 100%;
+    width: 100%;
+}
+#avatarImageContainer{
+    position: absolute;
+    top: 20px;
+    left: 80px;
+    height: 150px;
+    width: 150px;
+}
+
+#buttonDiv{
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+    align-content: center;
+    width: 160px;
+    height: 210px;
+    top: 140px;
+    left: calc(50% - 80px);
+    margin: 0 auto;
+}
+
+#buttonDiv button{
+    width: 160px;
+    height: 40px;
+    color:black;
+    text-align: center;
+    font-size: 1em;
+    border-radius: 25px;
+    margin-bottom: 30px;   
+}

@@ -1,0 +1,254 @@
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="gameComponents/startGameScreen.css">
+        <script>
+            $("document").ready(function(){
+                $("#loggedInContainer").fadeOut(0);
+                //set handlers
+                
+                $("#startButton").click(startPressed);
+                $("#loadGameButton").click(loadPressed);
+                $("#optionsButton").click(optionsPressed);
+                $("#goCreateAccountButton").click(createAccountButtonClicked);
+                $("#createAccountButton").click(createAccount);
+                $("#back").click(backPressed);
+                $("#loginButton").click(login);
+                $("#logoutButton").click(logout);
+                $("#manageAccountButton").click(showAccountManagment);
+            });
+            
+            function showAccountManagment(evt){
+                loadElement("gameComponents/accountManagmentScreen.html","accountManagmentScreen");
+            }
+            
+            function fetchUserAvatar(callback){
+                $.ajax({
+                    url: 'restricted/performAction.php',
+                    type: 'POST',
+                    method: 'POST',
+                    dataType: "json",
+                    data: {"action":"fetchAvatar", "json":"{}"},
+                    success:function(response){
+                        console.log(response);
+                    },
+                    error:logError
+                }).done(function(response){
+                    var file = null;
+                     if (response["success"]==true){
+                        var file = response["data"];
+                    }else{
+                        alert(response["error"],response["errorCode"]);   
+                    } 
+                    if (file == null || file == ""){
+                        file = "defaultAvatar.png";
+                    }
+                    window._userAvatarSrc = "restricted/images/avatars/" + file;
+                    if (!(callback === undefined)){
+                        callback();   
+                    }
+                });
+
+           }
+            
+            function setAvatar(fileURL){
+                if (fileURL === undefined){
+                    fileURL = window._userAvatarSrc;   
+                }
+                $(".userAvatar").each(function(){
+                    console.log(fileURL);
+                    console.log($(this));
+                    $(this).attr("src",fileURL);
+                });
+            }
+            
+            function login(evt){
+                var username = $("input[name=userTextbox]").val();
+                var password = $("input[name=passwordTextbox]").val();
+                if (validateUser(username) && validatePassword(password)){
+                    $.ajax({
+                        url: 'restricted/login.php',
+                        type: 'POST',
+                        method: 'POST',
+                        dataType: "json",
+                        data: {"type":"login", "user":username, "password":password},
+                        success:function(response){
+                            console.log(response);
+                            if (response["success"]==true){
+                                $("#usernameSpan").html(username);
+                                _user = username;
+                                fetchUserAvatar(setAvatar);
+                                switchLoggedInWindows();
+                            }else{
+                                alert(response["error"],response["errorCode"]);   
+                            }
+                        },
+                        error:logError
+                    });
+                }else{
+                    alert("Invalid username or password");   
+                }
+            }
+            
+            function switchLoggedInWindows(){
+                //switch windows
+                $("#flipContainer").fadeToggle(500);
+                $("#loggedInContainer").fadeToggle(500);
+                //reset textboxes
+                $("input[name=passwordTextbox]").val("");
+                $("input[name=userTextboxCreate]").val("");
+                $("input[name=passwordTextboxCreate]").val("");
+                $("input[name=passwordRTextboxCreate]").val("");
+                $("input[name=emailTextboxCreate]").val("");
+            }
+            function logout(evt){
+                $.ajax({
+                        url: 'restricted/logout.php',
+                        dataType: "json",
+                        success: function(response){ 
+                            console.log(response);
+                            if (response["success"]==true){
+                            }else{
+                                alert(response["error"],response["errorCode"]);   
+                            }
+                        },
+                        error:logError
+                    });
+                switchLoggedInWindows();
+            }
+            
+            function backPressed(evt){
+                $("#flipper").removeClass('flipped');
+            }
+            
+            function createAccountButtonClicked(evt){
+                $("#flipper").addClass('flipped');
+            }
+
+            function startPressed(evt){
+                alert("start pressed");
+            }
+            function loadPressed(evt){
+                alert("load pressed");
+            }
+            function optionsPressed(evt){
+                alert("options pressed");
+            }
+            function createAccount(evt){
+                var username = $("input[name=userTextboxCreate]").val();
+                var password = $("input[name=passwordTextboxCreate]").val();
+                var passwordR = $("input[name=passwordRTextboxCreate]").val();
+                var email = $("input[name=emailTextboxCreate]").val();
+                if (validateAccountCreationDetails(username,password,passwordR,email)){
+                    $.ajax({
+                        url: 'restricted/login.php',
+                        type: 'POST',
+                        method: 'POST',
+                        dataType: "json",
+                        data: { "type": "create", "user":username, "password":password, "passwordR":passwordR, "email":email},
+                        success: function(response){ 
+                            console.log(response);
+                            if (response["success"]==true){
+                                alert("Account created. Please log in");
+                                $("input[name=passwordTextbox]").val("");
+                                $("input[name=userTextboxCreate]").val("");
+                                $("input[name=passwordTextboxCreate]").val("");
+                                $("input[name=passwordRTextboxCreate]").val("");
+                                $("input[name=emailTextboxCreate]").val("");
+                                backPressed();
+                            }else{
+                                alert(response["error"],response["errorCode"]);   
+                            }
+                        },
+                        error:logError
+                    });
+                }
+            }
+            function validateUser(username){
+                if (username == "" || /^[a-zA-Z0-9]+$/.test(username)==false){
+                    return false;
+                }
+                return true;
+            }
+            function validatePassword(password){
+                if(/\s/g.test(password)||password==""){
+                    return false;   
+                }
+                return true;
+            }
+            function validateAccountCreationDetails(username,password,passwordR,email){
+                //check that username does not breach rules
+                if (validateUser(username)==false){
+                    alert("Invalid username entered")
+                    return false;   
+                }
+                //check that password does not breach rules
+                if (validatePassword(password)==false || validatePassword(passwordR)==false || password != passwordR){
+                    alert("Password is blank or do not match")
+                    return false;
+                }
+                //check email does not breach rules
+                if (/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test(email)==false){
+                    alert("Invalid email");
+                    return false;
+                }
+                return true;
+            }
+            
+            function logError(jqXHR,textStatus,errorThrown){
+                console.log(jqXHR);
+                console.log(textStatus);
+                console.log(errorThrown);
+            }
+        </script>
+    </head>
+    <body>
+            <h1 id="mainTitle">Tower defence</h1>
+            <div class="startScreenMainButtons">
+                <button id="startButton">Start game</button>
+                <button id="loadGameButton">Load game</button>
+                <button id="optionsButton">Options</button>
+            </div>
+            <div id="flipContainer">
+                <div id="flipper">
+                    <div class="mainPageLoginPanel front">
+                        <span class="verticalText">Login</span>
+                        <div id="loginTextBoxes">
+                            <span>Username</span>
+                            <input type="text" name="userTextbox">
+                            <span>Password</span>
+                            <input type="password" name="passwordTextbox">
+                        </div>
+                        <div id="accountLoginButtons">
+                            <button id="forgotUsername">Forgot login details</button>
+                            <button id="goCreateAccountButton">Create account</button>
+                            <button id="loginButton">Login</button>
+                        </div>
+                    </div>
+                    <div class="createAccountPanel back">
+                        <span class="verticalText">Account creation</span>
+                        <div id="userEntry">
+                            <span>Username</span>
+                            <input type="text" name="userTextboxCreate">
+                            <span>Password</span>
+                            <input type="password" name="passwordTextboxCreate">
+                            <span>Repeat Password</span>
+                            <input type="password" name="passwordRTextboxCreate">
+                            <span>Email</span>
+                            <input type="text" name="emailTextboxCreate">
+                        </div>
+                        <div id="accountCreationButtons">
+                            <button id="back">Back</buton>
+                            <button id="createAccountButton">Create account</buton>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+            <div id="loggedInContainer">
+                <img id="userAvatarStart" class = "userAvatar" src="restricted/images/avatars/defaultAvatar.png">
+                <span id="usernameSpan">USERNAME</span>
+                <button id="manageAccountButton" class="loggedInButtons">Manage account</button>
+                <button id="logoutButton" class="loggedInButtons">Logout</button>
+            </div>
+    </body>
+</html>
