@@ -41,16 +41,21 @@
     line-height: 13px;
     padding: 5 5 5 5;
     background-color: lightgrey;
-    width: 160px;
-    height: 170px;
+    width: 170px;
+    height: 200px;
+}
+.right{
+    position: relative;
+    float: right;
+    
 }
 .createAccountPanel{
     border-top-right-radius: 10px;
     border-bottom-left-radius: 10px; 
 }
 #userEntry input{
-    margin-top: 3px;
-    margin-bottom: 3px;
+    margin-top: 7px;
+    margin-bottom: 7px;
 }
 .mainPageLoginPanel input{
     margin-top: 10px;
@@ -105,11 +110,14 @@ div.startScreenMainButtons button:last{
     margin-top: 5px;
 }
 
-#forgotUsername {
-    margin-top: 10px;
-    margin-bottom: 5px;
-    width: 145px;
+#accountLoginButtons #forgotUsername {
     color: red;
+    font-size: 9pt;
+    /*border-radius: 5px;
+    background-color: white;
+    border-style: solid;
+    border-width: 1px;*/
+    
 }
 
 #loggedInContainer{
@@ -152,9 +160,7 @@ div.startScreenMainButtons button:last{
     min-width: 70px;
 }
 
-#accountLoginButtons{
-margin-top:-12px;
-}
+
 
 input[type="text"]{
 
@@ -163,4 +169,17 @@ line-height: 10px;
 
 span{
 line-height: 10px
+}
+#loginTextBoxes {
+    position:relative;
+}
+
+#userEntry {
+    position:relative;
+}
+
+#accountLoginButtons button {
+    width: 130px;
+    margin-bottom: 9px;
+    font-size: 10pt;
 }
