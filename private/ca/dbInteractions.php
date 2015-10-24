@@ -61,7 +61,12 @@ function create_account($jsonData){
 function delete_account(){
     try{
         //firstly remove avatar file
-        remove_avatar();
+        try{
+            remove_avatar();
+        }catch (Exception $e){
+            continue;
+        }
+        
         //delete account
         $conn = create_connection();
         $stmt = $conn->prepare('DELETE FROM User WHERE username = :username');
@@ -76,7 +81,7 @@ function delete_account(){
             successful_logout();
             return true;
         }else{
-            throw new Exception("Failed to write to database",501);
+            throw new Exception("Failed to write to database a",501);
         }
     } catch(Exception $e){
         throw $e;
@@ -202,6 +207,28 @@ function remove_avatar(){
         set_avatar("");
     } catch(Exception $e){
        throw $e; 
+    }
+}
+
+function get_notifications($from,$limit){
+    try{
+        //if from 0, set to curent timestamp
+        $_POST["original"]=array($from,$limit);
+        $from = (int)($from!=0) ? $from : time();
+        //if number 0, set infinity
+        $limit = (int)($limit>0) ? $limit : PHP_INT_MAX;
+        $_POST['additional']=array($from,$limit,$_SESSION["user"]);
+        //fetch records
+        $conn = create_connection();
+        $stmt = $conn->prepare('SELECT `type`,`title`,`message`,`timestamp`,`opened` FROM `Notification` WHERE `user` = :username AND UNIX_TIMESTAMP(`timestamp`) < :timestamp ORDER BY `timestamp` DESC LIMIT :limit');
+        $stmt->bindParam(':username',$_SESSION["user"],PDO::PARAM_STR);
+        $stmt->bindParam(':timestamp',$from,PDO::PARAM_INT);
+        $stmt->bindParam(':limit',$limit,PDO::PARAM_INT);
+        $stmt->execute();
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $result;
+    } catch(Exception $e){
+        throw $e;
     }
 }
 

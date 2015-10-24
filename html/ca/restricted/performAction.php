@@ -7,13 +7,19 @@ require_once("../../../private/ca/fileManipulation.php");
 protected_page_check_session_credentials();
 header('Content-Type: application/json');
 try{
-    $jsonString = null;
+    $jsonData = null;
     $action = null;
     $file=null;
     
     $action = $_POST['action'];
-    //$jsonString = $_POST['json'];
-    //$jsonData = decode_JSON($jsonString);
+    try{
+        $jsonString = $_POST['json'];
+        $jsonData = (array)json_decode($jsonString);
+    }catch(Exception $e){
+        continue;
+    }
+    $_POST["jsonData"]=$jsonData;
+    
     $result = false;
     switch($action){
         case "fetchAvatar":
@@ -30,6 +36,9 @@ try{
             break;
         case "deleteAccount":
             $result = delete_account();
+            break;
+        case "fetchNotifications":
+            $result = get_notifications($jsonData["fromDate"],$jsonData["limit"]);
             break;
         default:
             throw new Exception("POST parameter 'action' not supplied",100);

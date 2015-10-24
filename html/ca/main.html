@@ -5,11 +5,9 @@
 		<script>
             var _user = null;
             var _userAvatarSrc = "restricted/images/avatars/defaultAvatar.png";
-            var sessionID = null;
             var blockPageLoading = false;
 			$("document").ready(function (){
 				//load default background
-                sessionID = getCookie("PHPSESSID");
                 loadBackground("images/testBG.jpg");
                 clearScreenToStartScreen();
 			});

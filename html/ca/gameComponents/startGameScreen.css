@@ -117,15 +117,14 @@ div.startScreenMainButtons button:last{
 }
 
 #loggedInContainer{
-    position: absolute;
+    position: relative;
     height: 75px;
     width: 200px;
-    top: 25px;
-    left: 25px;
     perspective: 1000px;
     background-color: lightgrey;
     border-radius: 10px;
     padding: 5px 5px 5px 5px;
+    margin-bottom: 5px;
 }
 #usernameSpan{
     float:left;
@@ -184,3 +183,64 @@ line-height: 10px
 #loggedInContainerButtons {
     position: relative;
 }
+
+#loggedInLeftBar {
+    position: absolute;
+    height: 125px;
+    width: 210px;
+    top: 25px;
+    left: 25px;
+}
+
+#notificationsContainer {
+    position: relative;
+    max-height: 220px;
+    width: 200px;
+    perspective: 1000px;
+    background-color: lightgrey;
+    border-radius: 10px;
+    padding: 5px 5px 5px 5px;
+    margin-bottom: 5px;
+    align-content: center;
+    overflow-y: scroll;
+    
+}
+
+#notificationsMainTitle {
+    font-size: 12pt;
+    font-weight: bold;
+}
+.notification{
+    position: relative;
+    background-color: white;
+    border-radius: 10px;
+    padding: 5px 5px 5px 5px;
+    margin-top: 5px;
+}
+
+.opened{
+    background-color: lightslategray;
+}
+
+.notification .notificationTitle{
+    font-size: 10pt;
+    margin-bottom: 4px;
+}
+
+.notification .notificationMessage{  
+    line-height: 6pt;
+    font-size: 8pt;
+    margin-bottom: 3px;
+}
+
+.notification .notificationDate{ 
+    position: relative;
+    float:right;
+    line-height: 4pt;
+    font-size: 6pt;
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+
+
+

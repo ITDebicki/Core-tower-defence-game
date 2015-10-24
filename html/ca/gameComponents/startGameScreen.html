@@ -3,7 +3,7 @@
         <link rel="stylesheet" type="text/css" href="gameComponents/startGameScreen.css">
         <script>
             $("document").ready(function(){
-                $("#loggedInContainer").fadeOut(0);
+                $("#loggedInLeftBar").fadeOut(0);
                 //set handlers
                 $("#startButton").click(startPressed);
                 $("#loadGameButton").click(loadPressed);
@@ -101,6 +101,10 @@
                                 
                                 fetchUserAvatar(setAvatar);
                                 switchLoggedInWindows();
+                                //clear all notifications
+                                clearAllNotifications();
+                                //fetch notifications
+                                fetchNotifications(0,10);
                             }else{
                                 if (showAlert){
                                     alert(response["error"],response["errorCode"]); 
@@ -117,7 +121,7 @@
                 lockButtons("button");
                 //switch windows
                 $("#flipContainer").fadeToggle(500);
-                $("#loggedInContainer").fadeToggle(500);
+                $("#loggedInLeftBar").fadeToggle(500);
                 //reset textboxes
                 $("input[name=passwordTextbox]").val("");
                 $("input[name=userTextboxCreate]").val("");
@@ -222,6 +226,55 @@
                 return true;
             }
             
+            function fetchNotifications(timestamp,limit){
+                $.ajax({
+                        url: 'restricted/performAction.php',
+                        type: 'POST',
+                        method: 'POST',
+                        dataType: "json",
+                        data: { "action": "fetchNotifications", "json":'{"fromDate":' + timestamp +',"limit":' + limit +'}'},
+                        success: function(response){ 
+                            console.log(response);
+                            if (response["success"]==true){
+                                //append to notifications
+                                console.log("success");
+                                var responseData = response["data"];
+                                for (i=0; i < responseData.length; i++){
+                                    generateNotificationDiv(responseData[i]["timestamp"],responseData[i]["type"],responseData[i]["title"],responseData[i]["message"],responseData[i]["opened"]);
+                                }
+                            }else{
+                                alert(response["error"],response["errorCode"]);   
+                            }
+                        },
+                        error:logError
+                    });
+            }
+            
+            function clearAllNotifications(){
+                $("#notificationsContainer").remove(".notification");
+            }
+            
+            function generateNotificationDiv(timestamp,type,title,message,opened){
+                var notification = $("<div id='" + timestamp + "'></div>");
+                notification.addClass("notification");
+                if (opened==true){
+                    notification.addClass("opened");
+                }
+                var titleDiv = $("<div class='notificationTitle'>" + title + "</div>");
+                var messageDiv = $("<div class='notificationMessage'>" + message + "</div>");
+                var dateDiv = $("<div class='notificationDate'>" + timestamp + "</div>");
+                notification.append(titleDiv);
+                notification.append(messageDiv);
+                notification.append(dateDiv);
+
+                //append notification
+                
+                $("#notificationsContainer").append(notification);
+                var totalHeight = titleDiv.outerHeight(true) + messageDiv.outerHeight(true) + dateDiv.outerHeight(true);
+                notification.height(totalHeight);
+                console.log(totalHeight);
+            }
+            
             function logError(jqXHR,textStatus,errorThrown){
                 console.log(jqXHR);
                 console.log(textStatus);
@@ -280,14 +333,18 @@
                     </div>
                 </div>
             </div>
-            <div id="loggedInContainer">
-                <img id="userAvatarStart" class = "userAvatar" src="restricted/images/avatars/defaultAvatar.png">
-                <span id="usernameSpan">USERNAME</span>
-                <div id="loggedInContainerButtons">
-                    <button id="manageAccountButton" class="loggedInButtons">Manage account</button>
-                    <button id="logoutButton" class="loggedInButtons">Logout</button>
+            <div id="loggedInLeftBar">
+                <div id="loggedInContainer">
+                    <img id="userAvatarStart" class = "userAvatar" src="restricted/images/avatars/defaultAvatar.png">
+                    <span id="usernameSpan">USERNAME</span>
+                    <div id="loggedInContainerButtons">
+                        <button id="manageAccountButton" class="loggedInButtons">Manage account</button>
+                        <button id="logoutButton" class="loggedInButtons">Logout</button>
+                    </div>
                 </div>
-                
+                <div id="notificationsContainer">
+                    <span id="notificationsMainTitle">Notifications</span>
+                </div>
             </div>
     </body>
 </html>
