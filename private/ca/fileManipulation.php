@@ -96,4 +96,16 @@
             throw new Exception("Failed to scale image",606,$e);
         }
     }
+
+function remove_avatar_file($file){
+    try{
+        if ($file!=NULL || $file!=""){
+            if (!unlink("/var/www/html/ca/restricted/images/avatars/" . $file)){
+                throw new Exception("Failed to delete file",607);
+            }
+        }
+    } catch(Exception $e){
+        throw $e;
+    }  
+}
 ?>

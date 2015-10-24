@@ -58,7 +58,7 @@ function create_account($jsonData){
     }
 }
 
-function deleteAccount(){
+function delete_account(){
     try{
         $conn = create_connection();
         $stmt = $conn->prepare('DELETE FROM User WHERE username = :username');
@@ -162,6 +162,11 @@ function fetch_avatar(){
 function set_avatar($filename){
   //send request
     try{
+        //fetch previous filename
+        $prevAvatarFile=fetch_avatar();
+        //remove previous file
+        remove_avatar_file($prevAvatarFile);
+        //set new file
         $conn = create_connection();
         $stmt = $conn->prepare('UPDATE User SET avatarFile = :file WHERE username = :username');
         //set to null if none set
@@ -186,6 +191,15 @@ function set_avatar($filename){
 function set_thumbnail($filename){
     
     
+}
+
+function remove_avatar(){
+    try{
+        //remove entry from database
+        set_avatar("");
+    } catch(Exception $e){
+       throw $e; 
+    }
 }
 
 ?>

@@ -3,7 +3,7 @@
 require_once("../../../private/ca/dbInteractions.php");
 require_once("../../../private/ca/sessionFunctions.php");
 require_once("../../../private/ca/generalFunctions.php");
-require_once("../../../private/ca/upload.php");
+require_once("../../../private/ca/fileManipulation.php");
 protected_page_check_session_credentials();
 header('Content-Type: application/json');
 try{
@@ -26,10 +26,10 @@ try{
             $result = upload_file($_FILES['userfile'],"mapThumbnails");
             break;
         case "removeAvatar":
-            $result = set_avatar("");
+            $result = remove_avatar();
             break;
         case "deleteAccount":
-            $result = deleteAccount();
+            $result = delete_account();
             break;
         default:
             throw new Exception("POST parameter 'action' not supplied",100);

@@ -80,22 +80,25 @@
                 
                 //remove avatar
                 $("#removeAvatarButton").click(function(evt){
-                    $.ajax({
-                        url: 'restricted/performAction.php',
-                        type: 'POST',
-                        method: 'POST',
-                        dataType: "json",
-                        data: {"action":"removeAvatar", "json":"{}"},
-                        success:function(response){
-                            console.log(response);
-                            if (response["success"]==true){
-                                loadAvatar();
-                                $("#avatarUploadText").removeClass("hover");
-                            }else{
-                                alert(response["error"],response["errorCode"]); 
+                    if(confirm("Are you sure you want to delete your current avatar?")){
+                         $.ajax({
+                            url: 'restricted/performAction.php',
+                            type: 'POST',
+                            method: 'POST',
+                            dataType: "json",
+                            data: {"action":"removeAvatar", "json":"{}"},
+                            success:function(response){
+                                console.log(response);
+                                if (response["success"]==true){
+                                    loadAvatar();
+                                    $("#avatarUploadText").removeClass("hover");
+                                }else{
+                                    alert(response["error"],response["errorCode"]); 
+                                }
                             }
-                        }
-                    });
+                        });   
+                    }
+                    
                 });
                 
                 //delete account

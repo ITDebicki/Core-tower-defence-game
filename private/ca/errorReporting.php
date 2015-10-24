@@ -28,6 +28,7 @@ Error codes:
 604 - Failed to move file
 605 - Unable to generate unique file name
 606 - failed to scale image
+607 - failed to delete file
 */
 function error_handler($e){
     $displayError = array("success" => false, "error" => $e->getMessage(), "errorCode" => $e->getCode(),"post" => $_POST);
