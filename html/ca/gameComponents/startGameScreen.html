@@ -36,6 +36,7 @@
                     },
                     error:logError
                 }).done(function(response){
+                    console.log(response);
                     var file = null;
                      if (response["success"]==true){
                         var file = response["data"];

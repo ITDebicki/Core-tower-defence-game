@@ -1,9 +1,11 @@
 <?php
+
 require_once("../../../private/ca/dbInteractions.php");
 require_once("../../../private/ca/sessionFunctions.php");
 require_once("../../../private/ca/generalFunctions.php");
 require_once("../../../private/ca/upload.php");
 protected_page_check_session_credentials();
+header('Content-Type: application/json');
 try{
     $jsonString = null;
     $action = null;
@@ -23,8 +25,11 @@ try{
         case "uploadThumbnail":
             $result = upload_file($_FILES['userfile'],"mapThumbnails");
             break;
+        case "removeAvatar":
+            $result = set_avatar("");
+            break;
         default:
-            throw new Exception("GET parameter 'action' not supplied",100);
+            throw new Exception("POST parameter 'action' not supplied",100);
     }
     
     $resultDict = array("success" => true, "data" =>$result, "debug" => $_POST);

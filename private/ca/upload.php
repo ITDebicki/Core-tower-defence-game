@@ -69,7 +69,12 @@
             if (move_uploaded_file($file['tmp_name'][0], $target_file)) {
                 //set location in database
                 scale_file($target_file,$fileType);
-                return set_avatar($filename);
+                if ($targetLocation == "avatars"){
+                    return set_avatar($filename);
+                }else{
+                    return set_thumbnail($filename);
+                }
+                
             } else {
                 throw new Exception("Failed to move file",604);
             }

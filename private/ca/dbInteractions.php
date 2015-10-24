@@ -142,6 +142,9 @@ function set_avatar($filename){
     try{
         $conn = create_connection();
         $stmt = $conn->prepare('UPDATE User SET avatarFile = :file WHERE username = :username');
+        //set to null if none set
+        $filename = ($filename != '') ? $filename : NULL;
+        
         $stmt->execute(array(':file' => $filename,':username' => $_SESSION['user']));
         $affectedRows = $stmt->rowCount();
 
@@ -156,6 +159,11 @@ function set_avatar($filename){
     } catch(Exception $e){
         throw $e;
     }    
+}
+
+function set_thumbnail($filename){
+    
+    
 }
 
 ?>
