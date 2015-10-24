@@ -6,6 +6,12 @@ require_once("../../../private/ca/errorReporting.php");
 header("Access-Control-Allow-Origin: *");
 header('Content-Type: application/json');
 try{
+    if (is_logged_in() && is_session_valid()){
+        //already logged in
+        echo '{"success":true,"username":"' . $_SESSION['user'] . '"}';
+        exit(0);
+    }
+    
     $uType = null;
     $uUser = null;
     $uPassword = null;
@@ -47,13 +53,14 @@ try{
                 //set session to logged in
                 successful_login($user);
                 //succesfull login
-                echo '{"success":true}';
+                echo '{"success":true, "username":"' .$user . '"}';
 
             }else{
                 echo '{"success":false, "error":"Invalid username or password", "errorCode":500}';   
             }
 
         }
+        
     }
 }catch(Exception $e){
     error_handler($e);   

@@ -16,6 +16,7 @@
                 
                 //set handlers
                 $("#hideOverlayButton").click(hideOverlay);
+                
                 $("#avatarSelector").change(function() { 
                     if (formdata) {
                         if (this.files[0].size > 1048576 || this.files.length > 1){
@@ -28,7 +29,6 @@
                             $("#avatarUploaderForm").submit();
                         }
                     }
-                    
                     
                 });
                 
@@ -49,7 +49,8 @@
                             if (response["success"]==true){
                                 loadAvatar();
                             }else{
-                                alert(response["error"],response["errorCode"]);   
+                                alert(response["error"],response["errorCode"]);
+                                $("#avatarUploadText").removeClass("hover");
                             }
                         },
                         error:logError
@@ -57,10 +58,26 @@
                     }
                     
                 });
+                
+                $("#avatarSelector").mouseover(function(evt){
+                    $("#avatarUploadText").addClass("hover"); 
+                    
+                });
+                $("#avatarSelector").mouseout(function(evt){
+                    $("#avatarUploadText").removeClass("hover");
+                });
+                $("#wrapper").on("dragover",function(evt){
+                    $("#avatarUploadText").addClass("hover"); 
+                });
+                $("#wrapper").on("dragleave",function(evt){
+                    $("#avatarUploadText").removeClass("hover"); 
+                });
                 //fade back in
                 $("#overlay").fadeTo(500,0.9);
                 $("#wrapper").fadeIn(500);
+                
             });
+            
             
             function hideOverlay(evt){
                 $("#wrapper").fadeOut(100,function(){
@@ -80,16 +97,20 @@
             <div id="overlay"></div>
             <div id="avatarImageContainer">
                 <img id="avatarImage" class = "userAvatar" src="restricted/images/avatars/defaultAvatar.png">
-                <form id="avatarUploaderForm" enctype="multipart/form-data" method="POST" action="restrcted/performAction.php">
+                <div id="avatarUploadText">
+                    <span id="changeAvatarText">Change avatar</span>
+                </div>
+                <form id="avatarUploaderForm" enctype="multipart/form-data" method="POST" action="restricted/performAction.php">
                     <input type="hidden" name="action" value="uploadAvatar" />
                     <!-- MAX_FILE_SIZE must precede the file input field -->
                     <input type="hidden" name="MAX_FILE_SIZE" value="1048576" />
                     <!-- Name of input element determines name in $_FILES array -->
-                    <input id="avatarSelector" name="userfile" type="file" />
+                    <input id="avatarSelector" name="userfile[]" type="file" />
                 </form>
-                <button id="removeAvatarButton">Remove avatar</button>
-                
+            <button id="removeAvatarButton">Remove avatar</button>
             </div>
+
+        
             <div id="buttonDiv">
                 <button id="deleteAllSavesButton">Delete all saves</button>
                 <button id="deleteAccountButton">Delete account</button>

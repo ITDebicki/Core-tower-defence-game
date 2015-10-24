@@ -17,18 +17,17 @@
 }
 
 #avatarImage{
-    position: relative;
-    top: 0px;
-    left: 0px;
-    height: 100%;
-    width: 100%;
+    position: absolute;
+    height: 150px;
+    width: 150px;
 }
 #avatarImageContainer{
     position: absolute;
     top: 20px;
     left: 80px;
     height: 150px;
-    width: 150px;
+    width: 170px;
+    z-index: 1;
 }
 
 #buttonDiv{
@@ -51,4 +50,68 @@
     font-size: 1em;
     border-radius: 25px;
     margin-bottom: 30px;   
+}
+
+#avatarImage.hover{
+    color: #f00;
+	border-color: #f00;
+	border-style: solid;
+    border: 
+}
+
+
+
+
+
+
+
+
+
+
+#avatarSelector {
+    height: 150px;
+    width: 150px;
+    opacity: 0; 
+}
+
+#avatarUploaderForm {
+    position: absolute;
+}
+
+#removeAvatarButton {
+    position: relative;
+    top: 150px;
+    margin-top: 10px;
+    width: 150px;
+    height: 30px;
+    color: black;
+    text-align: center;
+    font-size: 1em;
+    border-radius: 15px;
+}
+
+#avatarUploadText {
+    position: absolute;
+    height: 75px;
+    width: 150px;
+    opacity: 0;
+    background-color: lightgray;
+    color: black;
+    align-content: center;
+    align-items: center;
+    text-align: center;
+    vertical-align: middle;
+    padding-top: 75px;
+}
+#avatarUploadText.hover{
+    border-width: 1px;
+    border-style: dashed;
+    border-color: black;
+    opacity: 0.6;
+}
+
+
+
+#avatarUploadText #changeAvatarText {
+    opacity: 1;
 }

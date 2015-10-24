@@ -113,11 +113,7 @@ div.startScreenMainButtons button:last{
 #accountLoginButtons #forgotUsername {
     color: red;
     font-size: 9pt;
-    /*border-radius: 5px;
-    background-color: white;
-    border-style: solid;
-    border-width: 1px;*/
-    
+
 }
 
 #loggedInContainer{
@@ -136,6 +132,7 @@ div.startScreenMainButtons button:last{
     top: 2px;
     margin-left: 10px;
     margin-bottom: 6px;
+    margin-right: 10px;
 }
 .loggedInButtons{
     margin-left: 10px;
@@ -182,4 +179,8 @@ line-height: 10px
     width: 130px;
     margin-bottom: 9px;
     font-size: 10pt;
+}
+
+#loggedInContainerButtons {
+    position: relative;
 }

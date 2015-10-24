@@ -5,7 +5,6 @@
             $("document").ready(function(){
                 $("#loggedInContainer").fadeOut(0);
                 //set handlers
-                
                 $("#startButton").click(startPressed);
                 $("#loadGameButton").click(loadPressed);
                 $("#optionsButton").click(optionsPressed);
@@ -15,11 +14,15 @@
                 $("#loginButton").click(login);
                 $("#logoutButton").click(logout);
                 $("#manageAccountButton").click(showAccountManagment);
+                
+                //try logging in
+                verifyLoginCredentials(false);
             });
             
             function showAccountManagment(evt){
                 loadElement("gameComponents/accountManagmentScreen.html","accountManagmentScreen");
             }
+            
             
             function fetchUserAvatar(callback){
                 $.ajax({
@@ -57,15 +60,32 @@
                 $(".userAvatar").each(function(){
                     console.log(fileURL);
                     console.log($(this));
-                    $(this).attr("src",fileURL);
+                    if ($(this).is("img")){
+                        $(this).attr("src",fileURL);
+                    }else{
+                        $(this).attr("background-image","url("+fileURL+")");
+                    }
+                        
                 });
             }
             
             function login(evt){
+                lockLoginButtons();
                 var username = $("input[name=userTextbox]").val();
                 var password = $("input[name=passwordTextbox]").val();
                 if (validateUser(username) && validatePassword(password)){
-                    $.ajax({
+                    verifyLoginCredentials(true);
+                }else{
+                    alert("Invalid username or password");  
+                    unlockLoginButtons();
+                }
+            }
+            
+            function verifyLoginCredentials(showAlert){
+                lockLoginButtons();
+                var username = $("input[name=userTextbox]").val();
+                var password = $("input[name=passwordTextbox]").val();
+                $.ajax({
                         url: 'restricted/login.php',
                         type: 'POST',
                         method: 'POST',
@@ -73,20 +93,22 @@
                         data: {"type":"login", "user":username, "password":password},
                         success:function(response){
                             console.log(response);
+                            console.log(response["username"]);
                             if (response["success"]==true){
-                                $("#usernameSpan").html(username);
-                                _user = username;
+                                _user = response["username"]
+                                $("#usernameSpan").html(_user);
+                                
                                 fetchUserAvatar(setAvatar);
                                 switchLoggedInWindows();
                             }else{
-                                alert(response["error"],response["errorCode"]);   
+                                if (showAlert){
+                                    alert(response["error"],response["errorCode"]); 
+                                }
                             }
                         },
                         error:logError
                     });
-                }else{
-                    alert("Invalid username or password");   
-                }
+                unlockLoginButtons();
             }
             
             function switchLoggedInWindows(){
@@ -134,6 +156,7 @@
                 alert("options pressed");
             }
             function createAccount(evt){
+                lockLoginButtons();
                 var username = $("input[name=userTextboxCreate]").val();
                 var password = $("input[name=passwordTextboxCreate]").val();
                 var passwordR = $("input[name=passwordRTextboxCreate]").val();
@@ -162,6 +185,7 @@
                         error:logError
                     });
                 }
+                unlockLoginButtons();
             }
             function validateUser(username){
                 if (username == "" || /^[a-zA-Z0-9]+$/.test(username)==false){
@@ -199,6 +223,14 @@
                 console.log(textStatus);
                 console.log(errorThrown);
             }
+            
+            function lockLoginButtons(){
+                $("#flipContainer button").attr("disabled", "disabled");
+            }
+            function unlockLoginButtons(){
+                $("#flipContainer button").removeAttr("disabled");
+            }
+            
         </script>
     </head>
     <body>
@@ -247,8 +279,11 @@
             <div id="loggedInContainer">
                 <img id="userAvatarStart" class = "userAvatar" src="restricted/images/avatars/defaultAvatar.png">
                 <span id="usernameSpan">USERNAME</span>
-                <button id="manageAccountButton" class="loggedInButtons">Manage account</button>
-                <button id="logoutButton" class="loggedInButtons">Logout</button>
+                <div id="loggedInContainerButtons">
+                    <button id="manageAccountButton" class="loggedInButtons">Manage account</button>
+                    <button id="logoutButton" class="loggedInButtons">Logout</button>
+                </div>
+                
             </div>
     </body>
 </html>

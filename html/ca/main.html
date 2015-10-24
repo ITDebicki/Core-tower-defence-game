@@ -5,12 +5,25 @@
 		<script>
             var _user = null;
             var _userAvatarSrc = "restricted/images/avatars/defaultAvatar.png";
+            var sessionID = null;
 			$("document").ready(function (){
 				//load default background
+                sessionID = getCookie("PHPSESSID");
                 loadBackground("images/testBG.jpg");
                 clearScreenToStartScreen();
 			});
-			    
+			 
+            function getCookie(cname) {
+                var name = cname + "=";
+                var ca = document.cookie.split(';');
+                for(var i=0; i<ca.length; i++) {
+                    var c = ca[i];
+                    while (c.charAt(0)==' ') c = c.substring(1);
+                    if (c.indexOf(name) == 0) return c.substring(name.length,c.length);
+                }
+                return "";
+            }
+            
 			function loadBackground(image) {
                 $("#gameDiv").css("background-image","url(" + image + ")");
 			}
@@ -40,6 +53,8 @@
             function removeElement(id){
                 $("#" + id).remove();
             }
+            
+
 		</script>
 	</head>
 	<body>
