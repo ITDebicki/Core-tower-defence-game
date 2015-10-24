@@ -60,6 +60,9 @@ function create_account($jsonData){
 
 function delete_account(){
     try{
+        //firstly remove avatar file
+        remove_avatar();
+        //delete account
         $conn = create_connection();
         $stmt = $conn->prepare('DELETE FROM User WHERE username = :username');
         $stmt->execute(array(':username' => $_SESSION["user"]));
