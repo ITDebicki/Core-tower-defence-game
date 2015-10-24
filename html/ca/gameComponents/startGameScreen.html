@@ -112,6 +112,8 @@
             }
             
             function switchLoggedInWindows(){
+                //lock buttons
+                lockButtons("button");
                 //switch windows
                 $("#flipContainer").fadeToggle(500);
                 $("#loggedInContainer").fadeToggle(500);
@@ -121,6 +123,7 @@
                 $("input[name=passwordTextboxCreate]").val("");
                 $("input[name=passwordRTextboxCreate]").val("");
                 $("input[name=emailTextboxCreate]").val("");
+                unlockButtons("button");
             }
             function logout(evt){
                 $.ajax({
@@ -225,10 +228,10 @@
             }
             
             function lockLoginButtons(){
-                $("#flipContainer button").attr("disabled", "disabled");
+                lockButtons("#flipContainer button");
             }
             function unlockLoginButtons(){
-                $("#flipContainer button").removeAttr("disabled");
+                unlockButtons("#flipContainer button");
             }
             
         </script>

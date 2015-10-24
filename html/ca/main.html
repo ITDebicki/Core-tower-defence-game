@@ -6,6 +6,7 @@
             var _user = null;
             var _userAvatarSrc = "restricted/images/avatars/defaultAvatar.png";
             var sessionID = null;
+            var blockPageLoading = false;
 			$("document").ready(function (){
 				//load default background
                 sessionID = getCookie("PHPSESSID");
@@ -43,15 +44,30 @@
             }
             
             function loadElement(element,id){
-                var screen = $("#gameDiv");
-                screen.append('<div id="' + id +'"></div>')
-                $.get(element, function(data) {
-                    $("#" + id).append(data);
-                });
+                if (blockPageLoading == false){
+                    console.log("block")
+                    blockPageLoading = true;
+                    var screen = $("#gameDiv");
+                    screen.append('<div id="' + id +'"></div>')
+                    $.get(element, function(data) {
+                        $("#" + id).append(data);
+                    });
+                    blockPageLoading = false;
+                    console.log("unblock");
+                }
+                
+                // $("id").length - could add to queue for specific instances
             }
             
             function removeElement(id){
                 $("#" + id).remove();
+            }
+            
+            function lockButtons(id){
+                $(id).attr("disabled", "disabled");
+            }
+            function unlockButtons(id){
+                $(id).removeAttr("disabled");
             }
             
 

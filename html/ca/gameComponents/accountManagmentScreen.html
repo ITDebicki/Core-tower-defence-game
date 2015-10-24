@@ -3,6 +3,7 @@
         <link rel="stylesheet" type="text/css" href="gameComponents/accountManagmentScreen.css">
         <script>
             $("document").ready(function(){
+                lockButtons("#loggedInContainerButtons");
                 //firstly don't show the div
                 $("#overlay").fadeOut(0);
                 $("#wrapper").fadeOut(0);
@@ -75,7 +76,8 @@
                 //fade back in
                 $("#overlay").fadeTo(500,0.9);
                 $("#wrapper").fadeIn(500);
-                
+                //unlock buttons
+                unlockButtons("#loggedInContainerButtons");
             });
             
             
