@@ -8,6 +8,7 @@ header('Content-Type: application/json');
 try{
     if (is_logged_in() && is_session_valid()){
         //already logged in
+        log_login($user);
         echo '{"success":true,"username":"' . $_SESSION['user'] . '"}';
         exit(0);
     }
