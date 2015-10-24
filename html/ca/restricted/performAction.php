@@ -28,6 +28,9 @@ try{
         case "removeAvatar":
             $result = set_avatar("");
             break;
+        case "deleteAccount":
+            $result = deleteAccount();
+            break;
         default:
             throw new Exception("POST parameter 'action' not supplied",100);
     }

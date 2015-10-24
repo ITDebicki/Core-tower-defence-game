@@ -7,8 +7,7 @@ require_once("generalFunctions.php");
 
 
 
-function create_account($jsonData){
-    
+function create_account($jsonData){  
     try{
         //initiate variables for entire scope
         $user="";
@@ -57,6 +56,29 @@ function create_account($jsonData){
     } catch(Exception $e){
         throw $e;
     }
+}
+
+function deleteAccount(){
+    try{
+        $conn = create_connection();
+        $stmt = $conn->prepare('DELETE FROM User WHERE username = :username');
+        $stmt->execute(array(':username' => $_SESSION["user"]));
+        $affectedRows = $stmt->rowCount();
+
+        //close connection
+        $success = close_connection($conn);
+
+        if ($affectedRows > 0){
+            //log out
+            successful_logout();
+            return true;
+        }else{
+            throw new Exception("Failed to write to database",501);
+        }
+    } catch(Exception $e){
+        throw $e;
+    }   
+    
 }
 
 function validate_user($jsonData){

@@ -30,7 +30,7 @@ Error codes:
 606 - failed to scale image
 */
 function error_handler($e){
-    $displayError = array("success" => false, "error" => $e->getMessage(), "errorCode" => $e->getCode());
+    $displayError = array("success" => false, "error" => $e->getMessage(), "errorCode" => $e->getCode(),"post" => $_POST);
     echo json_encode($displayError);
     //var_dump($e);
 }

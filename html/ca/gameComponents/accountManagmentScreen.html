@@ -80,7 +80,6 @@
                 
                 //remove avatar
                 $("#removeAvatarButton").click(function(evt){
-                    console.log("updating");
                     $.ajax({
                         url: 'restricted/performAction.php',
                         type: 'POST',
@@ -97,6 +96,28 @@
                             }
                         }
                     });
+                });
+                
+                //delete account
+                $("#deleteAccountButton").click(function(evt){
+                    if(confirm("Once you delete your account all your saves and highscores will be deleted. Are you sure you want to proceed?")){
+                        $.ajax({
+                            url: 'restricted/performAction.php',
+                            type: 'POST',
+                            method: 'POST',
+                            dataType: "json",
+                            data: {"action":"deleteAccount", "json":"{}"},
+                            success:function(response){
+                                console.log(response);
+                                if (response["success"]==true){
+                                    _user = null;
+                                    clearScreenToStartScreen();
+                                }else{
+                                    alert(response["error"],response["errorCode"]); 
+                                }
+                            }
+                        });   
+                    }
                 });
                 
                 //fade back in
