@@ -220,7 +220,7 @@ function get_notifications($from,$limit){
         $_POST['additional']=array($from,$limit,$_SESSION["user"]);
         //fetch records
         $conn = create_connection();
-        $stmt = $conn->prepare('SELECT `type`,`title`,`message`,`timestamp`,`opened` FROM `Notification` WHERE `user` = :username AND UNIX_TIMESTAMP(`timestamp`) < :timestamp ORDER BY `timestamp` DESC LIMIT :limit');
+        $stmt = $conn->prepare('SELECT `type`,`title`,`message`,UNIX_TIMESTAMP(`timestamp`),`opened` FROM `Notification` WHERE `user` = :username AND UNIX_TIMESTAMP(`timestamp`) < :timestamp ORDER BY `timestamp` DESC LIMIT :limit');
         $stmt->bindParam(':username',$_SESSION["user"],PDO::PARAM_STR);
         $stmt->bindParam(':timestamp',$from,PDO::PARAM_INT);
         $stmt->bindParam(':limit',$limit,PDO::PARAM_INT);

@@ -202,7 +202,6 @@ line-height: 10px
     padding: 5px 5px 5px 5px;
     margin-bottom: 5px;
     align-content: center;
-    overflow-y: scroll;
     
 }
 
@@ -244,3 +243,16 @@ line-height: 10px
 
 
 
+
+#refreshNotifications {
+    float:right;
+    top: -4px;
+    position: relative;
+}
+
+#notificationsListContainer {
+    margin-top: 3px;
+    width: 200px;
+    overflow-y:scroll;
+    max-height:200px;
+}

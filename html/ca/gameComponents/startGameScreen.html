@@ -2,6 +2,7 @@
     <head>
         <link rel="stylesheet" type="text/css" href="gameComponents/startGameScreen.css">
         <script>
+            var noMoreNotifications = false;
             $("document").ready(function(){
                 $("#loggedInLeftBar").fadeOut(0);
                 //set handlers
@@ -14,6 +15,8 @@
                 $("#loginButton").click(login);
                 $("#logoutButton").click(logout);
                 $("#manageAccountButton").click(showAccountManagment);
+                $("#refreshNotifications").click(refreshNotifications);
+                $("#notificationsListContainer").scroll(scrolledNotifications);
                 
                 //try logging in
                 verifyLoginCredentials(false);
@@ -101,10 +104,9 @@
                                 
                                 fetchUserAvatar(setAvatar);
                                 switchLoggedInWindows();
-                                //clear all notifications
-                                clearAllNotifications();
                                 //fetch notifications
-                                fetchNotifications(0,10);
+                                refreshNotifications();
+                                
                             }else{
                                 if (showAlert){
                                     alert(response["error"],response["errorCode"]); 
@@ -239,8 +241,13 @@
                                 //append to notifications
                                 console.log("success");
                                 var responseData = response["data"];
+                                if (responseData.length==0){
+                                    //no more notifications
+                                    noMoreNotifications=true;
+                                }
                                 for (i=0; i < responseData.length; i++){
-                                    generateNotificationDiv(responseData[i]["timestamp"],responseData[i]["type"],responseData[i]["title"],responseData[i]["message"],responseData[i]["opened"]);
+                                    
+                                    generateNotificationDiv(responseData[i]["UNIX_TIMESTAMP(`timestamp`)"],responseData[i]["type"],responseData[i]["title"],responseData[i]["message"],responseData[i]["opened"]);
                                 }
                             }else{
                                 alert(response["error"],response["errorCode"]);   
@@ -251,29 +258,67 @@
             }
             
             function clearAllNotifications(){
-                $("#notificationsContainer").remove(".notification");
+                $("#notificationsListContainer").empty();
             }
             
             function generateNotificationDiv(timestamp,type,title,message,opened){
+                //var unixTimeStamp = new Date(timestamp.replace(' ', 'T')).getTime() / Math.pow(10,3);
                 var notification = $("<div id='" + timestamp + "'></div>");
+                var postDate = new Date(timestamp*1000);
                 notification.addClass("notification");
+                notification.data("timestamp",timestamp);
                 if (opened==true){
                     notification.addClass("opened");
                 }
                 var titleDiv = $("<div class='notificationTitle'>" + title + "</div>");
                 var messageDiv = $("<div class='notificationMessage'>" + message + "</div>");
-                var dateDiv = $("<div class='notificationDate'>" + timestamp + "</div>");
+                var dateDiv = $("<div class='notificationDate'>" + postDate.toLocaleTimeString()+' '+postDate.toLocaleDateString() + "</div>");
                 notification.append(titleDiv);
                 notification.append(messageDiv);
                 notification.append(dateDiv);
 
                 //append notification
                 
-                $("#notificationsContainer").append(notification);
+                $("#notificationsListContainer").append(notification);
                 var totalHeight = titleDiv.outerHeight(true) + messageDiv.outerHeight(true) + dateDiv.outerHeight(true);
                 notification.height(totalHeight);
-                console.log(totalHeight);
             }
+            
+            function scrolledNotifications(evt){
+                console.log(noMoreNotifications);
+                if (noMoreNotifications==false){
+                    if ($(this).scrollTop() + $(this).innerHeight() >= ($(this)[0].scrollHeight)){
+                        //when at bottom
+                        //find latest timestamp
+                        console.log("loading more");
+                        var notification = $("#notificationsListContainer .notification").last()
+                        console.log(notification.data("timestamp"));
+                        //load 10 more
+                        fetchNotifications(notification.data("timestamp"),10);
+                    }
+                }
+                
+            }
+            
+            function refreshNotifications(){
+                //animate to top
+                $('#notificationsListContainer').animate({
+                    scrollTop:0
+                },200,"swing",function(){
+                    $('#notificationsListContainer').slideUp(200);
+                    //clear notifications
+                    clearAllNotifications();
+                    //load first ten
+                    fetchNotifications(0,10);
+                    //reset scroll counter
+                    noMoreNotifications=false;
+                    $('#notificationsListContainer').slideDown(200);
+                });
+
+                
+                
+            }
+            
             
             function logError(jqXHR,textStatus,errorThrown){
                 console.log(jqXHR);
@@ -287,6 +332,8 @@
             function unlockLoginButtons(){
                 unlockButtons("#flipContainer button");
             }
+            
+
             
         </script>
     </head>
@@ -343,7 +390,10 @@
                     </div>
                 </div>
                 <div id="notificationsContainer">
-                    <span id="notificationsMainTitle">Notifications</span>
+                        <span id="notificationsMainTitle">Notifications</span>
+                        <button id="refreshNotifications">Refresh</button>
+                    <div id="notificationsListContainer">
+                    </div>
                 </div>
             </div>
     </body>
