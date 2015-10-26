@@ -1,0 +1,63 @@
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="gameComponents/pauseMenu.css">
+        <script>
+            
+            $("document").ready(function(){
+                //firstly don't show the div
+                $("#overlay").fadeOut(0);
+                $("#wrapper").fadeOut(0);
+
+                //set handlers
+                $("#backToGameButton").click(resumeGame);
+                $("#saveGameButton").click(saveGame);
+                $("#exitGameButton").click(exitGame);
+
+
+                //fade back in
+                $("#overlay").fadeTo(500,0.9);
+                $("#wrapper").fadeIn(500);
+            });
+
+            function resumeGame(evt){
+                removeOverlay();
+                //set multiplier to 1
+                $("#play1X").trigger("click");
+                //restart clock with delay
+                setTimeout(clockTick,500);
+            }
+            
+            function saveGame(evt){
+                
+            }
+            
+            function removeOverlay(){
+                $("#wrapper").fadeOut(100,function(){
+                    removeElement("pauseMenu");
+                });
+            }
+            
+            function exitGame(evt){
+                console.log("exiting game");
+                if(confirm("You will lose all your progress since your last save. Are you sure you want to quit?")){
+                    removeOverlay();
+                    $("#controlTray").hide('slide',{direction:'right'},500,function(){
+                        removeElement("mainGame");
+                        showStartScreen();
+                    });
+                }
+            }
+            
+        </script>
+    </head>
+    <body>
+        <div id="wrapper">
+            <div id="overlay"></div>
+        </div>
+        <div id="buttonDiv">
+            <button id="backToGameButton">Back to game</button>
+            <button id="saveGameButton">Save game</button>
+            <button id="exitGameButton">Exit game</button>
+        </div>
+    </body>
+</html>

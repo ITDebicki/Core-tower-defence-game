@@ -1,0 +1,114 @@
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="gameComponents/game.css">
+        <script>
+            var baseClock = 200;
+            var clockMultiplier = 1;
+            var clockTime = 0;
+            //set constants
+            var gameHeight = 675;
+            var gameWidth = 875;
+            var baseHealth = 100;
+            var score = 0;
+            var mapPath = null;
+            var enemies = null;
+            var towers = null;
+            var stopTick = false;
+            
+            $("document").ready(function(){
+                //set self to hidden
+                $("#controlTray").hide('fade',0,function(){
+                    $("#controlTray").removeAttr("display");
+                });
+                
+                //set handlers
+                $(".timeControl").click(changePlaybackTime);
+                
+                
+                //animate tray in
+                $("#controlTray").show('slide',{direction:'right'},1000);
+                
+                //set height and width constants
+                loadMap("exampleMap");
+                clockTick();
+            });
+            
+            function clockTick(){
+                clockTime++;
+                console.log("tick");
+                //console.log(clockTime)
+                //perform updates
+                
+                //schedual function with correct clock delay
+                if (clockMultiplier>0){
+                    if (stopTick==false){
+                        setTimeout(clockTick,baseClock/clockMultiplier);
+                    }else{
+                        stopTick = false;
+                    }
+                    
+                    
+                }else{
+                    //display pause menu
+                    console.log("showing pause menu");
+                    loadElement("gameComponents/pauseMenu.html","pauseMenu");
+                }
+                
+            }
+            
+            function changePlaybackTime(evt){
+                clockMultiplier = $(this).data("speed");
+                $(".selectedTimeControl").removeClass("selectedTimeControl");
+                $(this).addClass("selectedTimeControl");
+            }
+            
+            function loadMap(mapName){
+                //load background
+                loadBackground("gameComponents/maps/"+mapName+".png");
+                //load map path
+                $.getJSON( "gameComponents/maps/"+mapName+".mp", function( data ) {
+                    var pathRadius = data["radius"];
+                    var mapPath = data["path"];
+                    var gameContainer = $("#gameSpace")
+                    //draw map path using divs
+                    for (i = 0;i<mapPath.length-1;i++){      
+                        var pathComponentHeight = pathRadius * 2;
+                        //work out angle between the two points
+                        var angle = Math.atan(Math.abs(mapPath[i][1]-mapPath[i+1][1])/Math.abs(mapPath[i][0]-mapPath[i+1][0]));
+                        //always take smaller value of x and y
+                        var x = Math.min(mapPath[i][0],mapPath[i+1][0])-pathRadius + pathRadius * Math.sin(angle);
+                        var y = Math.min(mapPath[i][1],mapPath[i+1][1])-pathRadius - pathRadius * Math.sin(angle);
+                        //use pythagoras to calculate length of div
+                        var pathComponentWidth = Math.sqrt(Math.pow((mapPath[i][0]-mapPath[i+1][0]),2)+Math.pow((mapPath[i][1]-mapPath[i+1][1]),2))+2*pathRadius;
+                        
+                        console.log(y,mapPath[i][0],mapPath[i+1][0]);
+                        //add to layout
+                        var pathComponent = $('<div id="'+i+'" class="mapPathTile tile">');
+                        gameContainer.append(pathComponent);
+                        //apply changes to div
+                        pathComponent.css({left: x, top: y, width: pathComponentWidth,height: pathComponentHeight, transform:"rotate("+angle+"rad)"}); 
+                    }
+                    //position base
+                    var baseDiv = $('<div class="baseTile tile">');
+                    gameContainer.append(baseDiv);
+                    baseDiv.css({left: data["baseLocation"][0] - 35, top: data["baseLocation"][1] - 35, width: data["baseRadius"]*2,height: data["baseRadius"]*2});
+                });
+            }
+
+            
+        </script>
+    </head>
+    <body>
+        <div id="controlTray">
+            <div id="timeControls">
+                <img class="timeControl" id="pause" data-speed="0" src="gameComponents/images/pause.png">
+                <img class="timeControl" id="play0.5X" data-speed="0.5" src="gameComponents/images/halfPlay.png">
+                <img class="timeControl selectedTimeControl" id="play1X" data-speed="1" src="gameComponents/images/play.png">
+                <img class="timeControl" id="play2X" data-speed="2" src="gameComponents/images/ff2x.png">
+                <img class="timeControl" id="play3X" data-speed="4" src="gameComponents/images/ff3x.png">
+            </div>  
+        </div>
+        <div id="gameSpace">
+        </div>
+    </body>
+</html>

@@ -157,7 +157,15 @@
             }
 
             function startPressed(evt){
-                alert("start pressed");
+                //remove all elements
+                $("#startGameScreen").children().animate({
+                top: '-1000px'},1000,function(){
+                    if ($(this).is(':last-child')){
+                        removeElement("startGameScreen");
+                        loadElement("gameComponents/game.html","mainGame");
+                    }
+                });
+                
             }
             function loadPressed(evt){
                 alert("load pressed");
@@ -338,6 +346,7 @@
         </script>
     </head>
     <body>
+            <div id="mainOverlay"></div>
             <h1 id="mainTitle">Tower defence</h1>
             <div class="startScreenMainButtons">
                 <button id="startButton">Start game</button>

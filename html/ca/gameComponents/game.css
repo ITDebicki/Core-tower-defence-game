@@ -1,0 +1,64 @@
+
+#controlTray {
+    display: none;
+    background-color: lightgray;
+    float: right;
+    height:100%;
+    width:225px;
+    border-left: 3px;
+    border-left-style: inset;
+    
+}
+
+.timeControl {
+    height: 15px;
+    margin-right: 10px;
+}
+
+.selectedTimeControl {
+    -webkit-filter:invert(0.5) sepia(1) brightness(1.0) hue-rotate(70deg);
+    filter:invert(0.5) sepia(1) brightness(1.0) hue-rotate(70deg);
+}
+
+#timeControls {
+    margin: 10px auto 0 auto;
+    width:150px;
+    
+}
+
+#exitGameButton {
+    width: 100%;
+    margin: 0 auto;
+    height: 30px;
+    color:red;
+    text-align: center;
+    font-size: 1em;
+    border-radius: 25px;
+    margin-bottom: 10px;  
+}
+
+#exitGameButtonContainer {
+    width: 60%;
+    margin: 3px auto 0 auto;
+}
+
+.mapPathTile{
+    opacity: 0;
+    position: absolute;
+    -webkit-transform-origin: left center;
+    transform-origin:left center; 
+}
+
+.tile{
+}
+
+.baseTile{
+    opacity:0;
+    position: absolute;
+}
+
+#gameSpace {
+    position: absolute;
+    height: 100%;
+    width: 875px;
+}

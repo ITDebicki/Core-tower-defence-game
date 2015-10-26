@@ -28,11 +28,13 @@ body{
     background-repeat: no-repeat;
     background-size: cover;
     position: relative;
-    top:1em;
     left: calc(50% - 550px);
     bottom: 2em;
     width: 1100px;
     height: 675px;
+    top:1em;
+    z-index:0;
+    position: absolute;
 }
 nav {
     background-color: #333;
@@ -68,3 +70,10 @@ nav > ul > li > a {
 /* game specific */
 
     
+#coverDiv {
+    background-color: white;
+    height: 1em;
+    width: 100%;
+    z-index: 10;
+    position: absolute;
+}
