@@ -51,6 +51,9 @@
 
 .tile{
 }
+.enemy{
+    position: absolute;
+}
 
 .baseTile{
     opacity:0;
@@ -61,4 +64,40 @@
     position: absolute;
     height: 100%;
     width: 875px;
+}
+
+
+#healthValue {
+    color: darkgreen;
+    font-size: 10pt;
+    margin: 0 auto;
+    position: relative;
+    align-content: center;
+    width: 20px;
+}
+
+.ui-progressbar.ui-widget-content {
+     background: darkred;
+  }
+
+.ui-widget-header {
+    border: 1px solid darkgreen;
+    background: darkgreen;
+    color: #222222;
+    font-weight: bold;
+}
+
+#healthStats {
+    border-color: darkred;
+    border-style: solid;
+    border-width: 2px;
+    border-radius: 10px 10px 10px 10px;
+    padding: 5px 5px 5px 5px;
+}
+
+#HealthText {
+    position: relative;
+    align-content: center;
+    font-size: 12pt;
+    width: 25px;
 }

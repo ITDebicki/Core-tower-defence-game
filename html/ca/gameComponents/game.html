@@ -2,7 +2,47 @@
     <head>
         <link rel="stylesheet" type="text/css" href="gameComponents/game.css">
         <script>
-            var baseClock = 200;
+            
+            //queue implementation
+            function Queue() {
+                this._oldestIndex = 1;
+                this._newestIndex = 1;
+                this._storage = {};
+            }
+
+            Queue.prototype.size = function() {
+                return this._newestIndex - this._oldestIndex;
+            };
+
+            Queue.prototype.enqueue = function(data) {
+                this._storage[this._newestIndex] = data;
+                this._newestIndex++;
+            };
+
+            Queue.prototype.dequeue = function() {
+                var oldestIndex = this._oldestIndex,
+                    newestIndex = this._newestIndex,
+                    deletedData;
+
+                if (oldestIndex !== newestIndex) {
+                    deletedData = this._storage[oldestIndex];
+                    delete this._storage[oldestIndex];
+                    this._oldestIndex++;
+
+                    return deletedData;
+                }
+            };
+            
+            function gcd(a, b) {
+                if ( ! b) {
+                    return a;
+                }
+
+                return gcd(b, a % b);
+            };
+            
+            //init global vars
+            var baseClock = 300;
             var clockMultiplier = 1;
             var clockTime = 0;
             //set constants
@@ -10,10 +50,13 @@
             var gameWidth = 875;
             var baseHealth = 100;
             var score = 0;
-            var mapPath = null;
-            var enemies = null;
-            var towers = null;
+            var mapPath = [];
+            var vectorPath = [];
+            var pathRadius = 0;
+            var towers = [];
             var stopTick = false;
+            var enemyQueue = new Queue;
+            var enemyDB = {};
             
             $("document").ready(function(){
                 //set self to hidden
@@ -23,6 +66,11 @@
                 
                 //set handlers
                 $(".timeControl").click(changePlaybackTime);
+                $("#healthBar").progressbar({
+                    disabled: false,
+                    max: baseHealth,
+                    value: baseHealth
+                })
                 
                 
                 //animate tray in
@@ -30,14 +78,84 @@
                 
                 //set height and width constants
                 loadMap("exampleMap");
-                clockTick();
+                setTimeout(function(){
+                    loadEnemy("exampleEnemy");
+                    setTimeout(function(){queueEnemies("exampleEnemy",10);},1000);
+                    
+                    setTimeout(function(){clockTick();},1000);
+                    
+                },3000);
+                
             });
+            
+            function collision(e1, e2) {
+                  var x1 = e1.offset().left;
+                  var y1 = e1.offset().top;
+                  var h1 = e1.outerHeight(true);
+                  var w1 = e1.outerWidth(true);
+                  var b1 = y1 + h1;
+                  var r1 = x1 + w1;
+                  var x2 = e2.offset().left;
+                  var y2 = e2.offset().top;
+                  var h2 = e2.outerHeight(true);
+                  var w2 = e2.outerWidth(true);
+                  var b2 = y2 + h2;
+                  var r2 = x2 + w2;
+
+                  if (b1 < y2 || y1 > b2 || r1 < x2 || x1 > r2) return false;
+                  return true;
+            }
+            
             
             function clockTick(){
                 clockTime++;
                 console.log("tick");
-                //console.log(clockTime)
                 //perform updates
+                //spawn any new enemies in queue
+                spawnEnemy();
+                
+                $("#gameSpace .enemy").each(function(i,e){
+                    var finalX = $(this).data("currentX");
+                    var finalY = $(this).data("currentY");
+                    var speed = $(this).data("speed");
+                    var currentVector = vectorPath[$(this).data("currentVector")];
+                    if (speed+$(this).data("currentMagnitude")<=currentVector[1]){
+                        finalX += currentVector[0][0]*speed;
+                        finalY += currentVector[0][1]*speed;
+                        $(this).data("currentMagnitude",$(this).data("currentMagnitude")+speed);
+                    }else{
+                        //magnitude exceeds permitted magnitude
+                        //calculate path left of current vector
+                        var magnitudefirstVector = currentVector[1]-$(this).data("currentMagnitude");
+                        finalX += currentVector[0][0]*magnitudefirstVector;
+                        finalY += currentVector[0][1]*magnitudefirstVector;
+                        var magnitudeLeft = speed - (magnitudefirstVector);
+                        //increment vector
+                        if ($(this).data("currentVector")+1<vectorPath.length){
+                            $(this).data("currentVector",$(this).data("currentVector")+1);
+                            currentVector = vectorPath[$(this).data("currentVector")];
+                            finalX += currentVector[0][0]*magnitudeLeft;
+                            finalY += currentVector[0][1]*magnitudeLeft;
+                            $(this).data("currentMagnitude",magnitudeLeft);
+                        }else{
+                            //reached end.
+                            finalX += currentVector[0][0]*magnitudeLeft;
+                            finalY += currentVector[0][1]*magnitudeLeft;
+                        }
+                    }
+                    $(this).data("currentX",finalX);
+                    $(this).data("currentY",finalY);
+                    $(this).animate({
+                        left:finalX,
+                        top: finalY,
+                    },baseClock/clockMultiplier);
+                    //check collision with final base
+                    if (collision($(this),$(".baseTile"))){
+                        dealBaseDamage($(this).data("damage"));
+                        $(this).remove();   
+                        
+                    }
+                });
                 
                 //schedual function with correct clock delay
                 if (clockMultiplier>0){
@@ -50,8 +168,30 @@
                     
                 }else{
                     //display pause menu
-                    console.log("showing pause menu");
                     loadElement("gameComponents/pauseMenu.html","pauseMenu");
+                }
+                
+            }
+            
+            function saveScore(){
+                
+            }
+            function exitGame(){
+                console.log("exiting game");
+                $("#controlTray").hide('slide',{direction:'right'},500,function(){
+                    removeElement("mainGame");
+                    showStartScreen();
+                });
+            }
+            
+            function dealBaseDamage(damage){
+                baseHealth-=damage;
+                $("#healthValue").html(baseHealth);
+                $("#healthBar").progressbar("value",baseHealth);
+                if (baseHealth <=0){
+                    stopTick=true;
+                    alert("your base has been destroyed");
+                    exitGame();
                 }
                 
             }
@@ -67,8 +207,8 @@
                 loadBackground("gameComponents/maps/"+mapName+".png");
                 //load map path
                 $.getJSON( "gameComponents/maps/"+mapName+".mp", function( data ) {
-                    var pathRadius = data["radius"];
-                    var mapPath = data["path"];
+                    pathRadius = data["radius"];
+                    mapPath = data["path"];
                     var gameContainer = $("#gameSpace")
                     //draw map path using divs
                     for (i = 0;i<mapPath.length-1;i++){      
@@ -80,8 +220,7 @@
                         var y = Math.min(mapPath[i][1],mapPath[i+1][1])-pathRadius - pathRadius * Math.sin(angle);
                         //use pythagoras to calculate length of div
                         var pathComponentWidth = Math.sqrt(Math.pow((mapPath[i][0]-mapPath[i+1][0]),2)+Math.pow((mapPath[i][1]-mapPath[i+1][1]),2))+2*pathRadius;
-                        
-                        console.log(y,mapPath[i][0],mapPath[i+1][0]);
+
                         //add to layout
                         var pathComponent = $('<div id="'+i+'" class="mapPathTile tile">');
                         gameContainer.append(pathComponent);
@@ -92,7 +231,48 @@
                     var baseDiv = $('<div class="baseTile tile">');
                     gameContainer.append(baseDiv);
                     baseDiv.css({left: data["baseLocation"][0] - 35, top: data["baseLocation"][1] - 35, width: data["baseRadius"]*2,height: data["baseRadius"]*2});
+                    //calculate path for enemies
+                    calculateVectorPaths();
                 });
+            }
+            
+            function calculateVectorPaths(){
+                for (i=0;i<mapPath.length-1;i++){
+                    var directionVector = [(mapPath[i+1][0] - mapPath[i][0]),(mapPath[i+1][1] - mapPath[i][1])];
+                    var magnitudeLimit = Math.sqrt(Math.pow(directionVector[0],2)+Math.pow(directionVector[1],2));
+                    //obtain unit vector
+                    directionVector[0]/=magnitudeLimit;
+                    directionVector[1]/=magnitudeLimit;
+                    //calculate limit of magnitude
+                    vectorPath.push([directionVector,magnitudeLimit]);
+                }
+            }
+            
+            function loadEnemy(enemyName){
+                if ((enemyName in enemyDB)==false){
+                    $.getJSON("gameComponents/enemies/"+enemyName+".ed", function( data ) {
+                        var enemyImg = $("<img src='gameComponents/enemies/"+data["icon"]+"' class='enemy " + enemyName + "' style='position: absolute; width:"+data["width"]+"px; height:"+data["height"]+"px;left:"+(mapPath[0][0]-(data["width"]/2))+"px;top:"+(mapPath[0][1]-(data["height"]/2))+"px;' data-health='"+data["health"]+"' data-damage='"+data["damage"]+"' data-death='"+data["death"]+"' data-speed='"+data["speed"]+"' data-current-vector='0' data-current-magnitude='0' data-current-x='"+(mapPath[0][0]-(data["width"]/2))+"' data-current-y='"+(mapPath[0][1]-(data["height"]/2))+"'>");
+                        data["divBase"]=enemyImg;
+                        enemyDB[enemyName]=data;
+                        return enemyImg;
+                    });
+                }else{
+                    return enemyDB[enemyName]["divBase"];
+                }
+                
+            }
+            
+            function queueEnemies(enemyName,amount){
+                for(i=0;i<amount;i++){
+                    enemyQueue.enqueue(loadEnemy(enemyName));
+                }
+            }
+            
+            function spawnEnemy(){
+                var enemyDiv = enemyQueue.dequeue();
+                if (enemyDiv){
+                    $("#gameSpace").append(enemyDiv.clone());
+                }
             }
 
             
@@ -106,7 +286,12 @@
                 <img class="timeControl selectedTimeControl" id="play1X" data-speed="1" src="gameComponents/images/play.png">
                 <img class="timeControl" id="play2X" data-speed="2" src="gameComponents/images/ff2x.png">
                 <img class="timeControl" id="play3X" data-speed="4" src="gameComponents/images/ff3x.png">
-            </div>  
+            </div> 
+            <div id="healthStats">
+                <span id="HealthText">Health:</span>
+                <span id="healthValue">100</span>
+                <div id="healthBar"></div>
+            </div>
         </div>
         <div id="gameSpace">
         </div>

@@ -11,7 +11,7 @@
                 //set handlers
                 $("#backToGameButton").click(resumeGame);
                 $("#saveGameButton").click(saveGame);
-                $("#exitGameButton").click(exitGame);
+                $("#exitGameButton").click(exitAskGame);
 
 
                 //fade back in
@@ -37,13 +37,11 @@
                 });
             }
             
-            function exitGame(evt){
+            function exitAskGame(evt){
                 console.log("exiting game");
                 if(confirm("You will lose all your progress since your last save. Are you sure you want to quit?")){
                     removeOverlay();
-                    $("#controlTray").hide('slide',{direction:'right'},500,function(){
-                        removeElement("mainGame");
-                        showStartScreen();
+                    exitGame();
                     });
                 }
             }
