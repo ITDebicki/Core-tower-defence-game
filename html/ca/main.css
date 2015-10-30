@@ -29,7 +29,6 @@ body{
     background-size: cover;
     position: relative;
     left: calc(50% - 550px);
-    bottom: 2em;
     width: 1100px;
     height: 675px;
     top:1em;
@@ -76,4 +75,34 @@ nav > ul > li > a {
     width: 100%;
     z-index: 10;
     position: absolute;
+}
+
+#coverDiv2 {
+    background-color: white;
+    position:absolute;
+    left:0px;
+    top:1em;
+    width:calc(50% - 550px);
+    height: 100%;
+    z-index: 10;
+}
+
+#coverDiv3 {
+    position: absolute;
+    top:calc(1em + 677px);
+    left:0px;
+    width:100%;
+    height: calc(100% - 1em - 677px);
+    background-color: white;
+    z-index: 10;
+}
+
+#coverDiv4 {
+    position: absolute;
+    top:0px;
+    left:calc(50% + 552px);
+    width:calc(50% - 552px );
+    height: 100%;
+    background-color: white;
+    z-index: 10;
 }

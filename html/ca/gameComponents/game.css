@@ -1,13 +1,14 @@
 
 #controlTray {
+    position: absolute;
     display: none;
     background-color: lightgray;
-    float: right;
+    left:872px;
     height:100%;
     width:225px;
     border-left: 3px;
     border-left-style: inset;
-    
+    z-index:1;
 }
 
 .timeControl {
@@ -50,6 +51,7 @@
 }
 
 .tile{
+    
 }
 .enemy{
     position: absolute;
@@ -100,4 +102,79 @@
     align-content: center;
     font-size: 12pt;
     width: 25px;
+}
+
+.towerSideBar{
+    position: relative;
+    border: 1px solid black;
+    width:40px;
+    height:40px;
+}
+
+#sideBarTowerSlots {
+    overflow-y: scroll;
+    overflow-x: hidden;
+    width:100%;
+    height:500px;
+    margin-top: 20px;
+}
+
+.towerInfo{
+    position: relative;
+    top: -40px;
+    left:40px;
+    height:40px;
+    width:calc(100%-40px);
+    list-style-type: none;
+    font-size: 9pt;
+    margin: 0 0 0 0;
+}
+
+.sideBarTowerDiv{
+    margin-left:15px;
+    margin-bottom:10px;
+}
+
+.targetDisk{
+    background-color:red;
+    opacity:0;
+    position:absolute;
+    height:100%;
+    width:100%;
+    border-radius:50%;
+    z-index:-4;
+}
+.isDragging .targetDisk{
+    opacity:0.4;
+    background-color: green;
+    z-index:0;
+}
+
+.isSelected .targetDisk{
+    background-color: green;
+    opacity:0.4;
+    z-index:0;
+}
+
+.isColliding.isDragging .targetDisk{
+    background-color: red;
+    opacity:0.4;
+    z-index:0;
+}
+
+.towerContainer{
+    position: absolute;
+    border-radius: 50%;
+}
+.isDragging .tower{
+    opacity: 0.6;
+}
+.tower{
+    position: relative;
+    top:calc(50%-20px);
+    left:calc(50%-20px);
+    z-index: 1;
+}
+.projectile{
+    position: absolute;
 }
