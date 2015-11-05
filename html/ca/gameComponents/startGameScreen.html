@@ -255,7 +255,7 @@
                                 }
                                 for (i=0; i < responseData.length; i++){
                                     
-                                    generateNotificationDiv(responseData[i]["UNIX_TIMESTAMP(`timestamp`)"],responseData[i]["type"],responseData[i]["title"],responseData[i]["message"],responseData[i]["opened"]);
+                                    generateNotificationDiv(responseData[i]["timestamp"],responseData[i]["type"],responseData[i]["title"],responseData[i]["message"],responseData[i]["opened"]);
                                 }
                             }else{
                                 alert(response["error"],response["errorCode"]);   
