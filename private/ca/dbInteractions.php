@@ -226,6 +226,13 @@ function get_notifications($from,$limit){
         $stmt->bindParam(':limit',$limit,PDO::PARAM_INT);
         $stmt->execute();
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        //format to correct data style
+        foreach($notification in &$result){
+            $timestamp = $notification['UNIX_TIMESTAMP(`timestamp`)'];
+            $notification['timestamp']=$timestamp;
+            //remove unsused column
+            unset($notification['UNIX_TIMESTAMP(`timestamp`)']);
+        }
         return $result;
     } catch(Exception $e){
         throw $e;
