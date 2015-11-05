@@ -227,7 +227,7 @@ function get_notifications($from,$limit){
         $stmt->execute();
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
         //format to correct data style
-        foreach($notification in &$result){
+        foreach($result as &$notification){
             $timestamp = $notification['UNIX_TIMESTAMP(`timestamp`)'];
             $notification['timestamp']=$timestamp;
             //remove unsused column
