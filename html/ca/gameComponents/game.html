@@ -328,6 +328,13 @@
                 checkProjectileCollisions();
                 
                 $("#gameSpace .enemy").each(function(i,e){
+                    
+                    //check collision with final base
+                    if (simpleSqCollision($(this),$(".baseTile"))){
+                        dealBaseDamage($(this).data("damage"));
+                        $(this).remove();   
+                    }
+                    //move enemy
                     var finalX = $(this).data("currentX");
                     var finalY = $(this).data("currentY");
                     var speed = $(this).data("speed");
@@ -365,12 +372,8 @@
                     //increase no. of ticks survived
                     var ticks = $(this).data("ticks");
                     $(this).data("ticks", ticks+1);
-                    //check collision with final base
-                    if (simpleSqCollision($(this),$(".baseTile"))){
-                        dealBaseDamage($(this).data("damage"));
-                        $(this).remove();   
-                        
-                    }
+
+                    
                 });
                 //shoot projectiles
                 
