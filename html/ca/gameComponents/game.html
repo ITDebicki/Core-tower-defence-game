@@ -318,56 +318,65 @@
                     showStartScreen();
                 });
             }
-            
-            function clockTick(){
-                clockTime++;
-                //perform updates
-                //spawn any new enemies in queue
-                spawnEnemy();
-                
-                checkProjectileCollisions();
-                
+            function calculatePath(x,y,vectorNo,movementRemaining,magnitudeRemaining){
+                var currentVector = vectorPath[vectorNo];
+                if (movementRemaining<=magnitudeRemaining){
+                    x += currentVector[0][0]*movementRemaining;
+                    y += currentVector[0][1]*movementRemaining;
+                    magnitudeRemaining -=movementRemaining;
+                    
+                }else{
+                    //reach end of path
+                    x += currentVector[0][0]*magnitudeRemaining;
+                    y += currentVector[0][1]*magnitudeRemaining;
+                    
+                    if(vectorPath.length-1==vectorNo){
+                        //return as at end anyway
+                        magnitudeRemaining=0;
+                    }else{
+                        //more vector paths to calculate
+                        //recalculate movementRemaining
+                        movementRemaining -= magnitudeRemaining;
+                        
+                        //set next vector
+                        vectorNo+=1;
+                        //recalculate magnitudeRemaining
+                        magnitudeRemaining = vectorPath[vectorNo][1];
+                        return calculatePath(x,y,vectorNo,movementRemaining,magnitudeRemaining);
+                    }
+                }
+                return {
+                    "x":x,
+                    "y":y,
+                    "vectorNo":vectorNo,
+                    "magnitudeRemaining":magnitudeRemaining
+                };
+            }
+            function moveEnemies(){
                 $("#gameSpace .enemy").each(function(i,e){
                     
                     //check collision with final base
-                    if (simpleSqCollision($(this),$(".baseTile"))){
-                        dealBaseDamage($(this).data("damage"));
-                        $(this).remove();   
+                    if ($(this).data("currentVector")==vectorPath.length-1){
+                        if (simpleSqCollision($(this),$(".baseTile"))){
+                            dealBaseDamage($(this).data("damage"));
+                            $(this).remove();   
+                        }   
                     }
-                    //move enemy
-                    var finalX = $(this).data("currentX");
-                    var finalY = $(this).data("currentY");
-                    var speed = $(this).data("speed");
-                    var currentVector = vectorPath[$(this).data("currentVector")];
-                    if (speed+$(this).data("currentMagnitude")<=currentVector[1]){
-                        finalX += currentVector[0][0]*speed;
-                        finalY += currentVector[0][1]*speed;
-                        $(this).data("currentMagnitude",$(this).data("currentMagnitude")+speed);
-                    }else{
-                        //magnitude exceeds permitted magnitude
-                        //calculate path left of current vector
-                        var magnitudefirstVector = currentVector[1]-$(this).data("currentMagnitude");
-                        finalX += currentVector[0][0]*magnitudefirstVector;
-                        finalY += currentVector[0][1]*magnitudefirstVector;
-                        var magnitudeLeft = speed - (magnitudefirstVector);
-                        //increment vector
-                        if ($(this).data("currentVector")+1<vectorPath.length){
-                            $(this).data("currentVector",$(this).data("currentVector")+1);
-                            currentVector = vectorPath[$(this).data("currentVector")];
-                            finalX += currentVector[0][0]*magnitudeLeft;
-                            finalY += currentVector[0][1]*magnitudeLeft;
-                            $(this).data("currentMagnitude",magnitudeLeft);
-                        }else{
-                            //reached end.
-                            finalX += currentVector[0][0]*magnitudeLeft;
-                            finalY += currentVector[0][1]*magnitudeLeft;
-                        }
-                    }
-                    $(this).data("currentX",finalX);
-                    $(this).data("currentY",finalY);
+                    var returnData = calculatePath($(this).data("currentX"),
+                                                    $(this).data("currentY"),
+                                                    $(this).data("currentVector"),
+                                                    $(this).data("speed"),
+                                                    $(this).data("magnitudeRemaining")
+                                                   );
+                    
+                    $(this).data("currentVector",returnData.vectorNo);
+                    $(this).data("magnitudeRemaining",returnData.magnitudeRemaining);
+                    $(this).data("currentX",returnData.x);
+                    $(this).data("currentY",returnData.y);
+                    
                     $(this).animate({
-                        left:finalX,
-                        top: finalY,
+                        left:returnData.x,
+                        top: returnData.y,
                     },baseClock/clockMultiplier,"linear");
                     //increase no. of ticks survived
                     var ticks = $(this).data("ticks");
@@ -375,8 +384,8 @@
 
                     
                 });
-                //shoot projectiles
-                
+            }
+            function shootProjectiles(){
                 $("#gameSpace .towerContainer:not(.isDragging)").each(function(i,e){
                     var reloadState = $(this).data("reloadState");
                     reloadState+=1
@@ -391,6 +400,19 @@
                     $(this).data("reloadState",reloadState);
                     
                 });
+            }
+            
+            function clockTick(){
+                clockTime++;
+                //perform updates
+                //spawn any new enemies in queue
+                spawnEnemy();
+                //check if projectiles collided with an enemy
+                checkProjectileCollisions();
+                //move enemies
+                moveEnemies();
+                //shoot projectiles
+                shootProjectiles();
                 
                 
                 //schedual function with correct clock delay
@@ -404,7 +426,6 @@
                     //display pause menu
                     loadElement("gameComponents/pauseMenu.html","pauseMenu");
                 }
-                
             }
             
             function dealBaseDamage(damage){
@@ -436,7 +457,7 @@
                         async: false,
                         success: function(data) {}
                     })['responseJSON'];
-                    var enemyImg = $("<img src='gameComponents/enemies/"+data["icon"]+"' class='enemy " + enemyName + "' style='position: absolute; width:"+data["width"]+"px; height:"+data["height"]+"px;left:"+(mapPath[0][0]-(data["width"]/2))+"px;top:"+(mapPath[0][1]-(data["height"]/2))+"px;' data-health='"+data["health"]+"' data-damage='"+data["damage"]+"' data-death='"+data["death"]+"' data-speed='"+data["speed"]+"' data-current-vector='0' data-current-magnitude='0' data-current-x='"+(mapPath[0][0]-(data["width"]/2))+"' data-current-y='"+(mapPath[0][1]-(data["height"]/2))+"' data-ticks='0'>");
+                    var enemyImg = $("<img src='gameComponents/enemies/"+data["icon"]+"' class='enemy " + enemyName + "' style='position: absolute; width:"+data["width"]+"px; height:"+data["height"]+"px;left:"+(mapPath[0][0]-(data["width"]/2))+"px;top:"+(mapPath[0][1]-(data["height"]/2))+"px;' data-health='"+data["health"]+"' data-damage='"+data["damage"]+"' data-death='"+data["death"]+"' data-speed='"+data["speed"]+"' data-current-vector='0' data-magnitude-remaining='"+vectorPath[0][1]+"' data-current-x='"+(mapPath[0][0]-(data["width"]/2))+"' data-current-y='"+(mapPath[0][1]-(data["height"]/2))+"' data-ticks='0'>");
                     data["divBase"]=enemyImg;
                     enemyDB[enemyName]=data;
                     return enemyImg;
