@@ -286,7 +286,7 @@
                 $(".isSelected").each(function(i,e){
                     $("#activeTowerImage").attr("src",$(this).children("img").attr("src"));
                     $("#activeTowerAttack").html($(this).data("damage"));
-                    $("#activeTowerRange").html($(this).data("width"));
+                    $("#activeTowerRange").html($(this).data("range"));
                     $("#activeTowerCost").html(Math.floor($(this).data("price")*0.75));
                 });
             }
@@ -565,7 +565,7 @@
                         async: false,
                         success: function(data) {}
                     })['responseJSON'];
-                    var towerDiv = $("<div class='"+towerName+" towerContainer' style='width:"+(data["range"]*2)+"px; height:"+(data["range"]*2)+"px;' data-width='"+data["width"]+"' data-height='"+data["height"]+"' data-reload-speed='"+data["reloadSpeed"]+"' data-projectile-fired='"+data["projectileName"]+"' data-no-projectiles-fired='"+data["projectiles"]+"' data-damage='"+data["damage"]+"' data-reload-state='0' data-price='"+data["cost"]+"'><div class='targetDisk "+towerName+"'></div><img class= 'tower "+towerName+"' src='gameComponents/towers/"+data["icon"]+"' style='width:"+data["width"]+"px; height:"+data["height"]+"px;left:"+(data["range"]-data["width"]/2)+"px;top:"+(data["range"]-data["height"]/2)+"px;'></div>");
+                    var towerDiv = $("<div class='"+towerName+" towerContainer' style='width:"+(data["range"]*2)+"px; height:"+(data["range"]*2)+"px;' data-width='"+data["width"]+"' data-height='"+data["height"]+"' data-reload-speed='"+data["reloadSpeed"]+"' data-projectile-fired='"+data["projectileName"]+"' data-no-projectiles-fired='"+data["projectiles"]+"' data-damage='"+data["damage"]+"' data-reload-state='0' data-price='"+data["cost"]+"' data-range='"+data["range"]+"'><div class='targetDisk "+towerName+"'></div><img class= 'tower "+towerName+"' src='gameComponents/towers/"+data["icon"]+"' style='width:"+data["width"]+"px; height:"+data["height"]+"px;left:"+(data["range"]-data["width"]/2)+"px;top:"+(data["range"]-data["height"]/2)+"px;'></div>");
                     data["divBase"]=towerDiv;
                     towerDB[towerName]=data;
                     loadProjectile(data["projectileName"]);
