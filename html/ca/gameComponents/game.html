@@ -168,14 +168,12 @@
             }
             
             function rankByDistance(enemies){
-                console.log("enemies",enemies);
                 var distanceArray = [];
                 var enemyArray = [];
                 for (i=0;i<enemies.length;i++){
                     var enemy = enemies[i];
                     var distanceTravelled = $(enemy).data("ticks")*$(enemy).data("speed");
                     if (distanceArray.length>0){
-                        console.log(distanceArray,enemyArray);
                         for (j=0;j<distanceArray.length;j++){
                             if (distanceArray[j]<distanceTravelled){
                                 distanceArray.splice(j,0,distanceTravelled);
@@ -193,7 +191,6 @@
                     }
                     
                 }
-                console.log("sortedEnemies",enemyArray);
                 return enemyArray;
             }
             
@@ -217,6 +214,8 @@
             var projectileDB = {};
             var currentDrag = null;
             var mousePos = { x: 0, y: 0 };
+            var maxHealth = 100;
+            var resources = 0;
             
             $("document").ready(function(){
                 //set self to hidden
@@ -228,7 +227,7 @@
                 $(".timeControl").click(changePlaybackTime);
                 $("#healthBar").progressbar({
                     disabled: false,
-                    max: baseHealth,
+                    max: maxHealth,
                     value: baseHealth
                 })
                 
@@ -244,17 +243,52 @@
                 loadMap("exampleMap");
                 loadSideBarTower("exampleTower");
                 loadEnemy("exampleEnemy");
-                queueEnemies("exampleEnemy",50);
+                queueEnemies("exampleEnemy",200);
                 
                 //animate tray in
                 $("#controlTray").show('slide',{direction:'right'},1000);
                 setTimeout(clockTick,1000);
             });
             
+            $(document).keyup(function(e) {
+                if (e.keyCode == 27) { 
+                    // escape key pressed - if moving any tower, stop moving and refund
+                    $(".isDragging").each(function(i,e){
+                        //refund resources
+                        setResources(resources+$(this).data("price"));
+                        //remove handlers
+                        $('#gameSpace').unbind("");
+                        //remove tower
+                        $(this).remove();
+                    });
+                }
+            });
+            
             function removeTowerSelection(){
                 $(".isSelected").removeClass("isSelected");
             }
             
+            function setBaseHealth(newHealth){
+                maxHealth=newHealth;
+                $("#healthBar").progressbar( "option", "max", maxHealth );
+            }
+            
+            function changeHealth(health){
+                baseHealth=health;
+                $("#healthValue").html(baseHealth);
+                $("#healthBar").progressbar("value",baseHealth);
+                if (baseHealth<=0){
+                    stopTick=true;
+                    alert("your base has been destroyed");
+                    //show high score page
+                    exitGame();
+                }
+            }
+            
+            function setResources(newResources){
+                resources=newResources;
+                $("#resourceValue").html(resources);
+            }
             function loadMap(mapName){
                 //load background
                 loadBackground("gameComponents/maps/"+mapName+".png");
@@ -269,6 +303,9 @@
                 
                 pathRadius = data["radius"];
                 mapPath = data["path"];
+                setBaseHealth(data["startingBaseHealth"]);
+                changeHealth(maxHealth);
+                setResources(data["startingResources"]);
                 var gameContainer = $("#gameSpace")
                 //draw map path using divs
                 for (i = 0;i<mapPath.length-1;i++){      
@@ -293,6 +330,8 @@
                 baseDiv.css({left: data["baseLocation"][0] - 35, top: data["baseLocation"][1] - 35, width: data["baseRadius"]*2,height: data["baseRadius"]*2});
                 //calculate path for enemies
                 calculateVectorPaths();
+                //set starting resources of player
+                resources=200;
             }
             
             function calculateVectorPaths(){
@@ -429,16 +468,7 @@
             }
             
             function dealBaseDamage(damage){
-                baseHealth-=damage;
-                $("#healthValue").html(baseHealth);
-                $("#healthBar").progressbar("value",baseHealth);
-                if (baseHealth <=0){
-                    stopTick=true;
-                    alert("your base has been destroyed");
-                    //show high score page
-                    exitGame();
-                }
-                
+                changeHealth(baseHealth-damage);
             }
             
             function changePlaybackTime(evt){
@@ -457,7 +487,7 @@
                         async: false,
                         success: function(data) {}
                     })['responseJSON'];
-                    var enemyImg = $("<img src='gameComponents/enemies/"+data["icon"]+"' class='enemy " + enemyName + "' style='position: absolute; width:"+data["width"]+"px; height:"+data["height"]+"px;left:"+(mapPath[0][0]-(data["width"]/2))+"px;top:"+(mapPath[0][1]-(data["height"]/2))+"px;' data-health='"+data["health"]+"' data-damage='"+data["damage"]+"' data-death='"+data["death"]+"' data-speed='"+data["speed"]+"' data-current-vector='0' data-magnitude-remaining='"+vectorPath[0][1]+"' data-current-x='"+(mapPath[0][0]-(data["width"]/2))+"' data-current-y='"+(mapPath[0][1]-(data["height"]/2))+"' data-ticks='0'>");
+                    var enemyImg = $("<img src='gameComponents/enemies/"+data["icon"]+"' class='enemy " + enemyName + "' style='position: absolute; width:"+data["width"]+"px; height:"+data["height"]+"px;left:"+(mapPath[0][0]-(data["width"]/2))+"px;top:"+(mapPath[0][1]-(data["height"]/2))+"px;' data-health='"+data["health"]+"' data-damage='"+data["damage"]+"' data-death='"+data["death"]+"' data-speed='"+data["speed"]+"' data-current-vector='0' data-magnitude-remaining='"+vectorPath[0][1]+"' data-current-x='"+(mapPath[0][0]-(data["width"]/2))+"' data-current-y='"+(mapPath[0][1]-(data["height"]/2))+"' data-resources='"+data["resources"]+"' data-ticks='0'>");
                     data["divBase"]=enemyImg;
                     enemyDB[enemyName]=data;
                     return enemyImg;
@@ -487,7 +517,7 @@
                 towerSideBarImage.data("divBase",towerDiv);
                 towerSideBarImage.data("cost",towerData['cost']);
                 towerSideBarImage.click(buyTower);
-                var towerDescription = $("<ul class='towerInfo'><li>Damage:"+towerData["damage"]+"</li><li>Range:"+towerData["range"]+"</li><li>Cost:"+towerData['cost']+"</li></ul>");
+                var towerDescription = $("<ul class='towerInfo'><li><img class='sideBarStatImage' src='gameComponents/images/attack.png'><span class='sideBarStatText'>"+towerData["damage"]+"</span></li><li><img class='sideBarStatImage' src='gameComponents/images/range.png'><span class='sideBarStatText'>"+towerData["range"]+"</span></li><li><img class='sideBarStatImage' src='gameComponents/images/resources.png'><span class='sideBarStatText'>"+towerData['cost']+"</span></li></ul>");
                 var towerSideBarDiv = $("<div class='sideBarTowerDiv'>");
                 towerSideBarDiv.append(towerSideBarImage)
                                 .append(towerDescription);
@@ -504,7 +534,7 @@
                         async: false,
                         success: function(data) {}
                     })['responseJSON'];
-                    var towerDiv = $("<div class='"+towerName+" towerContainer' style='width:"+(data["range"]*2)+"px; height:"+(data["range"]*2)+"px;' data-width='"+data["width"]+"' data-height='"+data["height"]+"' data-reload-speed='"+data["reloadSpeed"]+"' data-projectile-fired='"+data["projectileName"]+"' data-no-projectiles-fired='"+data["projectiles"]+"' data-damage='"+data["damage"]+"' data-reload-state='0'><div class='targetDisk "+towerName+"'></div><img class= 'tower "+towerName+"' src='gameComponents/towers/"+data["icon"]+"' style='width:"+data["width"]+"px; height:"+data["height"]+"px;left:"+(data["range"]-data["width"]/2)+"px;top:"+(data["range"]-data["height"]/2)+"px;'></div>");
+                    var towerDiv = $("<div class='"+towerName+" towerContainer' style='width:"+(data["range"]*2)+"px; height:"+(data["range"]*2)+"px;' data-width='"+data["width"]+"' data-height='"+data["height"]+"' data-reload-speed='"+data["reloadSpeed"]+"' data-projectile-fired='"+data["projectileName"]+"' data-no-projectiles-fired='"+data["projectiles"]+"' data-damage='"+data["damage"]+"' data-reload-state='0' data-price='"+data["cost"]+"'><div class='targetDisk "+towerName+"'></div><img class= 'tower "+towerName+"' src='gameComponents/towers/"+data["icon"]+"' style='width:"+data["width"]+"px; height:"+data["height"]+"px;left:"+(data["range"]-data["width"]/2)+"px;top:"+(data["range"]-data["height"]/2)+"px;'></div>");
                     data["divBase"]=towerDiv;
                     towerDB[towerName]=data;
                     loadProjectile(data["projectileName"]);
@@ -515,7 +545,12 @@
             }
             
             function buyTower(evt){
-                spawnTower($(this).data("divBase"))
+                if (resources>=$(this).data("cost")){
+                    setResources(resources-$(this).data("cost"));
+                    spawnTower($(this).data("divBase"));
+                }else{
+                    console.log("Not enough resources");
+                }
             }
             
             function spawnTower(tower){
@@ -643,6 +678,7 @@
             
             function enemyKilled(enemy){
                 enemy.remove();
+                setResources(resources+enemy.data("resources"));
             }
             
             function loadProjectile(projectileName){
@@ -675,8 +711,10 @@
                 <img class="timeControl" id="play3X" data-speed="4" src="gameComponents/images/ff3x.png">
             </div> 
             <div id="healthStats">
-                <span id="HealthText">Health:</span>
-                <span id="healthValue">100</span>
+                <img class="sideBarImage" id="healthImage" src="gameComponents/images/health.png">
+                <span class="sideBarStatText" id="healthValue">100</span>
+                <img class="sideBarImage" id="resourcesImage" src="gameComponents/images/resources.png">
+                <span class="sideBarStatText" id="resourceValue">200</span>
                 <div id="healthBar"></div>
             </div>
             <div id="sideBarTowerSlots">
