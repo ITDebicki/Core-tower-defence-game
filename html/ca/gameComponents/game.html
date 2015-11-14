@@ -230,14 +230,18 @@
                     max: maxHealth,
                     value: baseHealth
                 })
+                $("#sellTower").click(sellTower);
+                $("#upgradeTower").click(upgradeTower);
+                //animate off tower info element
+                
+                $("#sideBarTowerControl").css("display","block");
+                $("#sideBarTowerControl").slideUp(0);
                 
                 $(document).mousemove(function(event) {
                     mousePos.x = event.pageX;
                     mousePos.y = event.pageY;
                 });
-                $(document).mousedown(removeTowerSelection);
-                
-                
+                $("#gameSpace").mousedown(removeTowerSelection);
                 
                 //set height and width constants
                 loadMap("exampleMap");
@@ -264,8 +268,32 @@
                 }
             });
             
+            function upgradeTower(){
+                console.log("upgrading tower");
+            }
+            
+            function sellTower(){
+                $(".isSelected").each(function(i,e){
+                    //return 75% of resources
+                    setResources(resources+Math.floor($(this).data("price")*0.75));
+                    //remove
+                    $(this).remove();
+                });
+                removeTowerSelection();
+            }
+            
+            function updateActiveTowerInfo(){
+                $(".isSelected").each(function(i,e){
+                    $("#activeTowerImage").attr("src",$(this).children("img").attr("src"));
+                    $("#activeTowerAttack").html($(this).data("damage"));
+                    $("#activeTowerRange").html($(this).data("width"));
+                    $("#activeTowerCost").html(Math.floor($(this).data("price")*0.75));
+                });
+            }
+            
             function removeTowerSelection(){
                 $(".isSelected").removeClass("isSelected");
+                $("#sideBarTowerControl").slideUp(100);
             }
             
             function setBaseHealth(newHealth){
@@ -452,6 +480,9 @@
                 moveEnemies();
                 //shoot projectiles
                 shootProjectiles();
+                //update the status of selected towers
+                updateActiveTowerInfo();
+                
                 
                 
                 //schedual function with correct clock delay
@@ -545,15 +576,18 @@
             }
             
             function buyTower(evt){
-                if (resources>=$(this).data("cost")){
+                if ((resources>=$(this).data("cost")) && !$(".isDragging")[0]){
                     setResources(resources-$(this).data("cost"));
                     spawnTower($(this).data("divBase"));
                 }else{
-                    console.log("Not enough resources");
+                    console.log("Not enough resources or already bought tower");
                 }
             }
             
             function spawnTower(tower){
+                //remove selection of any previous tower
+                removeTowerSelection();
+                //spawn in new tower
                 var newTowerDiv = tower.clone();
                 newTowerDiv.addClass("isDragging");
                 $("#gameSpace").append(newTowerDiv);
@@ -604,18 +638,21 @@
                         }
                     });
                 }); 
-                $('#gameSpace').mousedown( function(e) {
-                    if (!(currentDrag.hasClass("isColliding"))){
+                $('#gameSpace').mousedown(placeTower);
+                
+            }
+            
+            function placeTower(e){
+                if (!(currentDrag.hasClass("isColliding"))){
                         //buy tower
-                        $('#gameSpace').unbind("");
+                        $('#gameSpace').unbind("mousemove");
+                        $('#gameSpace').unbind("mousedown",placeTower);
                         currentDrag.removeClass("isDragging");
                         currentDrag.children(".tower").click(selectTower);
                         //set tower as tile
                         currentDrag.children(".tower").addClass("tile");
                         currentDrag=null;
-                    }
-                });
-                
+                }
             }
             function findTarget(tower){
                 var targetingDisk = tower.children(".targetDisk");
@@ -638,6 +675,12 @@
             function selectTower(evt){
                 removeTowerSelection();
                 $(this).parent().addClass("isSelected");
+                showTowerOverlay();
+                updateActiveTowerInfo();
+            }
+            
+            function showTowerOverlay(){
+                $("#sideBarTowerControl").slideDown(100);
             }
             
             function fireTower(tower,target){
@@ -648,7 +691,8 @@
                 projectileDiv.data("damage",tower.data("damage"));
                 projectileDiv.data("target",target);
                 //calculate flight path of projectile
-                var targetPosition = {"x":target.data("currentX")+target.outerWidth(false)/2,"y":target.data("currentY")+target.outerHeight(false)/2};
+                var targetPosition = {"x":target.data("currentX")+target.outerWidth(false)/2,
+                                      "y":target.data("currentY")+target.outerHeight(false)/2};
                 var startPosition = {"x":tower.children(".tower").offset().left-$("#gameSpace").offset().left+tower.children(".tower").outerWidth(false)/2,
                                      "y":tower.children(".tower").offset().top-$("#gameSpace").offset().top+tower.children(".tower").outerHeight(false)/2};
                 //spawn projectile
@@ -710,14 +754,38 @@
                 <img class="timeControl" id="play2X" data-speed="2" src="gameComponents/images/ff2x.png">
                 <img class="timeControl" id="play3X" data-speed="4" src="gameComponents/images/ff3x.png">
             </div> 
-            <div id="healthStats">
+            <div class="sideBarDiv" id="healthStats">
                 <img class="sideBarImage" id="healthImage" src="gameComponents/images/health.png">
                 <span class="sideBarStatText" id="healthValue">100</span>
                 <img class="sideBarImage" id="resourcesImage" src="gameComponents/images/resources.png">
                 <span class="sideBarStatText" id="resourceValue">200</span>
                 <div id="healthBar"></div>
             </div>
-            <div id="sideBarTowerSlots">
+            <div class="sideBarDiv"id="sideBarTowerControl">
+                <span class="sideBarDivTitle">Tower info</span>
+                <img id="activeTowerImage">
+                <ul class='activeTowerInfo'>
+                    <li>
+                        <img class='sideBarActiveTowerStatImage' src='gameComponents/images/attack.png'>
+                        <span class='sideBarActiveTowerStatText' id="activeTowerAttack">10</span>
+                    </li>
+                    <li>
+                        <img class='sideBarActiveTowerStatImage' src='gameComponents/images/range.png'>
+                        <span class='sideBarActiveTowerStatText' id="activeTowerRange">10</span>
+                    </li>
+                    <li>
+                        <img class='sideBarActiveTowerStatImage' src='gameComponents/images/resources.png'>
+                        <span class='sideBarActiveTowerStatText' id="activeTowerCost">10</span>
+                    </li>
+                </ul>
+                <div id="activeTowerButtons">
+                    <button class="sideBarTowerButton" id="sellTower">Sell</button>
+                    <button class="sideBarTowerButton" id="upgradeTower">Upgrade</button>
+                </div>
+                
+            </div>
+            <div class="sideBarDiv" id="sideBarTowerSlots">
+                <span class="sideBarDivTitle">Buy towers</span>
             </div>
         </div>
         <div id="gameSpace">
