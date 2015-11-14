@@ -368,7 +368,7 @@
                     $(this).animate({
                         left:finalX,
                         top: finalY,
-                    },baseClock/clockMultiplier);
+                    },baseClock/clockMultiplier,"linear");
                     //increase no. of ticks survived
                     var ticks = $(this).data("ticks");
                     $(this).data("ticks", ticks+1);
@@ -602,7 +602,7 @@
                 projectileDiv.animate({
                     top:targetPosition.y,
                     left:targetPosition.x
-                },baseClock/clockMultiplier);
+                },baseClock/clockMultiplier,"linear");
             }
             
             function checkProjectileCollisions(){
