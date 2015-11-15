@@ -184,7 +184,7 @@
             var vectorPath = [];
             var pathRadius = 0;
             var towers = [];
-            var stopTick = false;
+            var stopTickFunction = false;
             var enemyQueue = {};
             var enemyDB = {};
             var towerDB = {};
@@ -198,6 +198,8 @@
             var events = {};
             var timeUntilWave = 30;
             var stopWaveTimer = false
+            var runTick = false;
+            var pauseWaveTimer = false;
 
             $("document").ready(function(){
                 //set self to hidden
@@ -239,6 +241,9 @@
                 
                 //display wave count down
                 startWaveCounter();
+                //start ticks
+                runTick=false;
+                clockTick();
             });
             
         
@@ -263,7 +268,12 @@
             
             function waveCountDown(){
                 $("#timeRemaining").html(timeUntilWave);
-                timeUntilWave--;
+                //decrement time if pause menu is not loaded
+                if ($("#pauseMenu").length == 0){
+                    timeUntilWave--;
+                }
+                
+                
                 if (timeUntilWave>=0 && !stopWaveTimer){
                     setTimeout(waveCountDown,1000);
                 }else{
@@ -437,14 +447,13 @@
                         }
                     }
                 }
-                console.log(enemyQueue);
             }
             
             
             function startWave(waveNo){
                 //start tick
                 clockTime=0;
-                clockTick();
+                runTick=true;
             }
             function upgradeTower(){
                 console.log("upgrading tower");
@@ -484,7 +493,7 @@
                 $("#healthValue").html(baseHealth);
                 $("#healthBar").progressbar("value",baseHealth);
                 if (baseHealth<=0){
-                    stopTick=true;
+                    stopTickFunction=true;
                     alert("your base has been destroyed");
                     //show high score page
                     exitGame();
@@ -594,39 +603,46 @@
             
             function clockTick(){
                 //perform updates
-                //spawn any new enemies in queue
-                spawnEnemy();
-                //check if projectiles collided with an enemy
-                checkProjectileCollisions();
-                //move enemies
-                moveEnemies();
-                //shoot projectiles
-                shootProjectiles();
-                //update the status of selected towers
-                updateActiveTowerInfo();
-                //update tick
-                clockTime++;
+                if(runTick){
+                    //spawn any new enemies in queue
+                    spawnEnemy();
+                    //check if projectiles collided with an enemy
+                    checkProjectileCollisions();
+                    //move enemies
+                    moveEnemies();
+                    //shoot projectiles
+                    shootProjectiles();
+                    //update the status of selected towers
+                    updateActiveTowerInfo();
+                    //update tick
+                    clockTime++;
+                }
                 //schedual function with correct clock delay
                 if (clockMultiplier>0){
-                    if (stopTick==false){
+                    if (stopTickFunction==false){
                         //check if end of wave
-                        if (endOfWave()){
+                        if (endOfWave()&&runTick==true){
                             //increment wave no
                             waveNo++;
                             if (waveNo>=waves.length){
                                 alert("You have won!");
                                 exitGame();
+                                stopTickFunction=true;
+                                runTick=false;
                             }else{
+                                //stop ticks
+                                runTick=false;
+                                clockTick=0;
                                 //start countdown
                                 startWaveCounter();
                             }
                             
                         }else{
-                            setTimeout(clockTick,baseClock/clockMultiplier);
+                            
                         }
-                        
+                        setTimeout(clockTick,baseClock/clockMultiplier);
                     }else{
-                        stopTick = false;
+                        stopTickFunction = false;
                     }
                 }else{
                     //display pause menu
