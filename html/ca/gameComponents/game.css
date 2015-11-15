@@ -68,9 +68,6 @@
     width: 875px;
 }
 
-
-
-
 .ui-progressbar.ui-widget-content {
      background: darkred;
   }
@@ -170,8 +167,6 @@
     position: absolute;
 }
 
-
-
 #resourceStats {
     border-color: darkgoldenrod;
     border-style: solid;
@@ -179,8 +174,6 @@
     border-radius: 10px 10px 10px 10px;
     padding: 5px 5px 5px 5px;
 }
-
-
 
 .sideBarImage {
     width:20px;
@@ -269,4 +262,21 @@
     width: 80px;
     height:80px;
     margin: 0 5 0 0;
+}
+
+#timeRemianingImage {
+    display: inline-block;
+    vertical-align: middle;
+    width: 18px;
+    height: 18px;
+}
+
+#startWave {
+    float:right;
+    height: 20px;
+    color:black;
+    vertical-align: middle;
+    text-align: center;
+    font-size: 11px;
+    border-radius: 7px;  
 }

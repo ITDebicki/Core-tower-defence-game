@@ -1,1 +1,35 @@
-{"radius":35,"path":[[93,0],[93,193],[557,193],[557,45],[793,45],[793,338],[420,338],[420,456],[765,456],[765,583]],"baseRadius":35,"baseLocation":[765,619],"startingBaseHealth":100,"startingResources":200}
+{"radius":35,"path":[[93,0],[93,193],[557,193],[557,45],[793,45],[793,338],[420,338],[420,456],[765,456],[765,583]],"baseRadius":35,"baseLocation":[765,619],"startingBaseHealth":100,"startingResources":200,
+"waves":[
+{
+   "0":{
+      "exampleEnemy":5,
+      "delay":3
+     },
+   "20":{
+      "exampleEnemy":10,
+      "delay":2
+      },
+   "60":{
+      "exampleEnemy":20,
+      "delay":1
+   }
+},
+{
+   "0":{
+      "exampleEnemy":30,
+      "delay":3
+      },
+   "100":{
+      "exampleEnemy":20,
+      "delay":2
+      },
+   "180":{
+      "exampleEnemy":100,
+      "delay":1
+      }
+}],
+"events":
+{
+   "pre":{"ENABLE":["exampleTower"]}
+}
+}
