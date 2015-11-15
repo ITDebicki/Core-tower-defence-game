@@ -305,15 +305,14 @@
                         dataType: 'json',
                         async: false,
                         success: function(data,textStatus,jqXHR) {
-                            setBaseHealth(data["startingBaseHealth"]);
-                            changeHealth(maxHealth);
+                            //setting reosurces
+                            setBaseHealth(data["maxBaseHealth"]);
+                            changeHealth(data["startingBaseHealth"]);
                             setResources(data["startingResources"]);
                             //draw the map so objects can interact with it
                             drawMap(data);
                             //calculate path for enemies
                             calculateVectorPaths();
-                            //set starting resources of player
-                            resources=200;
                             //set waves
                             waves = data["waves"];
                             //make sure all correct enemies are loaded
