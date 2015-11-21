@@ -203,6 +203,7 @@
                 var runTick = false;
                 var pauseWaveTimer = false;
                 var clockTickRunning=true;
+                var valid = true;
 
                 $("document").ready(function(){
                     //set self to hidden
@@ -219,6 +220,7 @@
                     })
                     $("#sellTower").click(sellTower);
                     $("#upgradeTower").click(upgradeTower);
+                    $("#upgradeTower").hover(showUpgradeStats,hideUpgradeStats);
                     $("#startWave").click(function(){stopWaveTimer=true;});
                     //animate off tower info element
 
@@ -473,13 +475,9 @@
                                     pos.x+=rangeDiff;
                                     pos.y+=rangeDiff;
                                 }
-                                console.log(pos);
-                                console.log(towerLevel);
-                                console.log(upgradeTowerData);
 
                                 var upgradeTowerDiv = upgradeTowerData["divBase"].clone();
-                                console.log($(currentSelection).data("price")+upgradeTowerDiv.data("price"),$(currentSelection).data("price"),$(upgradeTowerDiv).data("price"));
-                                $(upgradeTowerDiv).data("totalPrice",$(currentSelection).data("price")+$(upgradeTowerDiv).data("price"));
+                                $(upgradeTowerDiv).data("totalPrice", $(currentSelection).data("price") + $(upgradeTowerDiv).data("price"));
                                 upgradeTowerDiv.css("top",pos.y)
                                                 .css("left",pos.x);
                                 $(currentSelection).remove();
@@ -539,6 +537,14 @@
                         }
                     });
                 }
+            
+                function showUpgradeStats(){
+                    
+                }
+            
+                function hideUpgradeStats(){
+                    
+                }
 
                 function removeTowerSelection(){
                     $(".isSelected").removeClass("isSelected");
@@ -570,14 +576,19 @@
 
 
                 function saveScore(){
-
+                    
                 }
 
                 function exitGame(){
+                    timeUntilWave=30;
+                    runTick=false;
+                    stopTickFunction=true;
+                    stopWaveTimer=true;
                     $("#controlTray").hide('slide',{direction:'right'},500,function(){
                         removeElement("mainGame");
                         showStartScreen();
                     });
+                    window.game=null;
                 }
                 function calculatePath(x,y,vectorNo,movementRemaining,magnitudeRemaining){
                     var currentVector = vectorPath[vectorNo];
@@ -998,6 +1009,8 @@
                         if (clockTickRunning==false){
                             clockTick();
                         }else{
+                            //invalidate game as attempted to break it. Do not send high score, do not save.
+                            valid=false;
                             console.error("Stop trying!");
                         }   
                     },
@@ -1046,6 +1059,10 @@
                     <li>
                         <img class='sideBarActiveTowerStatImage' src='gameComponents/images/resources.png'>
                         <span class='sideBarActiveTowerStatText' id="activeTowerCost">10</span>
+                    </li>
+                    <li>
+                        <img class='sideBarActiveTowerStatImage' src='gameComponents/images/reload.png'>
+                        <span class='sideBarActiveTowerStatText' id="activeTowerCost">4</span>
                     </li>
                 </ul>
                 <div id="activeTowerButtons">
