@@ -2,990 +2,1011 @@
     <head>
         <link rel="stylesheet" type="text/css" href="gameComponents/game.css">
         <script>
-            Object.size = function(obj) {
-                var size = 0, key;
-                for (key in obj) {
-                    if (obj.hasOwnProperty(key)) size++;
-                }
-                return size;
-            };
-
-            function simpleSqCollision(e1, e2) {
-                  var x1 = e1.offset().left;
-                  var y1 = e1.offset().top;
-                  var h1 = e1.outerHeight(true);
-                  var w1 = e1.outerWidth(true);
-                  var b1 = y1 + h1;
-                  var r1 = x1 + w1;
-                  var x2 = e2.offset().left;
-                  var y2 = e2.offset().top;
-                  var h2 = e2.outerHeight(true);
-                  var w2 = e2.outerWidth(true);
-                  var b2 = y2 + h2;
-                  var r2 = x2 + w2;
-
-                  if (b1 < y2 || y1 > b2 || r1 < x2 || x1 > r2) return false;
-                  return true;
-            }
             
-            function extractCornerPoints(element){
-                
-                var points = [];
-                var matrix = element.css("transform");
-                var alpha =0;
-                if (matrix!=='none'){
-                    //calculate angle from affine transform
-                    var values = matrix.split('(')[1].split(')')[0].split(',');
-                    var a = values[0];
-                    var b = values[1];
-                    alpha = Math.atan2(b, a);
+            window.game=(function(){
+                Object.size = function(obj) {
+                    var size = 0, key;
+                    for (key in obj) {
+                        if (obj.hasOwnProperty(key)) size++;
+                    }
+                    return size;
+                };
+
+                function simpleSqCollision(e1, e2) {
+                      var x1 = e1.offset().left;
+                      var y1 = e1.offset().top;
+                      var h1 = e1.outerHeight(true);
+                      var w1 = e1.outerWidth(true);
+                      var b1 = y1 + h1;
+                      var r1 = x1 + w1;
+                      var x2 = e2.offset().left;
+                      var y2 = e2.offset().top;
+                      var h2 = e2.outerHeight(true);
+                      var w2 = e2.outerWidth(true);
+                      var b2 = y2 + h2;
+                      var r2 = x2 + w2;
+
+                      if (b1 < y2 || y1 > b2 || r1 < x2 || x1 > r2) return false;
+                      return true;
                 }
-                
-                var w = element.outerWidth(false);
-                var h = element.outerHeight(false);
-                
-                var xOffset=element.offset().left;
-                var yOffset=element.offset().top;
-                
-                points.push({'x':xOffset+Math.sin(alpha)*h,'y':yOffset});
-                points.push({'x':xOffset+w*Math.cos(alpha)+Math.sin(alpha)*h,'y':yOffset+w*Math.sin(alpha)});
-                points.push({'x':(xOffset+w*Math.cos(alpha)),'y':(yOffset+w*Math.sin(alpha))+h*Math.cos(alpha)});
-                points.push({'x':xOffset,'y':yOffset+h*Math.cos(alpha)});
-                
-                return points
-            }
-            
-            function advancedSqCollision (e1, e2) {
-                
-                var a = extractCornerPoints(e1);
-                var b = extractCornerPoints(e2);
-                var polygons = [a, b];
-                var minA, maxA, projected, i, i1, j, minB, maxB;
 
-                for (i = 0; i < polygons.length; i++) {
+                function extractCornerPoints(element){
 
-                    // for each polygon, look at each edge of the polygon, and determine if it separates
-                    // the two shapes
-                    var polygon = polygons[i];
-                    for (i1 = 0; i1 < polygon.length; i1++) {
+                    var points = [];
+                    var matrix = element.css("transform");
+                    var alpha =0;
+                    if (matrix!=='none'){
+                        //calculate angle from affine transform
+                        var values = matrix.split('(')[1].split(')')[0].split(',');
+                        var a = values[0];
+                        var b = values[1];
+                        alpha = Math.atan2(b, a);
+                    }
 
-                        // grab 2 vertices to create an edge
-                        var i2 = (i1 + 1) % polygon.length;
-                        var p1 = polygon[i1];
-                        var p2 = polygon[i2];
+                    var w = element.outerWidth(false);
+                    var h = element.outerHeight(false);
 
-                        // find the line perpendicular to this edge
-                        var normal = { x: p2.y - p1.y, y: p1.x - p2.x };
+                    var xOffset=element.offset().left;
+                    var yOffset=element.offset().top;
 
-                        minA = maxA = undefined;
-                        // for each vertex in the first shape, project it onto the line perpendicular to the edge
-                        // and keep track of the min and max of these values
-                        for (j = 0; j < a.length; j++) {
-                            projected = normal.x * a[j].x + normal.y * a[j].y;
-                            if (minA===undefined || projected < minA) {
-                                minA = projected;
+                    points.push({'x':xOffset+Math.sin(alpha)*h,'y':yOffset});
+                    points.push({'x':xOffset+w*Math.cos(alpha)+Math.sin(alpha)*h,'y':yOffset+w*Math.sin(alpha)});
+                    points.push({'x':(xOffset+w*Math.cos(alpha)),'y':(yOffset+w*Math.sin(alpha))+h*Math.cos(alpha)});
+                    points.push({'x':xOffset,'y':yOffset+h*Math.cos(alpha)});
+
+                    return points
+                }
+
+                function advancedSqCollision (e1, e2) {
+
+                    var a = extractCornerPoints(e1);
+                    var b = extractCornerPoints(e2);
+                    var polygons = [a, b];
+                    var minA, maxA, projected, i, i1, j, minB, maxB;
+
+                    for (i = 0; i < polygons.length; i++) {
+
+                        // for each polygon, look at each edge of the polygon, and determine if it separates
+                        // the two shapes
+                        var polygon = polygons[i];
+                        for (i1 = 0; i1 < polygon.length; i1++) {
+
+                            // grab 2 vertices to create an edge
+                            var i2 = (i1 + 1) % polygon.length;
+                            var p1 = polygon[i1];
+                            var p2 = polygon[i2];
+
+                            // find the line perpendicular to this edge
+                            var normal = { x: p2.y - p1.y, y: p1.x - p2.x };
+
+                            minA = maxA = undefined;
+                            // for each vertex in the first shape, project it onto the line perpendicular to the edge
+                            // and keep track of the min and max of these values
+                            for (j = 0; j < a.length; j++) {
+                                projected = normal.x * a[j].x + normal.y * a[j].y;
+                                if (minA===undefined || projected < minA) {
+                                    minA = projected;
+                                }
+                                if (maxA===undefined || projected > maxA) {
+                                    maxA = projected;
+                                }
                             }
-                            if (maxA===undefined || projected > maxA) {
-                                maxA = projected;
-                            }
-                        }
 
-                        // for each vertex in the second shape, project it onto the line perpendicular to the edge
-                        // and keep track of the min and max of these values
-                        minB = maxB = undefined;
-                        for (j = 0; j < b.length; j++) {
-                            projected = normal.x * b[j].x + normal.y * b[j].y;
-                            if (minB===undefined || projected < minB) {
-                                minB = projected;
+                            // for each vertex in the second shape, project it onto the line perpendicular to the edge
+                            // and keep track of the min and max of these values
+                            minB = maxB = undefined;
+                            for (j = 0; j < b.length; j++) {
+                                projected = normal.x * b[j].x + normal.y * b[j].y;
+                                if (minB===undefined || projected < minB) {
+                                    minB = projected;
+                                }
+                                if (maxB===undefined || projected > maxB) {
+                                    maxB = projected;
+                                }
                             }
-                            if (maxB===undefined || projected > maxB) {
-                                maxB = projected;
-                            }
-                        }
 
-                        // if there is no overlap between the projects, the edge we are looking at separates the two
-                        // polygons, and we know there is no overlap
-                        if (maxA < minB || maxB < minA) {
-                            return false;
+                            // if there is no overlap between the projects, the edge we are looking at separates the two
+                            // polygons, and we know there is no overlap
+                            if (maxA < minB || maxB < minA) {
+                                return false;
+                            }
                         }
                     }
-                }
-                return true;
-            };
-            
-            function crCollision(circle, rect) {
-                var cr = circle.outerWidth(true)/2;
-                var cx = circle.offset().left+cr;
-                var cy = circle.offset().top+cr;
-
-                var rx = rect.offset().left;
-                var ry = rect.offset().top;
-                var rh = rect.outerHeight(true);
-                var rw = rect.outerWidth(true);
-                var distX = Math.abs(cx - rx - rw / 2);
-                var distY = Math.abs(cy - ry - rh / 2);
-
-                if (distX > (rw / 2 + cr)) {
-                    return false;
-                }
-                if (distY > (rh / 2 + cr)) {
-                    return false;
-                }
-
-                if (distX <= (rw / 2)) {
                     return true;
-                }
-                if (distY <= (rh / 2)) {
-                    return true;
+                };
+
+                function crCollision(circle, rect) {
+                    var cr = circle.outerWidth(true)/2;
+                    var cx = circle.offset().left+cr;
+                    var cy = circle.offset().top+cr;
+
+                    var rx = rect.offset().left;
+                    var ry = rect.offset().top;
+                    var rh = rect.outerHeight(true);
+                    var rw = rect.outerWidth(true);
+                    var distX = Math.abs(cx - rx - rw / 2);
+                    var distY = Math.abs(cy - ry - rh / 2);
+
+                    if (distX > (rw / 2 + cr)) {
+                        return false;
+                    }
+                    if (distY > (rh / 2 + cr)) {
+                        return false;
+                    }
+
+                    if (distX <= (rw / 2)) {
+                        return true;
+                    }
+                    if (distY <= (rh / 2)) {
+                        return true;
+                    }
+
+                    var dx = distX - rw / 2;
+                    var dy = distY - rh / 2;
+                    return (dx * dx + dy * dy <= (cr * cr));
                 }
 
-                var dx = distX - rw / 2;
-                var dy = distY - rh / 2;
-                return (dx * dx + dy * dy <= (cr * cr));
-            }
-            
-            function rankByDistance(enemies){
-                var distanceArray = [];
-                var enemyArray = [];
-                for (i=0;i<enemies.length;i++){
-                    var enemy = enemies[i];
-                    var distanceTravelled = $(enemy).data("ticks")*$(enemy).data("speed");
-                    if (distanceArray.length>0){
-                        for (j=0;j<distanceArray.length;j++){
-                            if (distanceArray[j]<distanceTravelled){
-                                distanceArray.splice(j,0,distanceTravelled);
-                                enemyArray.splice(j,0,enemy);
-                                break;
-                            }else if (j==distanceArray.length-1){
-                                distanceArray.push(distanceTravelled);
-                                enemyArray.push(enemy);
-                                break;
+                function rankByDistance(enemies){
+                    var distanceArray = [];
+                    var enemyArray = [];
+                    for (i=0;i<enemies.length;i++){
+                        var enemy = enemies[i];
+                        var distanceTravelled = $(enemy).data("ticks")*$(enemy).data("speed");
+                        if (distanceArray.length>0){
+                            for (j=0;j<distanceArray.length;j++){
+                                if (distanceArray[j]<distanceTravelled){
+                                    distanceArray.splice(j,0,distanceTravelled);
+                                    enemyArray.splice(j,0,enemy);
+                                    break;
+                                }else if (j==distanceArray.length-1){
+                                    distanceArray.push(distanceTravelled);
+                                    enemyArray.push(enemy);
+                                    break;
+                                }
                             }
+                        }else{
+                            distanceArray.push(distanceTravelled);
+                            enemyArray.push(enemy);
                         }
+
+                    }
+                    return enemyArray;
+                }
+
+                //init global vars
+                var baseClock = 300;
+                var clockMultiplier = 1;
+                var clockTime = 0;
+                //set constants
+                var gameHeight = 675;
+                var gameWidth = 875;
+                var baseHealth = 100;
+                var score = 0;
+                var mapPath = [];
+                var vectorPath = [];
+                var pathRadius = 0;
+                var towers = [];
+                var stopTickFunction = false;
+                var enemyQueue = {};
+                var enemyDB = {};
+                var towerDB = {};
+                var projectileDB = {};
+                var currentDrag = null;
+                var mousePos = { x: 0, y: 0 };
+                var maxHealth = 100;
+                var resources = 0;
+                var waves = [];
+                var waveNo = 0;
+                var events = {};
+                var timeUntilWave = 30;
+                var stopWaveTimer = false
+                var runTick = false;
+                var pauseWaveTimer = false;
+                var clockTickRunning=true;
+
+                $("document").ready(function(){
+                    //set self to hidden
+                    $("#controlTray").hide('fade',0,function(){
+                        $("#controlTray").removeAttr("display");
+                    });
+
+                    //set handlers
+                    $(".timeControl").click(changePlaybackTime);
+                    $("#healthBar").progressbar({
+                        disabled: false,
+                        max: maxHealth,
+                        value: baseHealth
+                    })
+                    $("#sellTower").click(sellTower);
+                    $("#upgradeTower").click(upgradeTower);
+                    $("#startWave").click(function(){stopWaveTimer=true;});
+                    //animate off tower info element
+
+                    $("#sideBarTowerControl").css("display","block");
+                    $("#sideBarTowerControl").slideUp(0);
+
+                    $(document).mousemove(function(event) {
+                        mousePos.x = event.pageX;
+                        mousePos.y = event.pageY;
+                    });
+                    $("#gameSpace").mousedown(removeTowerSelection);
+
+                    //load map
+                    loadMap("exampleMap");
+
+                    //set wave number to 0
+                    waveNo = 0;
+                    //set wave timer
+                    timeUntilWave = 30;
+
+                    //animate tray in
+                    $("#controlTray").show('slide',{direction:'right'},1000);
+
+                    //display wave count down
+                    startWaveCounter();
+                    //start ticks
+                    runTick=false;
+                    clockTick();
+                });
+
+
+                $(document).keyup(function(e) {
+                    if (e.keyCode == 27) { 
+                        // escape key pressed - if moving any tower, stop moving and refund
+                        $(".isDragging").each(function(i,e){
+                            //refund resources
+                            setResources(resources+$(this).data("price"));
+                            //remove handlers
+                            $('#gameSpace').unbind("");
+                            //remove tower
+                            $(this).remove();
+                        });
+                    }
+                });
+                function startWaveCounter(){
+                    prepareWave();
+                    $("#waveControls").slideDown(100);
+                    waveCountDown();
+                }
+
+                function waveCountDown(){
+                    $("#timeRemaining").html(timeUntilWave);
+                    //decrement time if pause menu is not loaded
+                    if ($("#pauseMenu").length == 0){
+                        timeUntilWave--;
+                    }
+
+
+                    if (timeUntilWave>=0 && !stopWaveTimer){
+                        setTimeout(waveCountDown,1000);
                     }else{
-                        distanceArray.push(distanceTravelled);
-                        enemyArray.push(enemy);
+                        //reset
+                        stopWaveTimer = false;
+                        timeUntilWave = 30;
+
+                        //time expired start wave
+                        startWave(waveNo);
+                        //hide countdown
+                        $("#waveControls").slideUp(100);
                     }
-                    
                 }
-                return enemyArray;
-            }
-            
-            //init global vars
-            var baseClock = 300;
-            var clockMultiplier = 1;
-            var clockTime = 0;
-            //set constants
-            var gameHeight = 675;
-            var gameWidth = 875;
-            var baseHealth = 100;
-            var score = 0;
-            var mapPath = [];
-            var vectorPath = [];
-            var pathRadius = 0;
-            var towers = [];
-            var stopTickFunction = false;
-            var enemyQueue = {};
-            var enemyDB = {};
-            var towerDB = {};
-            var projectileDB = {};
-            var currentDrag = null;
-            var mousePos = { x: 0, y: 0 };
-            var maxHealth = 100;
-            var resources = 0;
-            var waves = [];
-            var waveNo = 0;
-            var events = {};
-            var timeUntilWave = 30;
-            var stopWaveTimer = false
-            var runTick = false;
-            var pauseWaveTimer = false;
 
-            $("document").ready(function(){
-                //set self to hidden
-                $("#controlTray").hide('fade',0,function(){
-                    $("#controlTray").removeAttr("display");
-                });
-                
-                //set handlers
-                $(".timeControl").click(changePlaybackTime);
-                $("#healthBar").progressbar({
-                    disabled: false,
-                    max: maxHealth,
-                    value: baseHealth
-                })
-                $("#sellTower").click(sellTower);
-                $("#upgradeTower").click(upgradeTower);
-                $("#startWave").click(function(){stopWaveTimer=true;});
-                //animate off tower info element
-                
-                $("#sideBarTowerControl").css("display","block");
-                $("#sideBarTowerControl").slideUp(0);
-                
-                $(document).mousemove(function(event) {
-                    mousePos.x = event.pageX;
-                    mousePos.y = event.pageY;
-                });
-                $("#gameSpace").mousedown(removeTowerSelection);
-                
-                //load map
-                loadMap("exampleMap");
+                function executeEvent(event,arg){
+                    console.log(event,arg);
+                    switch(event){
+                        case "ENABLE":
+                            //is array of towers
+                            for (var tower in arg){
+                                if (arg.hasOwnProperty(tower)){
+                                    //put tower into sideBar
+                                    loadSideBarTower(arg[tower]);
+                                }
+                            }
+                            break;
+                        default:
+                            console.log("invalid event");
+                    }
+                }
 
-                //set wave number to 0
-                waveNo = 0;
-                //set wave timer
-                timeUntilWave = 30;
-                
-                //animate tray in
-                $("#controlTray").show('slide',{direction:'right'},1000);
-                
-                //display wave count down
-                startWaveCounter();
-                //start ticks
-                runTick=false;
-                clockTick();
-            });
-            
-        
-            $(document).keyup(function(e) {
-                if (e.keyCode == 27) { 
-                    // escape key pressed - if moving any tower, stop moving and refund
-                    $(".isDragging").each(function(i,e){
-                        //refund resources
-                        setResources(resources+$(this).data("price"));
-                        //remove handlers
-                        $('#gameSpace').unbind("");
-                        //remove tower
+                function loadMap(mapName){
+                    //load background
+                    loadBackground("gameComponents/maps/"+mapName+".png");
+                    //load map path
+                    $.ajax({
+                            type: "GET",
+                            url: "gameComponents/maps/"+mapName+".mp",
+                            dataType: 'json',
+                            async: false,
+                            success: function(data,textStatus,jqXHR) {
+                                //setting reosurces
+                                setBaseHealth(data["maxBaseHealth"]);
+                                changeHealth(data["startingBaseHealth"]);
+                                setResources(data["startingResources"]);
+                                //draw the map so objects can interact with it
+                                drawMap(data);
+                                //calculate path for enemies
+                                calculateVectorPaths();
+                                //set waves
+                                waves = data["waves"];
+                                //make sure all correct enemies are loaded
+                                prepareWaves();
+                                //set events
+                                events = data["events"];
+                                //make sure all correct towers are loaded in
+                                prepareEvents();
+                                //execute any events to be executed before start of clock   
+                                console.log(events);
+                                if (events["pre"]){
+                                    var preEvents = events["pre"];
+                                    for (var event in preEvents){
+                                        if (events["pre"].hasOwnProperty(event)){
+                                            executeEvent(event,preEvents[event]);
+                                        }
+                                    }
+                                }
+                            },
+                           error:function(jqXHR,textStatus,errorThrown){
+                                console.log(jqXHR,textStatus,errorThrown);
+                                alert("sorry this map does not seemt to be working right now");
+                            }
+                        });
+                }
+
+                function calculateVectorPaths(){
+                    for (i=0;i<mapPath.length-1;i++){
+                        var directionVector = [(mapPath[i+1][0] - mapPath[i][0]),(mapPath[i+1][1] - mapPath[i][1])];
+                        var magnitudeLimit = Math.sqrt(Math.pow(directionVector[0],2)+Math.pow(directionVector[1],2));
+                        //obtain unit vector
+                        directionVector[0]/=magnitudeLimit;
+                        directionVector[1]/=magnitudeLimit;
+                        //calculate limit of magnitude
+                        vectorPath.push([directionVector,magnitudeLimit]);
+                    }
+                }
+
+                function drawMap(data){
+                    pathRadius = data["radius"];
+                    mapPath = data["path"];
+                    var gameContainer = $("#gameSpace")
+                    //draw map path using divs
+                    for (i = 0;i<mapPath.length-1;i++){      
+                        var pathComponentHeight = pathRadius * 2;
+                        //work out angle between the two points
+                        var angle = Math.atan(Math.abs(mapPath[i][1]-mapPath[i+1][1])/Math.abs(mapPath[i][0]-mapPath[i+1][0]));
+                        //always take smaller value of x and y
+                        var x = Math.min(mapPath[i][0],mapPath[i+1][0])-pathRadius + pathRadius * Math.sin(angle);
+                        var y = Math.min(mapPath[i][1],mapPath[i+1][1])-pathRadius - pathRadius * Math.sin(angle);
+                        //use pythagoras to calculate length of div
+                        var pathComponentWidth = Math.sqrt(Math.pow((mapPath[i][0]-mapPath[i+1][0]),2)+Math.pow((mapPath[i][1]-mapPath[i+1][1]),2))+2*pathRadius;
+
+                        //add to layout
+                        var pathComponent = $('<div id="'+i+'" class="mapPathTile tile">');
+                        gameContainer.append(pathComponent);
+                        //apply changes to div
+                        pathComponent.css({left: x, top: y, width: pathComponentWidth,height: pathComponentHeight, transform:"rotate("+angle+"rad)"}); 
+                    }
+                    //position base
+                    var baseDiv = $('<div class="baseTile tile">');
+                    gameContainer.append(baseDiv);
+                    baseDiv.css({left: data["baseLocation"][0] - 35, top: data["baseLocation"][1] - 35, width: data["baseRadius"]*2,height: data["baseRadius"]*2});
+                }
+
+                function prepareEvents(){
+                    for (var event in events) {
+                        if (events.hasOwnProperty(event)){
+                            for (var key in event) {
+                                if (event.hasOwnProperty(key) && key =="ENABLE"){
+                                    for (tower in key){
+                                        if (key.hasOwnProperty(tower)){
+                                            loadTower(key[tower]);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                function prepareWaves(){
+                    for (var waveKey in waves){
+                        //make sure enemies are loaded for the wave
+                        var wave = waves[waveKey];
+                        if (waves.hasOwnProperty(waveKey)) { 
+                            for (var tickKey in wave) {
+                                if (wave.hasOwnProperty(tickKey)) { 
+                                    var tick = wave[tickKey];
+                                    for (var key in tick){
+                                        if (tick.hasOwnProperty(key) && key != "delay") { 
+                                            loadEnemy(key);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                }
+
+                function prepareWave(){
+                    //queue all enemy for wave
+                    enemyQueue = {};
+                    var delay = 1;
+                    var wave = waves[waveNo];
+                    for (var tickKey in wave) {
+                        if (wave.hasOwnProperty(tickKey)) { 
+                            var tick = wave[tickKey];
+                            delay = parseInt(tick["delay"]);
+                            for (var key in tick){
+                                if (tick.hasOwnProperty(key) && key != "delay") { 
+                                    for (var i = 0;i<tick[key];i++){
+                                        var tickTrigger = parseInt(tickKey) + delay * i
+                                        if (tickTrigger in enemyQueue){
+                                            enemyQueue[tickTrigger].push(loadEnemy(key));
+                                        }else{
+                                            enemyQueue[tickTrigger]=[loadEnemy(key)];
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                function startWave(waveNo){
+                    //start tick
+                    clockTime=0;
+                    runTick=true;
+                }
+                function upgradeTower(){
+                    $(".isSelected").each(function(i,e){
+                        if ($(this).data("upgradeLevel")<2){
+                            if(buyUpgrade()==true){
+                                var currentSelection = $(".isSelected")[0];
+                                var towerLevel = $(currentSelection).data("upgradeLevel");
+                                var towerClass = $(currentSelection).data("towerClass");
+                                var upgradeTowerData = towerDB[towerClass][towerLevel+1];
+                                var currentRange = $(currentSelection).data("range");
+                                var newRange = upgradeTowerData["range"];
+                                var pos = {"x":$(currentSelection).css("left"),"y":$(currentSelection).css("top")};
+                                if (currentRange!=newRange){
+                                    var rangeDiff = newRange - currentRange;
+                                    pos.x+=rangeDiff;
+                                    pos.y+=rangeDiff;
+                                }
+                                console.log(pos);
+                                console.log(towerLevel);
+                                console.log(upgradeTowerData);
+
+                                var upgradeTowerDiv = upgradeTowerData["divBase"].clone();
+                                console.log($(currentSelection).data("price")+upgradeTowerDiv.data("price"),$(currentSelection).data("price"),$(upgradeTowerDiv).data("price"));
+                                $(upgradeTowerDiv).data("totalPrice",$(currentSelection).data("price")+$(upgradeTowerDiv).data("price"));
+                                upgradeTowerDiv.css("top",pos.y)
+                                                .css("left",pos.x);
+                                $(currentSelection).remove();
+
+                                $("#gameSpace").append(upgradeTowerDiv);
+                                $(upgradeTowerDiv).children(".tower").click(selectTower);
+                                $(upgradeTowerDiv).children(".tower").addClass("tile");
+                                $(upgradeTowerDiv).children(".tower").trigger("click");
+                                /*$(upgradeTowerDiv).ready(function(){
+                                    console.log("clicking")
+                                    $(this).children(".tower").trigger("click");
+                                });*/
+                                //set tower as tile
+
+
+                            }else{
+                                console.log("Not enough resources to buy upgrade");
+                            }
+
+                        }
+                    });
+                }
+
+                function buyUpgrade(){
+                    var currentSelection = $(".isSelected")[0];
+                    var towerLevel = $(currentSelection).data("upgradeLevel");
+                    var towerClass = $(currentSelection).data("towerClass");
+                    var upgradeTowerData = towerDB[towerClass][towerLevel+1];
+                    if (resources-upgradeTowerData["cost"]>=0){
+                        setResources(resources-upgradeTowerData["cost"]);
+                        return true;
+                    }else{
+                        return false;
+                    }
+                }
+
+                function sellTower(){
+                    $(".isSelected").each(function(i,e){
+                        //return 75% of resources
+                        setResources(resources+Math.floor($(this).data("totalPrice")*0.75));
+                        //remove
                         $(this).remove();
                     });
+                    removeTowerSelection();
                 }
-            });
-            function startWaveCounter(){
-                prepareWave();
-                $("#waveControls").slideDown(100);
-                waveCountDown();
-            }
-            
-            function waveCountDown(){
-                $("#timeRemaining").html(timeUntilWave);
-                //decrement time if pause menu is not loaded
-                if ($("#pauseMenu").length == 0){
-                    timeUntilWave--;
-                }
-                
-                
-                if (timeUntilWave>=0 && !stopWaveTimer){
-                    setTimeout(waveCountDown,1000);
-                }else{
-                    //reset
-                    stopWaveTimer = false;
-                    timeUntilWave = 30;
-                    
-                    //time expired start wave
-                    startWave(waveNo);
-                    //hide countdown
-                    $("#waveControls").slideUp(100);
-                }
-            }
-            
-            function executeEvent(event,arg){
-                console.log(event,arg);
-                switch(event){
-                    case "ENABLE":
-                        //is array of towers
-                        for (var tower in arg){
-                            if (arg.hasOwnProperty(tower)){
-                                //put tower into sideBar
-                                loadSideBarTower(arg[tower]);
-                            }
-                        }
-                        break;
-                    default:
-                        console.log("invalid event");
-                }
-            }
-            
-            function loadMap(mapName){
-                //load background
-                loadBackground("gameComponents/maps/"+mapName+".png");
-                //load map path
-                $.ajax({
-                        type: "GET",
-                        url: "gameComponents/maps/"+mapName+".mp",
-                        dataType: 'json',
-                        async: false,
-                        success: function(data,textStatus,jqXHR) {
-                            //setting reosurces
-                            setBaseHealth(data["maxBaseHealth"]);
-                            changeHealth(data["startingBaseHealth"]);
-                            setResources(data["startingResources"]);
-                            //draw the map so objects can interact with it
-                            drawMap(data);
-                            //calculate path for enemies
-                            calculateVectorPaths();
-                            //set waves
-                            waves = data["waves"];
-                            //make sure all correct enemies are loaded
-                            prepareWaves();
-                            //set events
-                            events = data["events"];
-                            //make sure all correct towers are loaded in
-                            prepareEvents();
-                            //execute any events to be executed before start of clock   
-                            console.log(events);
-                            if (events["pre"]){
-                                var preEvents = events["pre"];
-                                for (var event in preEvents){
-                                    if (events["pre"].hasOwnProperty(event)){
-                                        executeEvent(event,preEvents[event]);
-                                    }
-                                }
-                            }
-                        },
-                       error:function(jqXHR,textStatus,errorThrown){
-                            console.log(jqXHR,textStatus,errorThrown);
-                            alert("sorry this map does not seemt to be working right now");
+
+                function updateActiveTowerInfo(){
+                    $(".isSelected").each(function(i,e){
+                        $("#activeTowerImage").attr("src",$(this).children("img").attr("src"));
+                        $("#activeTowerAttack").html($(this).data("damage"));
+                        $("#activeTowerRange").html($(this).data("range"));
+                        $("#activeTowerCost").html(Math.floor($(this).data("totalPrice")*0.75));
+                        if ($(this).data("upgradeLevel")==2){
+                            $("#upgradeTower").hide();
+                        }else{
+                            $("#upgradeTower").show();
                         }
                     });
-            }
-            
-            function calculateVectorPaths(){
-                for (i=0;i<mapPath.length-1;i++){
-                    var directionVector = [(mapPath[i+1][0] - mapPath[i][0]),(mapPath[i+1][1] - mapPath[i][1])];
-                    var magnitudeLimit = Math.sqrt(Math.pow(directionVector[0],2)+Math.pow(directionVector[1],2));
-                    //obtain unit vector
-                    directionVector[0]/=magnitudeLimit;
-                    directionVector[1]/=magnitudeLimit;
-                    //calculate limit of magnitude
-                    vectorPath.push([directionVector,magnitudeLimit]);
                 }
-            }
-            
-            function drawMap(data){
-                pathRadius = data["radius"];
-                mapPath = data["path"];
-                var gameContainer = $("#gameSpace")
-                //draw map path using divs
-                for (i = 0;i<mapPath.length-1;i++){      
-                    var pathComponentHeight = pathRadius * 2;
-                    //work out angle between the two points
-                    var angle = Math.atan(Math.abs(mapPath[i][1]-mapPath[i+1][1])/Math.abs(mapPath[i][0]-mapPath[i+1][0]));
-                    //always take smaller value of x and y
-                    var x = Math.min(mapPath[i][0],mapPath[i+1][0])-pathRadius + pathRadius * Math.sin(angle);
-                    var y = Math.min(mapPath[i][1],mapPath[i+1][1])-pathRadius - pathRadius * Math.sin(angle);
-                    //use pythagoras to calculate length of div
-                    var pathComponentWidth = Math.sqrt(Math.pow((mapPath[i][0]-mapPath[i+1][0]),2)+Math.pow((mapPath[i][1]-mapPath[i+1][1]),2))+2*pathRadius;
 
-                    //add to layout
-                    var pathComponent = $('<div id="'+i+'" class="mapPathTile tile">');
-                    gameContainer.append(pathComponent);
-                    //apply changes to div
-                    pathComponent.css({left: x, top: y, width: pathComponentWidth,height: pathComponentHeight, transform:"rotate("+angle+"rad)"}); 
+                function removeTowerSelection(){
+                    $(".isSelected").removeClass("isSelected");
+                    $("#sideBarTowerControl").slideUp(100);
                 }
-                //position base
-                var baseDiv = $('<div class="baseTile tile">');
-                gameContainer.append(baseDiv);
-                baseDiv.css({left: data["baseLocation"][0] - 35, top: data["baseLocation"][1] - 35, width: data["baseRadius"]*2,height: data["baseRadius"]*2});
-            }
-            
-            function prepareEvents(){
-                for (var event in events) {
-                    if (events.hasOwnProperty(event)){
-                        for (var key in event) {
-                            if (event.hasOwnProperty(key) && key =="ENABLE"){
-                                for (tower in key){
-                                    if (key.hasOwnProperty(tower)){
-                                        loadTower(key[tower]);
-                                    }
-                                }
-                            }
-                        }
-                    }
+
+                function setBaseHealth(newHealth){
+                    maxHealth=newHealth;
+                    $("#healthBar").progressbar( "option", "max", maxHealth );
                 }
-            }
-            
-            function prepareWaves(){
-                for (var waveKey in waves){
-                    //make sure enemies are loaded for the wave
-                    var wave = waves[waveKey];
-                    if (waves.hasOwnProperty(waveKey)) { 
-                        for (var tickKey in wave) {
-                            if (wave.hasOwnProperty(tickKey)) { 
-                                var tick = wave[tickKey];
-                                for (var key in tick){
-                                    if (tick.hasOwnProperty(key) && key != "delay") { 
-                                        loadEnemy(key);
-                                    }
-                                }
-                            }
-                        }
+
+                function changeHealth(health){
+                    baseHealth=health;
+                    $("#healthValue").html(baseHealth);
+                    $("#healthBar").progressbar("value",baseHealth);
+                    if (baseHealth<=0){
+                        stopTickFunction=true;
+                        alert("your base has been destroyed");
+                        //show high score page
+                        exitGame();
                     }
                 }
 
-            }
-            
-            function prepareWave(){
-                //queue all enemy for wave
-                enemyQueue = {};
-                var delay = 1;
-                var wave = waves[waveNo];
-                for (var tickKey in wave) {
-                    if (wave.hasOwnProperty(tickKey)) { 
-                        var tick = wave[tickKey];
-                        delay = parseInt(tick["delay"]);
-                        for (var key in tick){
-                            if (tick.hasOwnProperty(key) && key != "delay") { 
-                                for (var i = 0;i<tick[key];i++){
-                                    var tickTrigger = parseInt(tickKey) + delay * i
-                                    if (tickTrigger in enemyQueue){
-                                        enemyQueue[tickTrigger].push(loadEnemy(key));
-                                    }else{
-                                        enemyQueue[tickTrigger]=[loadEnemy(key)];
-                                    }
-                                }
-                            }
-                        }
-                    }
+                function setResources(newResources){
+                    resources=newResources;
+                    $("#resourceValue").html(resources);
                 }
-            }
-                
-            function startWave(waveNo){
-                //start tick
-                clockTime=0;
-                runTick=true;
-            }
-            function upgradeTower(){
-                $(".isSelected").each(function(i,e){
-                    if ($(this).data("upgradeLevel")<2){
-                        if(buyUpgrade()==true){
-                            var currentSelection = $(".isSelected")[0];
-                            var towerLevel = $(currentSelection).data("upgradeLevel");
-                            var towerClass = $(currentSelection).data("towerClass");
-                            var upgradeTowerData = towerDB[towerClass][towerLevel+1];
-                            var currentRange = $(currentSelection).data("range");
-                            var newRange = upgradeTowerData["range"];
-                            var pos = {"x":$(currentSelection).css("left"),"y":$(currentSelection).css("top")};
-                            if (currentRange!=newRange){
-                                var rangeDiff = newRange - currentRange;
-                                pos.x+=rangeDiff;
-                                pos.y+=rangeDiff;
-                            }
-                            console.log(pos);
-                            console.log(towerLevel);
-                            console.log(upgradeTowerData);
-                            
-                            var upgradeTowerDiv = upgradeTowerData["divBase"].clone();
-                            upgradeTowerDiv.data("totalPrice",$(currentSelection).data("price")+upgradeTowerDiv.data("cost"));
-                            upgradeTowerDiv.css("top",pos.y)
-                                            .css("left",pos.x);
-                            $(currentSelection).remove();
-                            
-                            $("#gameSpace").append(upgradeTowerDiv);
-                            $(upgradeTowerDiv).children(".tower").click(selectTower);
-                            $(upgradeTowerDiv).children(".tower").addClass("tile");
-                            $(upgradeTowerDiv).children(".tower").trigger("click");
-                            /*$(upgradeTowerDiv).ready(function(){
-                                console.log("clicking")
-                                $(this).children(".tower").trigger("click");
-                            });*/
-                            //set tower as tile
-                            
-                            
+
+
+
+                function saveScore(){
+
+                }
+
+                function exitGame(){
+                    $("#controlTray").hide('slide',{direction:'right'},500,function(){
+                        removeElement("mainGame");
+                        showStartScreen();
+                    });
+                }
+                function calculatePath(x,y,vectorNo,movementRemaining,magnitudeRemaining){
+                    var currentVector = vectorPath[vectorNo];
+                    if (movementRemaining<=magnitudeRemaining){
+                        x += currentVector[0][0]*movementRemaining;
+                        y += currentVector[0][1]*movementRemaining;
+                        magnitudeRemaining -=movementRemaining;
+
+                    }else{
+                        //reach end of path
+                        x += currentVector[0][0]*magnitudeRemaining;
+                        y += currentVector[0][1]*magnitudeRemaining;
+
+                        if(vectorPath.length-1==vectorNo){
+                            //return as at end anyway
+                            magnitudeRemaining=0;
                         }else{
-                            console.log("Not enough resources to buy upgrade");
-                        }
+                            //more vector paths to calculate
+                            //recalculate movementRemaining
+                            movementRemaining -= magnitudeRemaining;
 
+                            //set next vector
+                            vectorNo+=1;
+                            //recalculate magnitudeRemaining
+                            magnitudeRemaining = vectorPath[vectorNo][1];
+                            return calculatePath(x,y,vectorNo,movementRemaining,magnitudeRemaining);
+                        }
                     }
-                });
-            }
-            
-            function buyUpgrade(){
-                var currentSelection = $(".isSelected")[0];
-                var towerLevel = $(currentSelection).data("upgradeLevel");
-                var towerClass = $(currentSelection).data("towerClass");
-                var upgradeTowerData = towerDB[towerClass][towerLevel+1];
-                if (resources-upgradeTowerData["cost"]>=0){
-                    setResources(resources-upgradeTowerData["cost"]);
+                    return {
+                        "x":x,
+                        "y":y,
+                        "vectorNo":vectorNo,
+                        "magnitudeRemaining":magnitudeRemaining
+                    };
+                }
+                function moveEnemies(){
+                    $("#gameSpace .enemy").each(function(i,e){
+
+                        //check collision with final base
+                        if ($(this).data("currentVector")==vectorPath.length-1){
+                            if (simpleSqCollision($(this),$(".baseTile"))){
+                                dealBaseDamage($(this).data("damage"));
+                                $(this).remove();   
+                            }   
+                        }
+                        var returnData = calculatePath($(this).data("currentX"),
+                                                        $(this).data("currentY"),
+                                                        $(this).data("currentVector"),
+                                                        $(this).data("speed"),
+                                                        $(this).data("magnitudeRemaining")
+                                                       );
+
+                        $(this).data("currentVector",returnData.vectorNo);
+                        $(this).data("magnitudeRemaining",returnData.magnitudeRemaining);
+                        $(this).data("currentX",returnData.x);
+                        $(this).data("currentY",returnData.y);
+
+                        $(this).animate({
+                            left:returnData.x,
+                            top: returnData.y,
+                        },baseClock/clockMultiplier,"linear");
+                        //increase no. of ticks survived
+                        var ticks = $(this).data("ticks");
+                        $(this).data("ticks", ticks+1);
+
+
+                    });
+                }
+                function shootProjectiles(){
+                    $("#gameSpace .towerContainer:not(.isDragging)").each(function(i,e){
+                        var reloadState = $(this).data("reloadState");
+                        reloadState+=1
+                        //if reloaded, fire
+                        if((reloadState % $(this).data("reloadSpeed")) == 0){
+                            var target = findTarget($(this));
+                            if (target!==null || target!==undefined){
+                                fireTower($(this),$(target));
+                            }
+                            reloadState=0;
+                        }
+                        $(this).data("reloadState",reloadState);
+
+                    });
+                }
+
+                function clockTick(){
+                    clockTickRunning=true;
+                    //perform updates
+                    if(runTick){
+                        //spawn any new enemies in queue
+                        spawnEnemy();
+                        //check if projectiles collided with an enemy
+                        checkProjectileCollisions();
+                        //move enemies
+                        moveEnemies();
+                        //shoot projectiles
+                        shootProjectiles();
+                        //update the status of selected towers
+                        updateActiveTowerInfo();
+                        //update tick
+                        clockTime++;
+                    }
+                    //schedual function with correct clock delay
+                    if (clockMultiplier>0){
+                        if (stopTickFunction==false){
+                            //check if end of wave
+                            if (endOfWave()&&runTick==true){
+                                //increment wave no
+                                waveNo++;
+                                if (waveNo>=waves.length){
+                                    alert("You have won!");
+                                    exitGame();
+                                    stopTickFunction=true;
+                                    runTick=false;
+                                }else{
+                                    //stop ticks
+                                    runTick=false;
+                                    clockTime=0;
+                                    //start countdown
+                                    startWaveCounter();
+                                }
+                            }
+                            setTimeout(clockTick,baseClock/clockMultiplier);
+                        }else{
+                            stopTickFunction = false;
+                        }
+                    }else{
+                        //display pause menu
+                        clockTickRunning=false;
+                        loadElement("gameComponents/pauseMenu.html","pauseMenu");
+                    }
+                }
+
+                function endOfWave(){
+                    if (Object.size(enemyQueue)>0){
+                        return false;
+                    }
+                    if ($(".enemy")[0]){
+                        return false;
+                    }
+                    //all enemies from wave killed
                     return true;
-                }else{
-                    return false;
                 }
-            }
-            
-            function sellTower(){
-                $(".isSelected").each(function(i,e){
-                    //return 75% of resources
-                    setResources(resources+Math.floor($(this).data("totalPrice")*0.75));
-                    //remove
-                    $(this).remove();
-                });
-                removeTowerSelection();
-            }
-            
-            function updateActiveTowerInfo(){
-                $(".isSelected").each(function(i,e){
-                    $("#activeTowerImage").attr("src",$(this).children("img").attr("src"));
-                    $("#activeTowerAttack").html($(this).data("damage"));
-                    $("#activeTowerRange").html($(this).data("range"));
-                    $("#activeTowerCost").html(Math.floor($(this).data("price")*0.75));
-                    if ($(this).data("upgradeLevel")==2){
-                        $("#upgradeTower").hide();
-                    }else{
-                        $("#upgradeTower").show();
-                    }
-                });
-            }
-            
-            function removeTowerSelection(){
-                $(".isSelected").removeClass("isSelected");
-                $("#sideBarTowerControl").slideUp(100);
-            }
-            
-            function setBaseHealth(newHealth){
-                maxHealth=newHealth;
-                $("#healthBar").progressbar( "option", "max", maxHealth );
-            }
-            
-            function changeHealth(health){
-                baseHealth=health;
-                $("#healthValue").html(baseHealth);
-                $("#healthBar").progressbar("value",baseHealth);
-                if (baseHealth<=0){
-                    stopTickFunction=true;
-                    alert("your base has been destroyed");
-                    //show high score page
-                    exitGame();
-                }
-            }
-            
-            function setResources(newResources){
-                resources=newResources;
-                $("#resourceValue").html(resources);
-            }
 
-            
-            
-            function saveScore(){
-                
-            }
-            
-            function exitGame(){
-                $("#controlTray").hide('slide',{direction:'right'},500,function(){
-                    removeElement("mainGame");
-                    showStartScreen();
-                });
-            }
-            function calculatePath(x,y,vectorNo,movementRemaining,magnitudeRemaining){
-                var currentVector = vectorPath[vectorNo];
-                if (movementRemaining<=magnitudeRemaining){
-                    x += currentVector[0][0]*movementRemaining;
-                    y += currentVector[0][1]*movementRemaining;
-                    magnitudeRemaining -=movementRemaining;
-                    
-                }else{
-                    //reach end of path
-                    x += currentVector[0][0]*magnitudeRemaining;
-                    y += currentVector[0][1]*magnitudeRemaining;
-                    
-                    if(vectorPath.length-1==vectorNo){
-                        //return as at end anyway
-                        magnitudeRemaining=0;
-                    }else{
-                        //more vector paths to calculate
-                        //recalculate movementRemaining
-                        movementRemaining -= magnitudeRemaining;
-                        
-                        //set next vector
-                        vectorNo+=1;
-                        //recalculate magnitudeRemaining
-                        magnitudeRemaining = vectorPath[vectorNo][1];
-                        return calculatePath(x,y,vectorNo,movementRemaining,magnitudeRemaining);
-                    }
+                function dealBaseDamage(damage){
+                    changeHealth(baseHealth-damage);
                 }
-                return {
-                    "x":x,
-                    "y":y,
-                    "vectorNo":vectorNo,
-                    "magnitudeRemaining":magnitudeRemaining
-                };
-            }
-            function moveEnemies(){
-                $("#gameSpace .enemy").each(function(i,e){
-                    
-                    //check collision with final base
-                    if ($(this).data("currentVector")==vectorPath.length-1){
-                        if (simpleSqCollision($(this),$(".baseTile"))){
-                            dealBaseDamage($(this).data("damage"));
-                            $(this).remove();   
-                        }   
-                    }
-                    var returnData = calculatePath($(this).data("currentX"),
-                                                    $(this).data("currentY"),
-                                                    $(this).data("currentVector"),
-                                                    $(this).data("speed"),
-                                                    $(this).data("magnitudeRemaining")
-                                                   );
-                    
-                    $(this).data("currentVector",returnData.vectorNo);
-                    $(this).data("magnitudeRemaining",returnData.magnitudeRemaining);
-                    $(this).data("currentX",returnData.x);
-                    $(this).data("currentY",returnData.y);
-                    
-                    $(this).animate({
-                        left:returnData.x,
-                        top: returnData.y,
-                    },baseClock/clockMultiplier,"linear");
-                    //increase no. of ticks survived
-                    var ticks = $(this).data("ticks");
-                    $(this).data("ticks", ticks+1);
 
-                    
-                });
-            }
-            function shootProjectiles(){
-                $("#gameSpace .towerContainer:not(.isDragging)").each(function(i,e){
-                    var reloadState = $(this).data("reloadState");
-                    reloadState+=1
-                    //if reloaded, fire
-                    if((reloadState % $(this).data("reloadSpeed")) == 0){
-                        var target = findTarget($(this));
-                        if (target!==null || target!==undefined){
-                            fireTower($(this),$(target));
-                        }
-                        reloadState=0;
-                    }
-                    $(this).data("reloadState",reloadState);
-                    
-                });
-            }
-            
-            function clockTick(){
-                //perform updates
-                if(runTick){
-                    //spawn any new enemies in queue
-                    spawnEnemy();
-                    //check if projectiles collided with an enemy
-                    checkProjectileCollisions();
-                    //move enemies
-                    moveEnemies();
-                    //shoot projectiles
-                    shootProjectiles();
-                    //update the status of selected towers
-                    updateActiveTowerInfo();
-                    //update tick
-                    clockTime++;
+                function changePlaybackTime(evt){
+                    clockMultiplier = $(this).data("speed");
+                    $(".selectedTimeControl").removeClass("selectedTimeControl");
+                    $(this).addClass("selectedTimeControl");
                 }
-                //schedual function with correct clock delay
-                if (clockMultiplier>0){
-                    if (stopTickFunction==false){
-                        //check if end of wave
-                        if (endOfWave()&&runTick==true){
-                            //increment wave no
-                            waveNo++;
-                            if (waveNo>=waves.length){
-                                alert("You have won!");
-                                exitGame();
-                                stopTickFunction=true;
-                                runTick=false;
-                            }else{
-                                //stop ticks
-                                runTick=false;
-                                clockTime=0;
-                                //start countdown
-                                startWaveCounter();
+
+
+                function loadEnemy(enemyName){
+                    if ((enemyName in enemyDB)==false){
+                        var data = $.ajax({
+                            type: "GET",
+                            url: "gameComponents/enemies/"+enemyName+".ed",
+                            dataType: 'json',
+                            async: false,
+                            success: function(data) {}
+                        })['responseJSON'];
+                        var enemyImg = $("<img src='gameComponents/enemies/"+data["icon"]+"' class='enemy " + enemyName + "' style='position: absolute; width:"+data["width"]+"px; height:"+data["height"]+"px;left:"+(mapPath[0][0]-(data["width"]/2))+"px;top:"+(mapPath[0][1]-(data["height"]/2))+"px;' data-health='"+data["health"]+"' data-damage='"+data["damage"]+"' data-death='"+data["death"]+"' data-speed='"+data["speed"]+"' data-current-vector='0' data-magnitude-remaining='"+vectorPath[0][1]+"' data-current-x='"+(mapPath[0][0]-(data["width"]/2))+"' data-current-y='"+(mapPath[0][1]-(data["height"]/2))+"' data-resources='"+data["resources"]+"' data-ticks='0'>");
+                        data["divBase"]=enemyImg;
+                        enemyDB[enemyName]=data;
+                        return enemyImg;
+                    }else{
+                        return enemyDB[enemyName]["divBase"];
+                    }
+
+                }
+
+                function spawnEnemy(){
+                    if (enemyQueue[clockTime]){
+                        for (var enemyDiv in enemyQueue[clockTime]){
+                            if (enemyQueue[clockTime].hasOwnProperty(enemyDiv)){
+
+                                $("#gameSpace").append(enemyQueue[clockTime][enemyDiv].clone());
                             }
                         }
-                        setTimeout(clockTick,baseClock/clockMultiplier);
-                    }else{
-                        stopTickFunction = false;
+                        delete enemyQueue[clockTime];
                     }
-                }else{
-                    //display pause menu
-                    loadElement("gameComponents/pauseMenu.html","pauseMenu");
-                }
-            }
-            
-            function endOfWave(){
-                if (Object.size(enemyQueue)>0){
-                    return false;
-                }
-                if ($(".enemy")[0]){
-                    return false;
-                }
-                //all enemies from wave killed
-                return true;
-            }
-            
-            function dealBaseDamage(damage){
-                changeHealth(baseHealth-damage);
-            }
-            
-            function changePlaybackTime(evt){
-                clockMultiplier = $(this).data("speed");
-                $(".selectedTimeControl").removeClass("selectedTimeControl");
-                $(this).addClass("selectedTimeControl");
-            }
 
-            
-            function loadEnemy(enemyName){
-                if ((enemyName in enemyDB)==false){
-                    var data = $.ajax({
-                        type: "GET",
-                        url: "gameComponents/enemies/"+enemyName+".ed",
-                        dataType: 'json',
-                        async: false,
-                        success: function(data) {}
-                    })['responseJSON'];
-                    var enemyImg = $("<img src='gameComponents/enemies/"+data["icon"]+"' class='enemy " + enemyName + "' style='position: absolute; width:"+data["width"]+"px; height:"+data["height"]+"px;left:"+(mapPath[0][0]-(data["width"]/2))+"px;top:"+(mapPath[0][1]-(data["height"]/2))+"px;' data-health='"+data["health"]+"' data-damage='"+data["damage"]+"' data-death='"+data["death"]+"' data-speed='"+data["speed"]+"' data-current-vector='0' data-magnitude-remaining='"+vectorPath[0][1]+"' data-current-x='"+(mapPath[0][0]-(data["width"]/2))+"' data-current-y='"+(mapPath[0][1]-(data["height"]/2))+"' data-resources='"+data["resources"]+"' data-ticks='0'>");
-                    data["divBase"]=enemyImg;
-                    enemyDB[enemyName]=data;
-                    return enemyImg;
-                }else{
-                    return enemyDB[enemyName]["divBase"];
                 }
-                
-            }
-            
-            function spawnEnemy(){
-                if (enemyQueue[clockTime]){
-                    for (var enemyDiv in enemyQueue[clockTime]){
-                        if (enemyQueue[clockTime].hasOwnProperty(enemyDiv)){
-                            
-                            $("#gameSpace").append(enemyQueue[clockTime][enemyDiv].clone());
+
+                function loadSideBarTower(towerName){
+                    var towerData = loadTower(towerName);
+                    console.log(towerData);
+                    var baseTower = towerData["level"][0]
+                    var towerDiv = baseTower["divBase"];
+                    var towerSideBarImage = $("<img id='"+towerName+"' class='towerSideBarImage' src='gameComponents/towers/"+ baseTower["icon"] +"' >");
+                    towerSideBarImage.data("divBase",towerDiv);
+                    towerSideBarImage.data("cost",baseTower['cost']);
+                    towerSideBarImage.click(buyTower);
+                    var towerDescription = $("<ul class='towerInfo'><li><img class='sideBarStatImage' src='gameComponents/images/attack.png'><span class='sideBarStatText'>"+baseTower["damage"]+"</span></li><li><img class='sideBarStatImage' src='gameComponents/images/range.png'><span class='sideBarStatText'>"+baseTower["range"]+"</span></li><li><img class='sideBarStatImage' src='gameComponents/images/resources.png'><span class='sideBarStatText'>"+baseTower['cost']+"</span></li></ul>");
+                    var towerSideBarDiv = $("<div class='sideBarTowerDiv'>");
+                    towerSideBarDiv.append(towerSideBarImage)
+                                    .append(towerDescription);
+
+                    $("#sideBarTowerSlots").append(towerSideBarDiv);
+                }
+
+                function loadTower(towerName){
+                    if ((towerName in towerDB)==false){
+                        var data = $.ajax({
+                            type: "GET",
+                            url: "gameComponents/towers/"+towerName+".td",
+                            dataType: 'json',
+                            async: false,
+                            success: function(data) {}
+                        })['responseJSON'];
+                        towerDB[towerName]=[];
+                        console.log(data)
+                        for (i=0;i<data["level"].length;i++){
+                            var towerLevelData = data["level"][i];
+                            console.log(towerLevelData)
+                            var towerDiv = $(`<div class='`+towerName+i+` towerContainer' style='width:`+(towerLevelData["range"]*2)+`px; height:`+(towerLevelData["range"]*2)+`px;'
+                                             data-width='`+data["width"]+`' 
+                                             data-height='`+data["height"]+`' 
+                                             data-reload-speed='`+towerLevelData["reloadSpeed"]+`' 
+                                             data-projectile-fired='`+towerLevelData["projectileName"]+`' 
+                                             data-no-projectiles-fired='`+towerLevelData["projectiles"]+`' 
+                                             data-damage='`+towerLevelData["damage"]+`' 
+                                             data-reload-state='0' 
+                                             data-price='`+towerLevelData["cost"]+`' 
+                                             data-total-price='`+towerLevelData["cost"]+`'
+                                             data-range='`+towerLevelData["range"]+`' 
+                                             data-upgrade-level='`+i+`'
+                                             data-tower-class='`+towerName+`'>
+                                             <div class='targetDisk `+towerName+i+`'></div>
+                                             <img class= 'tower `+towerName+i+`'
+                                                src='gameComponents/towers/`+towerLevelData["icon"]+`' 
+                                                style='width:`+data["width"]+`px; height:`+data["height"]+`px;left:`+(towerLevelData["range"]-data["width"]/2)+`px;top:`+(towerLevelData["range"]-data["height"]/2)+`px;'>
+                                            </div>`);
+                            towerLevelData["divBase"]=towerDiv;
+                            towerDB[towerName][i]=towerLevelData;
+                            console.log(towerDB)
+                            loadProjectile(towerLevelData["projectileName"]);
                         }
+                        return data;
+                    }else{
+                        return towerDB[towerName][0];
                     }
-                    delete enemyQueue[clockTime];
                 }
-                
-            }
-            
-            function loadSideBarTower(towerName){
-                var towerData = loadTower(towerName);
-                console.log(towerData);
-                var baseTower = towerData["level"][0]
-                var towerDiv = baseTower["divBase"];
-                var towerSideBarImage = $("<img id='"+towerName+"' class='towerSideBarImage' src='gameComponents/towers/"+ baseTower["icon"] +"' >");
-                towerSideBarImage.data("divBase",towerDiv);
-                towerSideBarImage.data("cost",baseTower['cost']);
-                towerSideBarImage.click(buyTower);
-                var towerDescription = $("<ul class='towerInfo'><li><img class='sideBarStatImage' src='gameComponents/images/attack.png'><span class='sideBarStatText'>"+baseTower["damage"]+"</span></li><li><img class='sideBarStatImage' src='gameComponents/images/range.png'><span class='sideBarStatText'>"+baseTower["range"]+"</span></li><li><img class='sideBarStatImage' src='gameComponents/images/resources.png'><span class='sideBarStatText'>"+baseTower['cost']+"</span></li></ul>");
-                var towerSideBarDiv = $("<div class='sideBarTowerDiv'>");
-                towerSideBarDiv.append(towerSideBarImage)
-                                .append(towerDescription);
-                
-                $("#sideBarTowerSlots").append(towerSideBarDiv);
-            }
-            
-            function loadTower(towerName){
-                if ((towerName in towerDB)==false){
-                    var data = $.ajax({
-                        type: "GET",
-                        url: "gameComponents/towers/"+towerName+".td",
-                        dataType: 'json',
-                        async: false,
-                        success: function(data) {}
-                    })['responseJSON'];
-                    towerDB[towerName]=[];
-                    console.log(data)
-                    for (i=0;i<data["level"].length;i++){
-                        var towerLevelData = data["level"][i];
-                        console.log(towerLevelData)
-                        var towerDiv = $(`<div class='`+towerName+i+` towerContainer' style='width:`+(towerLevelData["range"]*2)+`px; height:`+(towerLevelData["range"]*2)+`px;'
-                                         data-width='`+data["width"]+`' 
-                                         data-height='`+data["height"]+`' 
-                                         data-reload-speed='`+towerLevelData["reloadSpeed"]+`' 
-                                         data-projectile-fired='`+towerLevelData["projectileName"]+`' 
-                                         data-no-projectiles-fired='`+towerLevelData["projectiles"]+`' 
-                                         data-damage='`+towerLevelData["damage"]+`' 
-                                         data-reload-state='0' 
-                                         data-price='`+towerLevelData["cost"]+`' 
-                                         data-total-price='`+towerLevelData["cost"]+`'
-                                         data-range='`+towerLevelData["range"]+`' 
-                                         data-upgrade-level='`+i+`'
-                                         data-tower-class='`+towerName+`'>
-                                         <div class='targetDisk `+towerName+i+`'></div>
-                                         <img class= 'tower `+towerName+i+`'
-                                            src='gameComponents/towers/`+towerLevelData["icon"]+`' 
-                                            style='width:`+data["width"]+`px; height:`+data["height"]+`px;left:`+(towerLevelData["range"]-data["width"]/2)+`px;top:`+(towerLevelData["range"]-data["height"]/2)+`px;'>
-                                        </div>`);
-                        towerLevelData["divBase"]=towerDiv;
-                        towerDB[towerName][i]=towerLevelData;
-                        console.log(towerDB)
-                        loadProjectile(towerLevelData["projectileName"]);
+
+                function buyTower(evt){
+                    if ((resources>=$(this).data("cost")) && !$(".isDragging")[0]){
+                        setResources(resources-$(this).data("cost"));
+                        spawnTower($(this).data("divBase"));
+                    }else{
+                        console.log("Not enough resources or already bought tower");
                     }
-                    return data;
-                }else{
-                    return towerDB[towerName][0];
                 }
-            }
-            
-            function buyTower(evt){
-                if ((resources>=$(this).data("cost")) && !$(".isDragging")[0]){
-                    setResources(resources-$(this).data("cost"));
-                    spawnTower($(this).data("divBase"));
-                }else{
-                    console.log("Not enough resources or already bought tower");
-                }
-            }
-            
-            function spawnTower(tower){
-                //remove selection of any previous tower
-                removeTowerSelection();
-                //spawn in new tower
-                var newTowerDiv = tower.clone();
-                newTowerDiv.addClass("isDragging");
-                $("#gameSpace").append(newTowerDiv);
-                currentDrag=newTowerDiv;
-                //move to current position of mouse
-                finalX = mousePos.x-$("#gameSpace").offset().left-newTowerDiv.outerHeight(false)/2;
-                finalY = mousePos.y-$("#gameSpace").offset().top-newTowerDiv.outerWidth(false)/2;
-                if (finalX<-(newTowerDiv.outerWidth(false)/2 - newTowerDiv.data("width")/2)){
-                    finalX=-(newTowerDiv.outerWidth(false)/2 - newTowerDiv.data("width")/2);
-                }else if(finalX> $("#gameSpace").innerWidth()-3-(newTowerDiv.outerWidth(false)/2 + newTowerDiv.data("width")/2)){
-                    finalX = $("#gameSpace").innerWidth()-3-(newTowerDiv.outerWidth(false)/2 + newTowerDiv.data("width")/2);
-                }
-                if (finalY<-(currentDrag.outerWidth(false)/2 - currentDrag.data("height")/2)){
-                    finalY=-(currentDrag.outerWidth(false)/2 - currentDrag.data("height")/2);
-                }else if (finalY> $("#gameSpace").innerHeight()-(currentDrag.outerHeight(false)/2 + currentDrag.data("height")/2)){
-                    finalY = $("#gameSpace").innerHeight()-(currentDrag.outerHeight(false)/2 + currentDrag.data("height")/2);
-                }
-                newTowerDiv.css("top",finalY)
-                            .css("left",finalX);
-                //add handler for following mouse
-                $('#gameSpace').mousemove( function(e) {
-                    mouseX = e.pageX; 
-                    mouseY = e.pageY;
-                    finalX = e.pageX-$("#gameSpace").offset().left-currentDrag.outerHeight(false)/2;
-                    finalY = e.pageY-$("#gameSpace").offset().top-currentDrag.outerWidth(false)/2;
-                    if (finalX<-(currentDrag.outerWidth(false)/2 - currentDrag.data("width")/2)){
-                        finalX=-(currentDrag.outerWidth(false)/2 - currentDrag.data("width")/2);
-                    }else if(finalX> $("#gameSpace").innerWidth()-3-(currentDrag.outerWidth(false)/2 + currentDrag.data("width")/2)){
-                        finalX = $("#gameSpace").innerWidth()-3-(currentDrag.outerWidth(false)/2 + currentDrag.data("width")/2);
+
+                function spawnTower(tower){
+                    //remove selection of any previous tower
+                    removeTowerSelection();
+                    //spawn in new tower
+                    var newTowerDiv = tower.clone();
+                    newTowerDiv.addClass("isDragging");
+                    $("#gameSpace").append(newTowerDiv);
+                    currentDrag=newTowerDiv;
+                    //move to current position of mouse
+                    finalX = mousePos.x-$("#gameSpace").offset().left-newTowerDiv.outerHeight(false)/2;
+                    finalY = mousePos.y-$("#gameSpace").offset().top-newTowerDiv.outerWidth(false)/2;
+                    if (finalX<-(newTowerDiv.outerWidth(false)/2 - newTowerDiv.data("width")/2)){
+                        finalX=-(newTowerDiv.outerWidth(false)/2 - newTowerDiv.data("width")/2);
+                    }else if(finalX> $("#gameSpace").innerWidth()-3-(newTowerDiv.outerWidth(false)/2 + newTowerDiv.data("width")/2)){
+                        finalX = $("#gameSpace").innerWidth()-3-(newTowerDiv.outerWidth(false)/2 + newTowerDiv.data("width")/2);
                     }
                     if (finalY<-(currentDrag.outerWidth(false)/2 - currentDrag.data("height")/2)){
                         finalY=-(currentDrag.outerWidth(false)/2 - currentDrag.data("height")/2);
                     }else if (finalY> $("#gameSpace").innerHeight()-(currentDrag.outerHeight(false)/2 + currentDrag.data("height")/2)){
                         finalY = $("#gameSpace").innerHeight()-(currentDrag.outerHeight(false)/2 + currentDrag.data("height")/2);
                     }
-                    currentDrag.css("top",finalY)
+                    newTowerDiv.css("top",finalY)
                                 .css("left",finalX);
-                    
-                    $(".tile").each(function(i,e){
-                        var colliding = false;
-                        if (advancedSqCollision($(this),currentDrag.children(".tower"))){
-                            colliding = true
-                            currentDrag.addClass("isColliding");
-                            //break loop
-                            return false;
-                        }else if (i==$(".tile").length-1){
-                            currentDrag.removeClass("isColliding");
+                    //add handler for following mouse
+                    $('#gameSpace').mousemove( function(e) {
+                        mouseX = e.pageX; 
+                        mouseY = e.pageY;
+                        finalX = e.pageX-$("#gameSpace").offset().left-currentDrag.outerHeight(false)/2;
+                        finalY = e.pageY-$("#gameSpace").offset().top-currentDrag.outerWidth(false)/2;
+                        if (finalX<-(currentDrag.outerWidth(false)/2 - currentDrag.data("width")/2)){
+                            finalX=-(currentDrag.outerWidth(false)/2 - currentDrag.data("width")/2);
+                        }else if(finalX> $("#gameSpace").innerWidth()-3-(currentDrag.outerWidth(false)/2 + currentDrag.data("width")/2)){
+                            finalX = $("#gameSpace").innerWidth()-3-(currentDrag.outerWidth(false)/2 + currentDrag.data("width")/2);
+                        }
+                        if (finalY<-(currentDrag.outerWidth(false)/2 - currentDrag.data("height")/2)){
+                            finalY=-(currentDrag.outerWidth(false)/2 - currentDrag.data("height")/2);
+                        }else if (finalY> $("#gameSpace").innerHeight()-(currentDrag.outerHeight(false)/2 + currentDrag.data("height")/2)){
+                            finalY = $("#gameSpace").innerHeight()-(currentDrag.outerHeight(false)/2 + currentDrag.data("height")/2);
+                        }
+                        currentDrag.css("top",finalY)
+                                    .css("left",finalX);
+
+                        $(".tile").each(function(i,e){
+                            var colliding = false;
+                            if (advancedSqCollision($(this),currentDrag.children(".tower"))){
+                                colliding = true
+                                currentDrag.addClass("isColliding");
+                                //break loop
+                                return false;
+                            }else if (i==$(".tile").length-1){
+                                currentDrag.removeClass("isColliding");
+                            }
+                        });
+                    }); 
+                    $('#gameSpace').mousedown(placeTower);
+
+                }
+
+                function placeTower(e){
+                    if (!(currentDrag.hasClass("isColliding"))){
+                            //buy tower
+                            $('#gameSpace').unbind("mousemove");
+                            $('#gameSpace').unbind("mousedown",placeTower);
+                            currentDrag.removeClass("isDragging");
+                            currentDrag.children(".tower").click(selectTower);
+                            //set tower as tile
+                            currentDrag.children(".tower").addClass("tile");
+                            currentDrag=null;
+                    }
+                }
+                function findTarget(tower){
+                    var targetingDisk = tower.children(".targetDisk");
+                    var enemiesColliding = [];
+                    $(".enemy").each(function(i,e){
+                        if (crCollision(targetingDisk,$(this))==true){
+                            enemiesColliding.push(this);
                         }
                     });
-                }); 
-                $('#gameSpace').mousedown(placeTower);
-                
-            }
-            
-            function placeTower(e){
-                if (!(currentDrag.hasClass("isColliding"))){
-                        //buy tower
-                        $('#gameSpace').unbind("mousemove");
-                        $('#gameSpace').unbind("mousedown",placeTower);
-                        currentDrag.removeClass("isDragging");
-                        currentDrag.children(".tower").click(selectTower);
-                        //set tower as tile
-                        currentDrag.children(".tower").addClass("tile");
-                        currentDrag=null;
-                }
-            }
-            function findTarget(tower){
-                var targetingDisk = tower.children(".targetDisk");
-                var enemiesColliding = [];
-                $(".enemy").each(function(i,e){
-                    if (crCollision(targetingDisk,$(this))==true){
-                        enemiesColliding.push(this);
-                    }
-                });
-                if (enemiesColliding.length>0){
-                    //rank enemies by distance travelled
-                    enemiesColliding = rankByDistance(enemiesColliding);
-                    //shoot at first one
-                    return enemiesColliding[0];
-                }else{
-                    return null;
-                }
-            }
-            
-            function selectTower(evt){
-                removeTowerSelection();
-                $(this).parent().addClass("isSelected");
-                showTowerOverlay();
-                updateActiveTowerInfo();
-            }
-            
-            function showTowerOverlay(){
-                $("#sideBarTowerControl").slideDown(100);
-            }
-            
-            function fireTower(tower,target){
-                var projectileName = tower.data("projectileFired");
-                var projectileDiv = loadProjectile(projectileName).clone();
-                var projectileSpeed = projectileDiv.data("speed");
-                //set damage of tower
-                projectileDiv.data("damage",tower.data("damage"));
-                projectileDiv.data("target",target);
-                //calculate flight path of projectile
-                var targetPosition = {"x":target.data("currentX")+target.outerWidth(false)/2,
-                                      "y":target.data("currentY")+target.outerHeight(false)/2};
-                var startPosition = {"x":tower.children(".tower").offset().left-$("#gameSpace").offset().left+tower.children(".tower").outerWidth(false)/2,
-                                     "y":tower.children(".tower").offset().top-$("#gameSpace").offset().top+tower.children(".tower").outerHeight(false)/2};
-                //spawn projectile
-                $("#gameSpace").append(projectileDiv);
-                projectileDiv.css("left",startPosition.x)
-                                .css("top",startPosition.y);
-                projectileDiv.animate({
-                    top:targetPosition.y,
-                    left:targetPosition.x
-                },baseClock/clockMultiplier,"linear");
-            }
-            
-            function checkProjectileCollisions(){
-                $(".projectile").each(function(){
-                    var damage = $(this).data("damage");
-                    var target = $(this).data("target");
-                    $(this).remove();
-                    var targetHealth = target.data("health");
-                    targetHealth-=damage;
-                    if (targetHealth<=0){
-                        enemyKilled(target);
+                    if (enemiesColliding.length>0){
+                        //rank enemies by distance travelled
+                        enemiesColliding = rankByDistance(enemiesColliding);
+                        //shoot at first one
+                        return enemiesColliding[0];
                     }else{
-                        target.data("health",targetHealth);
+                        return null;
                     }
-                })
-            }
-            
-            function enemyKilled(enemy){
-                enemy.remove();
-                setResources(resources+enemy.data("resources"));
-            }
-            
-            function loadProjectile(projectileName){
-                if ((projectileName in projectileDB)==false){
-                    var data = $.ajax({
-                        type: "GET",
-                        url: "gameComponents/projectiles/"+projectileName+".pd",
-                        dataType: 'json',
-                        async: false,
-                        success: function(data) {}
-                    })['responseJSON'];
-                    var projectileDiv = $("<img class='projectile "+projectileName+"' style='height:"+data["height"]+"px; width:"+data["width"]+"px;' data-speed='"+data["speed"]+"' src='gameComponents/projectiles/"+data["icon"]+"'>");
-                    data["divBase"]=projectileDiv;
-                    projectileDB[projectileName]=data;
-                    return projectileDiv;
-                }else{
-                    return projectileDB[projectileName]["divBase"];
                 }
-            }
+
+                function selectTower(evt){
+                    removeTowerSelection();
+                    $(this).parent().addClass("isSelected");
+                    showTowerOverlay();
+                    updateActiveTowerInfo();
+                }
+
+                function showTowerOverlay(){
+                    $("#sideBarTowerControl").slideDown(100);
+                }
+
+                function fireTower(tower,target){
+                    var projectileName = tower.data("projectileFired");
+                    var projectileDiv = loadProjectile(projectileName).clone();
+                    var projectileSpeed = projectileDiv.data("speed");
+                    //set damage of tower
+                    projectileDiv.data("damage",tower.data("damage"));
+                    projectileDiv.data("target",target);
+                    //calculate flight path of projectile
+                    var targetPosition = {"x":target.data("currentX")+target.outerWidth(false)/2,
+                                          "y":target.data("currentY")+target.outerHeight(false)/2};
+                    var startPosition = {"x":tower.children(".tower").offset().left-$("#gameSpace").offset().left+tower.children(".tower").outerWidth(false)/2,
+                                         "y":tower.children(".tower").offset().top-$("#gameSpace").offset().top+tower.children(".tower").outerHeight(false)/2};
+                    //spawn projectile
+                    $("#gameSpace").append(projectileDiv);
+                    projectileDiv.css("left",startPosition.x)
+                                    .css("top",startPosition.y);
+                    projectileDiv.animate({
+                        top:targetPosition.y,
+                        left:targetPosition.x
+                    },baseClock/clockMultiplier,"linear");
+                }
+
+                function checkProjectileCollisions(){
+                    $(".projectile").each(function(){
+                        var damage = $(this).data("damage");
+                        var target = $(this).data("target");
+                        $(this).remove();
+                        var targetHealth = target.data("health");
+                        targetHealth-=damage;
+                        if (targetHealth<=0){
+                            enemyKilled(target);
+                        }else{
+                            target.data("health",targetHealth);
+                        }
+                    })
+                }
+
+                function enemyKilled(enemy){
+                    enemy.remove();
+                    setResources(resources+enemy.data("resources"));
+                }
+
+                function loadProjectile(projectileName){
+                    if ((projectileName in projectileDB)==false){
+                        var data = $.ajax({
+                            type: "GET",
+                            url: "gameComponents/projectiles/"+projectileName+".pd",
+                            dataType: 'json',
+                            async: false,
+                            success: function(data) {}
+                        })['responseJSON'];
+                        var projectileDiv = $("<img class='projectile "+projectileName+"' style='height:"+data["height"]+"px; width:"+data["width"]+"px;' data-speed='"+data["speed"]+"' src='gameComponents/projectiles/"+data["icon"]+"'>");
+                        data["divBase"]=projectileDiv;
+                        projectileDB[projectileName]=data;
+                        return projectileDiv;
+                    }else{
+                        return projectileDB[projectileName]["divBase"];
+                    }
+                }
+                
+                return{
+                    clockTick: function(){
+                        if (clockTickRunning==false){
+                            clockTick();
+                        }else{
+                            console.error("Stop trying!");
+                        }   
+                    },
+                    exitGame: function(){
+                        exitGame();
+                    }
+                }
+            })();
+            
             
         </script>
     </head>

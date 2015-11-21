@@ -1,4 +1,4 @@
-{"radius":35,"path":[[93,0],[93,193],[557,193],[557,45],[793,45],[793,338],[420,338],[420,456],[765,456],[765,583]],"baseRadius":35,"baseLocation":[765,619],"startingBaseHealth":60,"maxBaseHealth":60,"startingResources":100,
+{"radius":35,"path":[[93,0],[93,193],[557,193],[557,45],[793,45],[793,338],[420,338],[420,456],[765,456],[765,583]],"baseRadius":35,"baseLocation":[765,619],"startingBaseHealth":60,"maxBaseHealth":60,"startingResources":250,
 "waves":[
 {
    "0":{

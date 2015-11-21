@@ -2,49 +2,51 @@
     <head>
         <link rel="stylesheet" type="text/css" href="gameComponents/pauseMenu.css">
         <script>
-            
-            $("document").ready(function(){
-                //firstly don't show the div
-                $("#overlay").fadeOut(0);
-                $("#wrapper").fadeOut(0);
+            window.pauseMenuFunctions=(function(){
+                $("document").ready(function(){
+                    //firstly don't show the div
+                    $("#overlay").fadeOut(0);
+                    $("#wrapper").fadeOut(0);
 
-                //set handlers
-                $("#backToGameButton").click(resumeGame);
-                $("#saveGameButton").click(saveGame);
-                $("#exitGameButton").click(exitAskGame);
+                    //set handlers
+                    $("#backToGameButton").click(resumeGame);
+                    $("#saveGameButton").click(saveGame);
+                    $("#exitGameButton").click(exitAskGame);
 
 
-                //fade back in
-                $("#overlay").fadeTo(500,0.9);
-                $("#wrapper").fadeIn(500);
-            });
-
-            function resumeGame(evt){
-                removeOverlay();
-                //set multiplier to 1
-                $("#play1X").trigger("click");
-                //restart clock with delay
-                setTimeout(clockTick,500);
-               
-            }
-            
-            function saveGame(evt){
-                
-            }
-            
-            function removeOverlay(){
-                $("#wrapper").fadeOut(100,function(){
-                    removeElement("pauseMenu");
+                    //fade back in
+                    $("#overlay").fadeTo(500,0.9);
+                    $("#wrapper").fadeIn(500);
                 });
-            }
-            
-            function exitAskGame(evt){
-                console.log("exiting game");
-                if(confirm("You will lose all your progress since your last save. Are you sure you want to quit?")){
+
+                function resumeGame(evt){
                     removeOverlay();
-                    exitGame();
-                };
-            }
+                    //set multiplier to 1
+                    $("#play1X").trigger("click");
+                    //restart clock with delay
+                    setTimeout(window.game.clockTick,500);
+
+                }
+
+                function saveGame(evt){
+
+                }
+
+                function removeOverlay(){
+                    $("#wrapper").fadeOut(100,function(){
+                        removeElement("pauseMenu");
+                    });
+                }
+
+                function exitAskGame(evt){
+                    console.log("exiting game");
+                    if(confirm("You will lose all your progress since your last save. Are you sure you want to quit?")){
+                        removeOverlay();
+                        window.game.exitGame();
+                    };
+                }
+            })();
+            
             
         </script>
     </head>
