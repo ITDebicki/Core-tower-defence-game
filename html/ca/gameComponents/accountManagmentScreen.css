@@ -32,13 +32,11 @@
 
 #buttonDiv{
     position: relative;
-    display: inline-block;
+    display: block;
     vertical-align: middle;
     align-content: center;
     width: 160px;
     height: 210px;
-    top: 140px;
-    left: calc(50% - 80px);
     margin: 0 auto;
 }
 

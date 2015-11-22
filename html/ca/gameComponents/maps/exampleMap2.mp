@@ -1,22 +1,21 @@
 {"radius":35,
 "path":
 [
-   [93,0],
-   [93,193],
-   [557,193],
-   [557,45],
-   [793,45],
-   [793,338],
-   [420,338],
-   [420,456],
-   [765,456],
-   [765,583]
+   [400,0],
+   [400,230],
+   [
+      {"p1":0.4 ,"p2":0.3, "p3":0.3, "end":[400,490]},
+         [[794,103]],
+         [[275,230],[275,490]],
+         []
+   ],
+   [400,610]
 ],
 "baseRadius":35,
-"baseLocation":[765,619],
-"startingBaseHealth":60,
-"maxBaseHealth":60,
-"startingResources":250,
+"baseLocation":[400,620],
+"startingBaseHealth":100,
+"maxBaseHealth":100,
+"startingResurces":250,
 "waves":[
 {
    "0":{

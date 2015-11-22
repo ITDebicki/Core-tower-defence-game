@@ -265,3 +265,9 @@ line-height: 10px
     background-color: lightgray;
     opacity: 0.3;
 }
+
+#lowerDiv {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+}

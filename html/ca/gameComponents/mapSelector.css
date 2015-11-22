@@ -1,0 +1,81 @@
+
+.carousel {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.button {
+    position: relative;
+    z-index: 100;
+    width: 160px;
+    height: 40px;
+    color:black;
+    text-align: center;
+    font-size: 1em;
+    border-radius: 25px;
+}
+
+.carouselButton {
+    position: absolute;
+    color: gray;
+    font-size:30px;
+    font-weight: bolder;
+    top:calc(50% - 30px);
+    z-index: 50;
+    background-color: lightgray;
+    border: lightgray;
+    width:60px;
+    height:40px;
+    opacity: 0.8;
+}
+
+#prevButton {
+    left:0%;
+    border-bottom-right-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+#nextButton {
+    right:0%;
+    border-bottom-left-radius: 10px;
+    border-top-left-radius: 10px;
+}
+
+
+
+#infoDiv {
+    position: absolute;
+    display: inline-block;
+    vertical-align: middle;
+    align-content: center;
+    width: 325px;
+    bottom: 10px;
+    left: calc(50% - 165px);
+    margin: 0 auto;
+    text-align: center;
+    z-index: 20;
+}
+
+#textDiv {
+    display: inline-block;
+    padding:5 5 5 5px;
+    background-color: lightgray;
+    border-radius: 10px;
+    opacity: 0.6;
+    width: auto;
+    margin: auto 0;
+    margin-bottom: 5px;
+    max-width: 325px;
+}
+
+
+
+#mapTitle {
+    font-size: 15pt;
+    font-weight: bold;
+}
+
+#mapDescription {
+    font-size: 12pt;
+}

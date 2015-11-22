@@ -176,6 +176,7 @@
                 //init global vars
                 var baseClock = 300;
                 var clockMultiplier = 1;
+                var prevClockMultiplier = 1;
                 var clockTime = 0;
                 //set constants
                 var gameHeight = 675;
@@ -205,12 +206,17 @@
                 var clockTickRunning=true;
                 var valid = true;
                 var warningMessageTimeout=null;
-
+                var animationArray = [];
+                
+                
+                
                 $("document").ready(function(){
                     //set self to hidden
                     $("#controlTray").hide('fade',0,function(){
                         $("#controlTray").removeAttr("display");
                     });
+                    $("#sideBarTowerControl").css("display","block");
+                    $("#sideBarTowerControl").velocity("slideUp",0);
                     hideUpgradeStats();
                     hideWarning();
 
@@ -225,10 +231,6 @@
                     $("#upgradeTower").click(upgradeTower);
                     $("#upgradeTower").hover(showUpgradeStats,hideUpgradeStats);
                     $("#startWave").click(function(){stopWaveTimer=true;});
-                    //animate off tower info element
-
-                    $("#sideBarTowerControl").css("display","block");
-                    $("#sideBarTowerControl").velocity("slideUp",0);
 
                     $(document).mousemove(function(event) {
                         mousePos.x = event.pageX;
@@ -236,22 +238,7 @@
                     });
                     $("#gameSpace").mousedown(removeTowerSelection);
 
-                    //load map
-                    loadMap("exampleMap");
 
-                    //set wave number to 0
-                    waveNo = 0;
-                    //set wave timer
-                    timeUntilWave = 30;
-
-                    //animate tray in
-                    $("#controlTray").show('slide',{direction:'right'},1000);
-
-                    //display wave count down
-                    startWaveCounter();
-                    //start ticks
-                    runTick=false;
-                    clockTick();
                 });
 
 
@@ -268,6 +255,24 @@
                         });
                     }
                 });
+                
+                function start(){
+                    console.log("starting");
+                    //set wave number to 0
+                    waveNo = 0;
+                    //set wave timer
+                    timeUntilWave = 30;
+
+                    //animate tray in
+                    $("#controlTray").show('slide',{direction:'right'},1000);
+
+                    //display wave count down
+                    startWaveCounter();
+                    //start ticks
+                    runTick=false;
+                    clockTick();
+                }
+                
                 function startWaveCounter(){
                     prepareWave();
                     $("#waveControls").velocity("slideDown",100);
@@ -313,48 +318,34 @@
                     }
                 }
 
-                function loadMap(mapName){
-                    //load background
-                    loadBackground("gameComponents/maps/"+mapName+".png");
-                    //load map path
-                    $.ajax({
-                            type: "GET",
-                            url: "gameComponents/maps/"+mapName+".mp",
-                            dataType: 'json',
-                            async: false,
-                            success: function(data,textStatus,jqXHR) {
-                                //setting reosurces
-                                setBaseHealth(data["maxBaseHealth"]);
-                                changeHealth(data["startingBaseHealth"]);
-                                setResources(data["startingResources"]);
-                                //draw the map so objects can interact with it
-                                drawMap(data);
-                                //calculate path for enemies
-                                calculateVectorPaths();
-                                //set waves
-                                waves = data["waves"];
-                                //make sure all correct enemies are loaded
-                                prepareWaves();
-                                //set events
-                                events = data["events"];
-                                //make sure all correct towers are loaded in
-                                prepareEvents();
-                                //execute any events to be executed before start of clock   
-                                console.log(events);
-                                if (events["pre"]){
-                                    var preEvents = events["pre"];
-                                    for (var event in preEvents){
-                                        if (events["pre"].hasOwnProperty(event)){
-                                            executeEvent(event,preEvents[event]);
-                                        }
-                                    }
-                                }
-                            },
-                           error:function(jqXHR,textStatus,errorThrown){
-                                console.log(jqXHR,textStatus,errorThrown);
-                                alert("sorry this map does not seemt to be working right now");
+                function loadMap(map){
+                    
+                    setBaseHealth(map["maxBaseHealth"]);
+                    changeHealth(map["startingBaseHealth"]);
+                    setResources(map["startingResources"]);
+                    //draw the map so objects can interact with it
+                    drawMap(map);
+                    //calculate path for enemies
+                    calculateVectorPaths();
+                    //set waves
+                    waves = map["waves"];
+                    //make sure all correct enemies are loaded
+                    prepareWaves();
+                    //set events
+                    events = map["events"];
+                    //make sure all correct towers are loaded in
+                    prepareEvents();
+                    //execute any events to be executed before start of clock   
+                    console.log(events);
+                    if (events["pre"]){
+                        var preEvents = events["pre"];
+                        for (var event in preEvents){
+                            if (events["pre"].hasOwnProperty(event)){
+                                executeEvent(event,preEvents[event]);
                             }
-                        });
+                        }
+                    }
+                    start();
                 }
 
                 function calculateVectorPaths(){
@@ -662,7 +653,7 @@
                         $(this).velocity({
                             left:returnData.x,
                             top: returnData.y,
-                        },baseClock/clockMultiplier,"linear");
+                        },baseClock/clockMultiplier,"linear",{queue:false});
                         //increase no. of ticks survived
                         var ticks = $(this).data("ticks");
                         $(this).data("ticks", ticks+1);
@@ -670,6 +661,81 @@
 
                     });
                 }
+                function customCalculatePath(prevX,prevY,vectorNo,speed,width,height){
+                    var animationQueue = [];
+                    width = parseFloat(width);
+                    height = parseFloat(height);
+                    for (i=vectorNo;i<vectorPath.length;i++){
+                        
+                        var magnitude = vectorPath[i][1];
+                        if (i==vectorNo){
+                            magnitude=Math.pow(
+                                Math.pow(
+                                    (mapPath[i+1][0]-parseFloat(prevX)),2)+
+                                Math.pow((mapPath[i+1][1]-parseFloat(prevY)),2)
+                            ,0.5);
+                        }
+                        
+                        var pos = {"x":mapPath[i+1][0]-(width/2),"y":mapPath[i+1][1]-(height/2)};
+                        var time = (magnitude/speed)*(baseClock/clockMultiplier);
+                        console.log(vectorNo,i,pos,time);
+                        animationQueue.push({"time":time,"pos":pos});
+                    }
+                    return animationQueue;
+                    
+                }
+                function customMoveEnemy(identifier){
+                    if (identifier == undefined || identifier == null){
+                        identifier = "#gameSpace .enemy"
+                    }
+                    $(identifier).each(function(i,e){
+                        
+                        
+                        if ($(this).data("clockMultiplier")!==clockMultiplier){
+                            $(this).velocity("stop",true);
+                            if (clockMultiplier!==0){
+                                var animationQueue = customCalculatePath(
+                                                                $(this).css("left"),
+                                                                $(this).css("top"),
+                                                                $(this).data("currentVector"),
+                                                                $(this).data("speed"),
+                                                                $(this).css("width"),
+                                                                $(this).css("height")
+                                                               );
+                                
+                                var damage = $(this).data("damage")
+                                for (i=0;i<animationQueue.length;i++){
+                                    var animation = animationQueue[i];
+                                    $(this).velocity({
+                                        left:animation.pos.x,
+                                        top:animation.pos.y
+                                    },{
+                                        easing: "linear",
+                                        duration: animation.time,
+                                        complete: function(){
+                                            var nextVector = $(this).data("currentVector")+1;
+                                            if (nextVector == vectorPath.length){
+                                                dealBaseDamage($(this).data("damage"));
+                                                $(this).remove();
+                                            }else{
+                                                $(this).data("currentVector",nextVector);
+                                                $(this).data("magnitudeRemaining",vectorPath[nextVector][1]);  
+                                            }
+                                        },
+                                        progress: function(elements, complete, remaining, start, tweenValue) {    
+                                            $(this).data("magnitudeRemaining",
+                                                         (1-complete)*vectorPath[$(this).data("currentVector")][1]);
+                                        }
+                                    });
+                                }
+                            }
+                            $(this).data("clockMultiplier",clockMultiplier);
+                        }
+                        var ticks = $(this).data("ticks");
+                        $(this).data("ticks", ticks+1);
+                    });
+                }
+            
                 function shootProjectiles(){
                     $("#gameSpace .towerContainer:not(.isDragging)").each(function(i,e){
                         var reloadState = $(this).data("reloadState");
@@ -780,8 +846,8 @@
                     if (enemyQueue[clockTime]){
                         for (var enemyDiv in enemyQueue[clockTime]){
                             if (enemyQueue[clockTime].hasOwnProperty(enemyDiv)){
-
-                                $("#gameSpace").append(enemyQueue[clockTime][enemyDiv].clone());
+                                var enemy = enemyQueue[clockTime][enemyDiv].clone()
+                                $("#gameSpace").append(enemy);
                             }
                         }
                         delete enemyQueue[clockTime];
@@ -991,7 +1057,7 @@
                     projectileDiv.velocity({
                         top:targetPosition.y,
                         left:targetPosition.x
-                    },baseClock/clockMultiplier,"linear");
+                    },baseClock/clockMultiplier,"linear",{queue:false});
                 }
 
                 function checkProjectileCollisions(){
@@ -1060,6 +1126,9 @@
                             flashWarning("Stop trying to cheat!");
                         }   
                     },
+                    setMap:function(mapInfo){
+                        loadMap(mapInfo["mapData"]);
+                    },
                     exitGame: function(){
                         exitGame();
                     }
@@ -1075,8 +1144,8 @@
                 <img class="timeControl" id="pause" data-speed="0" src="gameComponents/images/pause.png">
                 <img class="timeControl" id="play0.5X" data-speed="0.5" src="gameComponents/images/halfPlay.png">
                 <img class="timeControl selectedTimeControl" id="play1X" data-speed="1" src="gameComponents/images/play.png">
-                <img class="timeControl" id="play2X" data-speed="2" src="gameComponents/images/ff2x.png">
-                <img class="timeControl" id="play3X" data-speed="4" src="gameComponents/images/ff3x.png">
+                <img class="timeControl" id="play2X" data-speed="4" src="gameComponents/images/ff2x.png">
+                <img class="timeControl" id="play3X" data-speed="8" src="gameComponents/images/ff3x.png">
             </div> 
             <div class="sideBarDiv" id="waveControls">
                 <img id="timeRemianingImage" src="gameComponents/images/timeRemaining.png">

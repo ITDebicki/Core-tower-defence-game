@@ -6,13 +6,14 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
 		<!--<script src="https://d3js.org/d3.v3.min.js"></script>-->
         <script src="velocity/velocity.min.js"></script>
+        <script src="velocity/velocity.ui.min.js"></script>
 		<script>
             var _user = null;
             var _userAvatarSrc = "restricted/images/avatars/defaultAvatar.png";
             var blockPageLoading = false;
 			$("document").ready(function (){
 				//load default background
-                loadBackground("images/testBG.jpg");
+                loadBackground("gameComponents/maps/exampleMap.png");
                 clearScreenToStartScreen();
                 
                 // lock scroll position, but retain settings for later
@@ -60,7 +61,6 @@
             
             function loadElement(element,id){
                 if (blockPageLoading == false){
-                    console.log("block")
                     blockPageLoading = true;
                     var screen = $("#gameDiv");
                     screen.append('<div id="' + id +'"></div>')
@@ -68,7 +68,6 @@
                         $("#" + id).append(data);
                     });
                     blockPageLoading = false;
-                    console.log("unblock");
                 }
                 
                 // $("id").length - could add to queue for specific instances

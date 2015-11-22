@@ -7,6 +7,7 @@
                 var noMoreNotifications = false;
                 $("document").ready(function(){
                     $("#loggedInLeftBar").fadeOut(0);
+                    raiseOverlay(1);
                     //set handlers
                     $("#startButton").click(startPressed);
                     $("#loadGameButton").click(loadPressed);
@@ -19,7 +20,7 @@
                     $("#manageAccountButton").click(showAccountManagment);
                     $("#refreshNotifications").click(refreshNotifications);
                     $("#notificationsListContainer").scroll(scrolledNotifications);
-
+                    lowerOverlay();
                     //try logging in
                     verifyLoginCredentials(false);
                 });
@@ -27,7 +28,28 @@
                 function showAccountManagment(evt){
                     loadElement("gameComponents/accountManagmentScreen.html","accountManagmentScreen");
                 }
-
+                
+                function lowerOverlay(duration){
+                    if (duration == null || duration == undefined){
+                        duration = 600;
+                    }
+                    $("#lowerDiv").velocity("transition.bounceDownIn",{
+                        duration:duration
+                    })
+                }
+                
+                function raiseOverlay(duration,callback){
+                    if (duration == null || duration == undefined){
+                        duration = 600;
+                    }
+                    if (callback == null || callback == undefined){
+                        callback = function(){}
+                    }
+                    $("#lowerDiv").velocity("transition.bounceUpOut",{
+                        duration:duration,
+                        complete:callback
+                    })
+                }
 
                 function fetchUserAvatar(callback){
                     $.ajax({
@@ -160,14 +182,10 @@
 
                 function startPressed(evt){
                     //remove all elements
-                    $("#startGameScreen").children().velocity({
-                    top: '-1000px'},1000,function(){
-                        if ($(this).is(':last-child')){
+                    raiseOverlay(600,function(){
+                        console.log("removed");
                             removeElement("startGameScreen");
-                            loadElement("gameComponents/game.html","mainGame");
-                        }
-                    });
-
+                            loadElement("gameComponents/mapSelector.html","mapSelector");});
                 }
                 function loadPressed(evt){
                     alert("load pressed");
@@ -351,6 +369,7 @@
         </script>
     </head>
     <body>
+        <div id="lowerDiv">
             <div id="mainOverlay"></div>
             <h1 id="mainTitle">Tower defence</h1>
             <div class="startScreenMainButtons">
@@ -410,5 +429,6 @@
                     </div>
                 </div>
             </div>
+        </div>
     </body>
 </html>
