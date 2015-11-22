@@ -210,6 +210,7 @@
                     $("#controlTray").hide('fade',0,function(){
                         $("#controlTray").removeAttr("display");
                     });
+                    hideUpgradeStats();
 
                     //set handlers
                     $(".timeControl").click(changePlaybackTime);
@@ -486,10 +487,11 @@
                                 $(upgradeTowerDiv).children(".tower").click(selectTower);
                                 $(upgradeTowerDiv).children(".tower").addClass("tile");
                                 $(upgradeTowerDiv).children(".tower").trigger("click");
-                                /*$(upgradeTowerDiv).ready(function(){
-                                    console.log("clicking")
-                                    $(this).children(".tower").trigger("click");
-                                });*/
+                                hideUpgradeStats();
+                                if (towerLevel<1){
+                                    showUpgradeStats();
+                                }
+                                
                                 //set tower as tile
 
 
@@ -530,6 +532,7 @@
                         $("#activeTowerAttack").html($(this).data("damage"));
                         $("#activeTowerRange").html($(this).data("range"));
                         $("#activeTowerCost").html(Math.floor($(this).data("totalPrice")*0.75));
+                        $("#activeTowerReloadSpeed").html($(this).data("reloadSpeed"));
                         if ($(this).data("upgradeLevel")==2){
                             $("#upgradeTower").hide();
                         }else{
@@ -539,11 +542,19 @@
                 }
             
                 function showUpgradeStats(){
-                    
+                    var currentSelection = $(".isSelected")[0];
+                    var towerLevel = $(currentSelection).data("upgradeLevel");
+                    var towerClass = $(currentSelection).data("towerClass");
+                    var upgradeTowerData = towerDB[towerClass][towerLevel+1];
+                    $("#upgradeTowerAttack").html(upgradeTowerData["damage"]);
+                    $("#upgradeTowerRange").html(upgradeTowerData["range"]);
+                    $("#upgradeTowerReloadSpeed").html(upgradeTowerData["reloadSpeed"]);
+                    $("#upgradeTowerCost").html(upgradeTowerData["cost"]);
+                    $(".upgradeTowerInfo").css("display","inline-block");
                 }
             
                 function hideUpgradeStats(){
-                    
+                    $(".upgradeTowerInfo").css("display","none");
                 }
 
                 function removeTowerSelection(){
@@ -785,7 +796,26 @@
                     towerSideBarImage.data("divBase",towerDiv);
                     towerSideBarImage.data("cost",baseTower['cost']);
                     towerSideBarImage.click(buyTower);
-                    var towerDescription = $("<ul class='towerInfo'><li><img class='sideBarStatImage' src='gameComponents/images/attack.png'><span class='sideBarStatText'>"+baseTower["damage"]+"</span></li><li><img class='sideBarStatImage' src='gameComponents/images/range.png'><span class='sideBarStatText'>"+baseTower["range"]+"</span></li><li><img class='sideBarStatImage' src='gameComponents/images/resources.png'><span class='sideBarStatText'>"+baseTower['cost']+"</span></li></ul>");
+                    var towerDescription = $(`<ul class='towerInfo'>
+                                                <li>
+                                                    <img class='sideBarStatImage' src='gameComponents/images/attack.png'>
+                                                    <span class='sideBarStatText'>`+baseTower["damage"]+`</span>
+                                                </li>
+                                                <li>
+                                                    <img class='sideBarStatImage' src='gameComponents/images/range.png'>
+                                                    <span class='sideBarStatText'>`+baseTower["range"]+`</span>
+                                                </li>
+                                              </ul>
+                                              <ul class='towerInfo'>
+                                                <li>
+                                                    <img class='sideBarStatImage' src='gameComponents/images/reload.png'>
+                                                    <span class='sideBarStatText'>`+(10-baseTower['reloadSpeed'])+`</span>
+                                                </li>
+                                                <li>
+                                                    <img class='sideBarStatImage' src='gameComponents/images/resources.png'>
+                                                    <span class='sideBarStatText'>`+baseTower['cost']+`</span>
+                                                </li>
+                                               </ul>`);
                     var towerSideBarDiv = $("<div class='sideBarTowerDiv'>");
                     towerSideBarDiv.append(towerSideBarImage)
                                     .append(towerDescription);
@@ -1051,23 +1081,46 @@
                     <li>
                         <img class='sideBarActiveTowerStatImage' src='gameComponents/images/attack.png'>
                         <span class='sideBarActiveTowerStatText' id="activeTowerAttack">10</span>
+                        <span class='sideBarActiveTowerStatText statModifier' id="statModifierAtttack">+3</span>
                     </li>
                     <li>
                         <img class='sideBarActiveTowerStatImage' src='gameComponents/images/range.png'>
                         <span class='sideBarActiveTowerStatText' id="activeTowerRange">10</span>
+                        <span class='sideBarActiveTowerStatText statModifier' id="statModifierRange">+3</span>
+                    </li>
+                    <li>
+                        <img class='sideBarActiveTowerStatImage' src='gameComponents/images/reload.png'>
+                        <span class='sideBarActiveTowerStatText' id="activeTowerReloadSpeed">4</span>
+                        <span class='sideBarActiveTowerStatText statModifier' id="statModifierReloadSpeed">+3</span>
                     </li>
                     <li>
                         <img class='sideBarActiveTowerStatImage' src='gameComponents/images/resources.png'>
                         <span class='sideBarActiveTowerStatText' id="activeTowerCost">10</span>
+                        <span class='sideBarActiveTowerStatText statModifier' id="statModifierCost">+3</span>
+                    </li>
+                </ul>
+                <ul class='upgradeTowerInfo'>
+                    <li>
+                        <img class='sideBarActiveTowerStatImage' src='gameComponents/images/attack.png'>
+                        <span class='sideBarActiveTowerStatText' id="upgradeTowerAttack">+3</span>
+                    </li>
+                    <li>
+                        <img class='sideBarActiveTowerStatImage' src='gameComponents/images/range.png'>
+                        <span class='sideBarActiveTowerStatText' id="upgradeTowerRange">+3</span>
                     </li>
                     <li>
                         <img class='sideBarActiveTowerStatImage' src='gameComponents/images/reload.png'>
-                        <span class='sideBarActiveTowerStatText' id="activeTowerCost">4</span>
+                        <span class='sideBarActiveTowerStatText' id="upgradeTowerReloadSpeed">+2</span>
                     </li>
+                    
                 </ul>
                 <div id="activeTowerButtons">
                     <button class="sideBarTowerButton" id="sellTower">Sell</button>
                     <button class="sideBarTowerButton" id="upgradeTower">Upgrade</button>
+                    <span class='upgradeTowerInfo'>
+                        <img class="sideBarUpgradeTowerStatImage" src='gameComponents/images/resources.png'>
+                        <span id="upgradeTowerCost">60</span>
+                    </span>
                 </div>
                 
             </div>
