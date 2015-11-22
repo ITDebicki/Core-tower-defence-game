@@ -160,7 +160,7 @@
 
                 function startPressed(evt){
                     //remove all elements
-                    $("#startGameScreen").children().animate({
+                    $("#startGameScreen").children().velocity({
                     top: '-1000px'},1000,function(){
                         if ($(this).is(':last-child')){
                             removeElement("startGameScreen");
@@ -312,17 +312,17 @@
 
                 function refreshNotifications(){
                     //animate to top
-                    $('#notificationsListContainer').animate({
+                    $('#notificationsListContainer').velocity({
                         scrollTop:0
                     },200,"swing",function(){
-                        $('#notificationsListContainer').slideUp(200);
+                        $('#notificationsListContainer').velocity("slideUp",200);
                         //clear notifications
                         clearAllNotifications();
                         //load first ten
                         fetchNotifications(0,10);
                         //reset scroll counter
                         noMoreNotifications=false;
-                        $('#notificationsListContainer').slideDown(200);
+                        $('#notificationsListContainer').velocity("slideDown",200);
                     }); 
                 }
 

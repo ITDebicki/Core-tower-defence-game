@@ -204,6 +204,7 @@
                 var pauseWaveTimer = false;
                 var clockTickRunning=true;
                 var valid = true;
+                var warningMessageTimeout=null;
 
                 $("document").ready(function(){
                     //set self to hidden
@@ -211,6 +212,7 @@
                         $("#controlTray").removeAttr("display");
                     });
                     hideUpgradeStats();
+                    hideWarning();
 
                     //set handlers
                     $(".timeControl").click(changePlaybackTime);
@@ -226,7 +228,7 @@
                     //animate off tower info element
 
                     $("#sideBarTowerControl").css("display","block");
-                    $("#sideBarTowerControl").slideUp(0);
+                    $("#sideBarTowerControl").velocity("slideUp",0);
 
                     $(document).mousemove(function(event) {
                         mousePos.x = event.pageX;
@@ -268,7 +270,7 @@
                 });
                 function startWaveCounter(){
                     prepareWave();
-                    $("#waveControls").slideDown(100);
+                    $("#waveControls").velocity("slideDown",100);
                     waveCountDown();
                 }
 
@@ -290,7 +292,7 @@
                         //time expired start wave
                         startWave(waveNo);
                         //hide countdown
-                        $("#waveControls").slideUp(100);
+                        $("#waveControls").velocity("slideUp",100);
                     }
                 }
 
@@ -496,7 +498,7 @@
 
 
                             }else{
-                                console.log("Not enough resources to buy upgrade");
+                                flashWarning("Not enough resources to buy upgrade");
                             }
 
                         }
@@ -559,7 +561,7 @@
 
                 function removeTowerSelection(){
                     $(".isSelected").removeClass("isSelected");
-                    $("#sideBarTowerControl").slideUp(100);
+                    $("#sideBarTowerControl").velocity("slideUp",100);
                 }
 
                 function setBaseHealth(newHealth){
@@ -595,7 +597,7 @@
                     runTick=false;
                     stopTickFunction=true;
                     stopWaveTimer=true;
-                    $("#controlTray").hide('slide',{direction:'right'},500,function(){
+                    $("#controlTray").show('slide',{direction:'right'},500,function(){
                         removeElement("mainGame");
                         showStartScreen();
                     });
@@ -657,7 +659,7 @@
                         $(this).data("currentX",returnData.x);
                         $(this).data("currentY",returnData.y);
 
-                        $(this).animate({
+                        $(this).velocity({
                             left:returnData.x,
                             top: returnData.y,
                         },baseClock/clockMultiplier,"linear");
@@ -675,7 +677,7 @@
                         //if reloaded, fire
                         if((reloadState % $(this).data("reloadSpeed")) == 0){
                             var target = findTarget($(this));
-                            if (target!==null || target!==undefined){
+                            if (target!==null && target!==undefined && target!==[]){
                                 fireTower($(this),$(target));
                             }
                             reloadState=0;
@@ -789,7 +791,6 @@
 
                 function loadSideBarTower(towerName){
                     var towerData = loadTower(towerName);
-                    console.log(towerData);
                     var baseTower = towerData["level"][0]
                     var towerDiv = baseTower["divBase"];
                     var towerSideBarImage = $("<img id='"+towerName+"' class='towerSideBarImage' src='gameComponents/towers/"+ baseTower["icon"] +"' >");
@@ -833,10 +834,8 @@
                             success: function(data) {}
                         })['responseJSON'];
                         towerDB[towerName]=[];
-                        console.log(data)
                         for (i=0;i<data["level"].length;i++){
                             var towerLevelData = data["level"][i];
-                            console.log(towerLevelData)
                             var towerDiv = $(`<div class='`+towerName+i+` towerContainer' style='width:`+(towerLevelData["range"]*2)+`px; height:`+(towerLevelData["range"]*2)+`px;'
                                              data-width='`+data["width"]+`' 
                                              data-height='`+data["height"]+`' 
@@ -857,7 +856,6 @@
                                             </div>`);
                             towerLevelData["divBase"]=towerDiv;
                             towerDB[towerName][i]=towerLevelData;
-                            console.log(towerDB)
                             loadProjectile(towerLevelData["projectileName"]);
                         }
                         return data;
@@ -871,7 +869,7 @@
                         setResources(resources-$(this).data("cost"));
                         spawnTower($(this).data("divBase"));
                     }else{
-                        console.log("Not enough resources or already bought tower");
+                        flashWarning("Not enough resources or already bought tower");
                     }
                 }
 
@@ -971,7 +969,7 @@
                 }
 
                 function showTowerOverlay(){
-                    $("#sideBarTowerControl").slideDown(100);
+                    $("#sideBarTowerControl").velocity("slideDown",100);
                 }
 
                 function fireTower(tower,target){
@@ -990,7 +988,7 @@
                     $("#gameSpace").append(projectileDiv);
                     projectileDiv.css("left",startPosition.x)
                                     .css("top",startPosition.y);
-                    projectileDiv.animate({
+                    projectileDiv.velocity({
                         top:targetPosition.y,
                         left:targetPosition.x
                     },baseClock/clockMultiplier,"linear");
@@ -1033,6 +1031,23 @@
                         return projectileDB[projectileName]["divBase"];
                     }
                 }
+            
+                function flashWarning(message,duration){
+                    duration = typeof duration !== 'undefined' ? duration : 5000;
+                    showWarning(message);
+                    warningMessageTimeout = setTimeout(hideWarning,duration);
+                }    
+            
+                function showWarning(message){
+                    clearTimeout(warningMessageTimeout);
+                    $("#warning").show();
+                    $("#warningText").html(message);
+                }
+            
+                function hideWarning(){
+                    $("#warning").hide();
+                    $("#warningText").empty();
+                }
                 
                 return{
                     clockTick: function(){
@@ -1042,6 +1057,7 @@
                             //invalidate game as attempted to break it. Do not send high score, do not save.
                             valid=false;
                             console.error("Stop trying!");
+                            flashWarning("Stop trying to cheat!");
                         }   
                     },
                     exitGame: function(){
@@ -1073,6 +1089,9 @@
                 <img class="sideBarImage" id="resourcesImage" src="gameComponents/images/resources.png">
                 <span class="sideBarStatText" id="resourceValue">200</span>
                 <div id="healthBar"></div>
+            </div>
+            <div class="sideBarDiv" id="warning">
+                <span id="warningText"></span>
             </div>
             <div class="sideBarDiv" id="sideBarTowerControl">
                 <span class="sideBarDivTitle">Tower info</span>
