@@ -276,6 +276,7 @@
                             map["mapData"]=response;
                             mapArray.push(map);
                             activeAJAX-=1;
+                            console.log(activeAJAX);
                             if (activeAJAX==0){
                                 setStartMap(parseBackground());
                             }
@@ -328,6 +329,7 @@
                 function setStartMap(mapName){
                     for (i=0;i<mapArray.length;i++){
                         var map = mapArray[i];
+                        console.log(map["name"],mapName);
                         if (map["name"]==mapName){
                             initiateCarousel(i);
                             break;
@@ -340,13 +342,12 @@
                     setText(mapArray[index]["name"],mapArray[index]["description"]);
                     showText();
                     showControls();
-
                 }
                 
                 function parseBackground(){
                     var backgroundPath = $("#gameDiv").css("background-image");
-                    backgroundPath = backgroundPath.replace(')','');
-                    backgroundPath = backgroundPath.replace('url(','');
+                    backgroundPath = backgroundPath.replace('")','');
+                    backgroundPath = backgroundPath.replace('url("','');
                     var pathArray = backgroundPath.split('/');
                     var backgroundName = pathArray[pathArray.length-1];
                     var backgroundMapString = backgroundName.replace('.png','');

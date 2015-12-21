@@ -432,15 +432,15 @@
                         }
                     }
                     //work out angle between the two points
-                    var angleFromHorizontal =Math.atan((pointOrder.to.y-pointOrder.from.y)/(pointOrder.to.x-pointOrder.from.x));
-                    pos["x"] = pointOrder.from.x-pathRadius + pathRadius * Math.sin(angleFromHorizontal);
+                    var angleFromHorizontal = Math.atan((pointOrder.to.y-pointOrder.from.y)/(pointOrder.to.x-pointOrder.from.x));
+                    pos["x"] = pointOrder.from.x- pathRadius * Math.cos(angleFromHorizontal);
                     pos["y"] = pointOrder.from.y-pathRadius - pathRadius * Math.sin(angleFromHorizontal);
                     console.log(point,nextPoint,pathComponentHeight,pathRadius,pos,angleFromHorizontal);
                     //use pythagoras to calculate length of div
                     var pathComponentWidth = magnitude({'x':pointOrder.to.x-pointOrder.from.x+2*pathRadius*Math.cos(angleFromHorizontal),'y':pointOrder.to.y-pointOrder.from.y+2*pathRadius*Math.sin(angleFromHorizontal)});
 
                     //add to layout
-                    createPathElement({"width":pathComponentWidth,"height":pathComponentHeight},pos,angleFromHorizontal);
+                    createPathElement({"width":pathComponentWidth,"height":pathComponentHeight},pos,angleFromHorizontal,pathRadius);
                 }
                 
                 
@@ -448,7 +448,7 @@
                     return Math.pow(Math.pow(vector.x,2)+Math.pow(vector.y,2),0.5);
                 }
                 
-                function createPathElement(size,pos,angle){
+                function createPathElement(size,pos,angle,pathRadius){
                     var gameContainer = $("#gameSpace")
                     var pathComponent = $('<div id="'+i+'" class="mapPathTile tile">');
                     gameContainer.append(pathComponent);
@@ -456,7 +456,8 @@
                                         top: pos.y,
                                         width:size.width,
                                         height: size.height,
-                                        transform:"rotate("+angle+"rad)"});
+                                        transform:"rotate("+angle+"rad)",
+                                        borderRadius: pathRadius});
                 }
 
                 function prepareEvents(){
