@@ -3,7 +3,7 @@
         <link rel="stylesheet" type="text/css" href="gameComponents/startGameScreen.css">
         <script>
             
-            window.loginFunctions=(function(){
+            window.startScreen=(function(){
                 var noMoreNotifications = false;
                 $("document").ready(function(){
                     $("#loggedInLeftBar").fadeOut(0);
@@ -22,7 +22,11 @@
                     $("#notificationsListContainer").scroll(scrolledNotifications);
                     lowerOverlay();
                     //try logging in
-                    verifyLoginCredentials(false);
+                    if (window.login.isLoggedIn()){
+                        //isLoggedIN
+                        switchLoggedInWindows();
+                        
+                    }
                 });
 
                 function showAccountManagment(evt){
@@ -51,40 +55,7 @@
                     })
                 }
 
-                function fetchUserAvatar(callback){
-                    $.ajax({
-                        url: 'restricted/performAction.php',
-                        type: 'POST',
-                        method: 'POST',
-                        dataType: "json",
-                        data: {"action":"fetchAvatar", "json":"{}"},
-                        success:function(response){
-                            console.log(response);
-                        },
-                        error:logError
-                    }).done(function(response){
-                        console.log(response);
-                        var file = null;
-                         if (response["success"]==true){
-                            var file = response["data"];
-                        }else{
-                            alert(response["error"],response["errorCode"]);   
-                        } 
-                        if (file == null || file == ""){
-                            file = "defaultAvatar.png";
-                        }
-                        window._userAvatarSrc = "restricted/images/avatars/" + file;
-                        if (!(callback === undefined)){
-                            callback();   
-                        }
-                    });
-
-               }
-
                 function setAvatar(fileURL){
-                    if (fileURL === undefined){
-                        fileURL = window._userAvatarSrc;   
-                    }
                     $(".userAvatar").each(function(){
                         console.log(fileURL);
                         console.log($(this));
@@ -102,43 +73,23 @@
                     var username = $("input[name=userTextbox]").val();
                     var password = $("input[name=passwordTextbox]").val();
                     if (validateUser(username) && validatePassword(password)){
-                        verifyLoginCredentials(true);
+                        window.login.login(username,password,loginHandler);
                     }else{
                         alert("Invalid username or password");  
                         unlockLoginButtons();
                     }
                 }
-
-                function verifyLoginCredentials(showAlert){
-                    lockLoginButtons();
-                    var username = $("input[name=userTextbox]").val();
-                    var password = $("input[name=passwordTextbox]").val();
-                    $.ajax({
-                            url: 'restricted/login.php',
-                            type: 'POST',
-                            method: 'POST',
-                            dataType: "json",
-                            data: {"type":"login", "user":username, "password":password},
-                            success:function(response){
-                                console.log(response);
-                                console.log(response["username"]);
-                                if (response["success"]==true){
-                                    _user = response["username"]
-                                    $("#usernameSpan").html(_user);
-
-                                    fetchUserAvatar(setAvatar);
-                                    switchLoggedInWindows();
-                                    //fetch notifications
-                                    refreshNotifications();
-
-                                }else{
-                                    if (showAlert){
-                                        alert(response["error"],response["errorCode"]); 
-                                    }
-                                }
-                            },
-                            error:logError
-                        });
+                
+                function loginHandler(success,error,errorCode){
+                    if (success){
+                        $("#usernameSpan").html(window.login.user());
+                        window.login.userAvatar(setAvatar);
+                        switchLoggedInWindows();
+                        //fetch notifications
+                        refreshNotifications();
+                    }else{
+                        alert(error,errorCode);
+                    }
                     unlockLoginButtons();
                 }
 
@@ -157,19 +108,15 @@
                     unlockButtons("button");
                 }
                 function logout(evt){
-                    $.ajax({
-                            url: 'restricted/logout.php',
-                            dataType: "json",
-                            success: function(response){ 
-                                console.log(response);
-                                if (response["success"]==true){
-                                }else{
-                                    alert(response["error"],response["errorCode"]);   
-                                }
-                            },
-                            error:logError
-                        });
-                    switchLoggedInWindows();
+                    window.login.logout(logoutHandler);
+                }
+                
+                function logoutHandler(success,error,errorCode){
+                    if(success){
+                        switchLoggedInWindows();
+                    }else{
+                        alert(error,errorCode);
+                    }
                 }
 
                 function backPressed(evt){
@@ -199,32 +146,25 @@
                     var password = $("input[name=passwordTextboxCreate]").val();
                     var passwordR = $("input[name=passwordRTextboxCreate]").val();
                     var email = $("input[name=emailTextboxCreate]").val();
+                    
                     if (validateAccountCreationDetails(username,password,passwordR,email)){
-                        $.ajax({
-                            url: 'restricted/login.php',
-                            type: 'POST',
-                            method: 'POST',
-                            dataType: "json",
-                            data: { "type": "create", "user":username, "password":password, "passwordR":passwordR, "email":email},
-                            success: function(response){ 
-                                console.log(response);
-                                if (response["success"]==true){
-                                    alert("Account created. Please log in");
-                                    $("input[name=passwordTextbox]").val("");
-                                    $("input[name=userTextboxCreate]").val("");
-                                    $("input[name=passwordTextboxCreate]").val("");
-                                    $("input[name=passwordRTextboxCreate]").val("");
-                                    $("input[name=emailTextboxCreate]").val("");
-                                    backPressed();
-                                }else{
-                                    alert(response["error"],response["errorCode"]);   
-                                }
-                            },
-                            error:logError
-                        });
+                        window.login.createAccount(username,password,passwordR,email,createAccountHandler);
+                    }else{
+                        unlockLoginButtons();
+                    }
+                    
+                }
+                
+                function createAccountHandler(success,error,errorCode){
+                    if (success){
+                        alert("Account created. Please log in");
+                        backPressed();
+                    }else{
+                        alert(response["error"],response["errorCode"]);   
                     }
                     unlockLoginButtons();
                 }
+                
                 function validateUser(username){
                     if (username == "" || /^[a-zA-Z0-9]+$/.test(username)==false){
                         return false;
@@ -254,35 +194,6 @@
                         return false;
                     }
                     return true;
-                }
-
-                function fetchNotifications(timestamp,limit){
-                    $.ajax({
-                            url: 'restricted/performAction.php',
-                            type: 'POST',
-                            method: 'POST',
-                            dataType: "json",
-                            data: { "action": "fetchNotifications", "json":'{"fromDate":' + timestamp +',"limit":' + limit +'}'},
-                            success: function(response){ 
-                                console.log(response);
-                                if (response["success"]==true){
-                                    //append to notifications
-                                    console.log("success");
-                                    var responseData = response["data"];
-                                    if (responseData.length==0){
-                                        //no more notifications
-                                        noMoreNotifications=true;
-                                    }
-                                    for (i=0; i < responseData.length; i++){
-
-                                        generateNotificationDiv(responseData[i]["timestamp"],responseData[i]["type"],responseData[i]["title"],responseData[i]["message"],responseData[i]["opened"]);
-                                    }
-                                }else{
-                                    alert(response["error"],response["errorCode"]);   
-                                }
-                            },
-                            error:logError
-                        });
                 }
 
                 function clearAllNotifications(){
@@ -322,7 +233,7 @@
                             var notification = $("#notificationsListContainer .notification").last()
                             console.log(notification.data("timestamp"));
                             //load 10 more
-                            fetchNotifications(notification.data("timestamp"),10);
+                            window.login.fetchNotifications(notification.data("timestamp"),10,fetchedNotificationHandler);
                         }
                     }
 
@@ -337,14 +248,27 @@
                         //clear notifications
                         clearAllNotifications();
                         //load first ten
-                        fetchNotifications(0,10);
+                        window.login.fetchNotifications(0,10,fetchedNotificationHandler);
                         //reset scroll counter
                         noMoreNotifications=false;
                         $('#notificationsListContainer').velocity("slideDown",200);
                     }); 
                 }
 
-
+                function fetchedNotificationHandler(success,responseData,errorCode){
+                    if(success){
+                        if (responseData.length==0){
+                            noMoreNotifications=true;
+                        }else{
+                            noMoreNotifications=false;
+                        }
+                        for (i=0; i < responseData.length; i++){
+                            generateNotificationDiv(responseData[i]["timestamp"],responseData[i]["type"],responseData[i]["title"],responseData[i]["message"],responseData[i]["opened"]);
+                        }
+                    }else{
+                        alert(responseData,errorCode);
+                    }
+                }
 
                 function lockLoginButtons(){
                     lockButtons("#flipContainer button");
@@ -354,9 +278,6 @@
                 }
                 
                 return{
-                    fetchUserAvatar: function(callback){
-                        fetchUserAvatar(callback);
-                    },
                     setAvatar: function(fileURL){
                         setAvatar(fileURL);
                     }

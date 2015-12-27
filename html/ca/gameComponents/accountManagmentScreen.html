@@ -14,7 +14,7 @@
                     if (window.FormData) {
                         formdata = new FormData();
                     }
-                    $("#avatarImage").attr("src",window._userAvatarSrc);
+                    loadAvatar();
 
                     //set handlers
                     //remove overlay
@@ -41,25 +41,7 @@
 
                         //send form
                         if (formdata) {
-                            $.ajax({
-                                url: "restricted/performAction.php",
-                                method: "POST",
-                                data: formdata,
-                                processData: false,
-                                contentType: false,
-                                dataType: "json",
-                                success: function (response) {
-                                  console.log(response);
-                                    if (response["success"]==true){
-                                        $("#avatarUploadText").removeClass("hover");
-                                        loadAvatar();
-                                    }else{
-                                        alert(response["error"],response["errorCode"]);
-                                        $("#avatarUploadText").removeClass("hover");
-                                    }
-                                },
-                                error:logError
-                              });
+                            window.login.uploadAvatar(formdata,uploadAvatarHandler);
                         }
 
                     });
@@ -82,45 +64,14 @@
                     //remove avatar
                     $("#removeAvatarButton").click(function(evt){
                         if(confirm("Are you sure you want to delete your current avatar?")){
-                             $.ajax({
-                                url: 'restricted/performAction.php',
-                                type: 'POST',
-                                method: 'POST',
-                                dataType: "json",
-                                data: {"action":"removeAvatar", "json":"{}"},
-                                success:function(response){
-                                    console.log(response);
-                                    if (response["success"]==true){
-                                        loadAvatar();
-                                        $("#avatarUploadText").removeClass("hover");
-                                    }else{
-                                        alert(response["error"],response["errorCode"]); 
-                                    }
-                                }
-                            });   
+                            window.login.deleteAvatar(removeAvatarHandler);
                         }
-
                     });
 
                     //delete account
                     $("#deleteAccountButton").click(function(evt){
                         if(confirm("Once you delete your account all your saves and highscores will be deleted. Are you sure you want to proceed?")){
-                            $.ajax({
-                                url: 'restricted/performAction.php',
-                                type: 'POST',
-                                method: 'POST',
-                                dataType: "json",
-                                data: {"action":"deleteAccount", "json":"{}"},
-                                success:function(response){
-                                    console.log(response);
-                                    if (response["success"]==true){
-                                        _user = null;
-                                        clearScreenToStartScreen();
-                                    }else{
-                                        alert(response["error"],response["errorCode"]); 
-                                    }
-                                }
-                            });   
+                            window.login.deleteAccount(deleteAccountHandler); 
                         }
                     });
 
@@ -130,8 +81,33 @@
                     //unlock buttons
                     unlockButtons("#loggedInContainerButtons");
                 });
-
-
+                
+                function uploadAvatarHandler(success,error,errorCode){
+                    $("#avatarUploadText").removeClass("hover");
+                    if (success==true){
+                        loadAvatar();
+                    }else{
+                        alert(error,errorCode);      
+                    }
+                }
+                
+                function removeAvatarHandler(success,error,errorCode){
+                    if (success==true){
+                        loadAvatar();
+                        $("#avatarUploadText").removeClass("hover");
+                    }else{
+                        alert(error,errorCode); 
+                    }
+                }
+                
+                function deleteAccountHandler(success,error,errorCode){
+                    if (success==true){
+                        clearScreenToStartScreen();
+                    }else{
+                        alert(error,errorCode); 
+                    }
+                }
+                
                 function hideOverlay(evt){
                     $("#wrapper").fadeOut(100,function(){
                         removeElement("accountManagmentScreen");
@@ -140,7 +116,7 @@
                 }
 
                 function loadAvatar(){
-                    window.loginFunctions.fetchUserAvatar(window.loginFunctions.setAvatar);
+                    window.login.userAvatar(window.startScreen.setAvatar);
                 }
             })();
             

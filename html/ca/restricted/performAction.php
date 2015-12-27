@@ -40,6 +40,8 @@ try{
         case "fetchNotifications":
             $result = get_notifications($jsonData["fromDate"],$jsonData["limit"]);
             break;
+        case "markAsRead":
+            $result = mark_as_read($jsonData["msgIds"]);
         default:
             throw new Exception("POST parameter 'action' not supplied",100);
     }

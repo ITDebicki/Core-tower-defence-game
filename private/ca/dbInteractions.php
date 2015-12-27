@@ -81,7 +81,7 @@ function delete_account(){
             successful_logout();
             return true;
         }else{
-            throw new Exception("Failed to write to database a",501);
+            throw new Exception("Failed to write to database",501);
         }
     } catch(Exception $e){
         throw $e;
@@ -220,7 +220,7 @@ function get_notifications($from,$limit){
         $_POST['additional']=array($from,$limit,$_SESSION["user"]);
         //fetch records
         $conn = create_connection();
-        $stmt = $conn->prepare('SELECT `type`,`title`,`message`,UNIX_TIMESTAMP(`timestamp`),`opened` FROM `Notification` WHERE `user` = :username AND UNIX_TIMESTAMP(`timestamp`) < :timestamp ORDER BY `timestamp` DESC LIMIT :limit');
+        $stmt = $conn->prepare('SELECT `idNotification`,`type`,`title`,`message`,UNIX_TIMESTAMP(`timestamp`),`opened` FROM `Notification` WHERE `user` = :username AND UNIX_TIMESTAMP(`timestamp`) < :timestamp ORDER BY `timestamp` DESC LIMIT :limit');
         $stmt->bindParam(':username',$_SESSION["user"],PDO::PARAM_STR);
         $stmt->bindParam(':timestamp',$from,PDO::PARAM_INT);
         $stmt->bindParam(':limit',$limit,PDO::PARAM_INT);
@@ -234,6 +234,24 @@ function get_notifications($from,$limit){
             unset($notification['UNIX_TIMESTAMP(`timestamp`)']);
         }
         return $result;
+    } catch(Exception $e){
+        throw $e;
+    }
+}
+
+function mark_as_read($msgIDs){
+    try{
+        $where_in = implode(',', $msgIDs);
+        $conn = create_connection();
+        $stmt = $conn->prepare('UPDATE Notification SET `opened` = 1 WHERE `idNotification` IN (:msgIDs)');
+        $stmt->bindParam(':msgIDs',$where_in,PDO::PARAM_STR);
+        $stmt->execute();
+        $affectedRows = $stmt->rowCount();
+        if ($affectedRows >= count($msgIds)){
+            return true;
+        }else{
+           throw new Exception("Failed to write all to database",501); 
+        }
     } catch(Exception $e){
         throw $e;
     }
