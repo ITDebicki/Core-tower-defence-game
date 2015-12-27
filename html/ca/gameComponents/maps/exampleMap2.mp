@@ -15,7 +15,7 @@
 "baseLocation":[400,620],
 "startingBaseHealth":100,
 "maxBaseHealth":100,
-"startingResurces":250,
+"startingResources":250,
 "waves":[
 {
    "0":{

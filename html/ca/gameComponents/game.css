@@ -49,11 +49,19 @@
     position: absolute;
     -webkit-transform-origin: left center;
     transform-origin:left center; 
+    border: 0 0 0 0px;
+    margin: 0 0 0 0px;
 }
 
 .tile{
     
 }
+
+.marker{
+    position:absolute;
+    opacity:0;
+}
+
 .enemy{
     position: absolute;
 }

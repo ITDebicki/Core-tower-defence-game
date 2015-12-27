@@ -1,6 +1,7 @@
 <html>
     <head>
         <link rel="stylesheet" type="text/css" href="gameComponents/game.css">
+        <!--<script src='jcollision/jquery-collision.min.js'></script>-->
         <script>
             
             window.game=(function(){
@@ -10,6 +11,49 @@
                         if (obj.hasOwnProperty(key)) size++;
                     }
                     return size;
+                };
+                
+                function VectorPathSegment(x,y,magnitude,links){
+                    this.x=null;
+                    this.y=null;
+                    this.m=null;
+                    this.links=[];
+                    if (typeof(x)!=="undefined"){
+                        this.x=x;
+                    }
+                    if (typeof(y)!=="undefined"){
+                        this.y=y;
+                    }
+                    if (typeof(magnitude)!=="undefined"){
+                        this.m=m;
+                    }
+                    if (typeof(links)!=="undefined"){
+                        this.links=links;
+                    }
+                    
+                }
+                    
+                VectorPathSegment.prototype = {
+                    next: function(){
+                        if (this.links.length==1){
+                            return this.links[0].segment;
+                        }else if(this.links.length==0){
+                            return null;
+                        }else{
+                            //more than one
+                            var p = this.links[0].p;
+                            var rand = Math.random();
+                            var link = 0;
+                            while (rand>p){
+                                link++;
+                                p+=this.links[link].p;
+                            }
+                            return this.links[link].segment;
+                        }
+                    },
+                    addLink: function(segment,probability){
+                        this.links.push({'segment':segment,'p':probability});
+                    }
                 };
 
                 function simpleSqCollision(e1, e2) {
@@ -56,11 +100,99 @@
 
                     return points
                 }
+                
+                function tileCollision(tile,object){
+                    
+                    if (tile.hasClass("mapPathTile")){
+                        var sqPoints = [];
+                        var crPoints = [];
+                        var objectPoints = [];
+                        sqPoints.push({'x':tile.children("#nw.marker").offset().left,
+                                   'y':tile.children("#nw.marker").offset().top});
+                        sqPoints.push({'x':tile.children("#ne.marker").offset().left,
+                                       'y':tile.children("#ne.marker").offset().top});
+                        sqPoints.push({'x':tile.children("#se.marker").offset().left,
+                                       'y':tile.children("#se.marker").offset().top});
+                        sqPoints.push({'x':tile.children("#sw.marker").offset().left,
+                                       'y':tile.children("#sw.marker").offset().top});
 
-                function advancedSqCollision (e1, e2) {
+                        crPoints.push({'x':tile.children("#cw.marker").offset().left,
+                                       'y':tile.children("#cw.marker").offset().top,
+                                       'r':pathRadius});
+                        crPoints.push({'x':tile.children("#ce.marker").offset().left,
+                                       'y':tile.children("#ce.marker").offset().top,
+                                       'r':pathRadius});
 
-                    var a = extractCornerPoints(e1);
-                    var b = extractCornerPoints(e2);
+                        objectPoints.push({'x':object.offset().left,
+                                           'y':object.offset().top});
+                        objectPoints.push({'x':object.offset().left + object.outerWidth(),
+                                           'y':object.offset().top});
+                        objectPoints.push({'x':object.offset().left + object.outerWidth(),
+                                           'y':object.offset().top + object.outerHeight()});
+                        objectPoints.push({'x':object.offset().left,
+                                           'y':object.offset().top + object.outerHeight()});
+                    
+                    return (advancedSqCollision(sqPoints,objectPoints) || circleSqCollision(crPoints[0],objectPoints) || circleSqCollision(crPoints[1],objectPoints));
+                        
+                    }else{
+                        return simpleSqCollision(tile,object);
+                    }
+                    
+                    
+                }
+                
+                function circleSqCollision(circle,square){
+                    
+                    for (var i = 0; i<3;i++){
+                        var A = square[i];
+                        var B = square[i+1];
+                        if (crLineCollision(circle,[A,B])==true){
+                            return true
+                        }
+                    }
+                    return false
+                }
+                
+                function crLineCollision(circle,linePoints){
+                    
+                    if (Math.sqrt(Math.pow(linePoints[0].x-circle.x,2)+Math.pow(linePoints[0].y-circle.y,2))<circle.r ||
+                        Math.sqrt(Math.pow(linePoints[1].x-circle.x,2)+Math.pow(linePoints[1].y-circle.y,2))<circle.r
+                       ){
+                        return true;
+                    }
+                    
+                    var directionVector = {'x':(linePoints[0].x - linePoints[1].x),'y':(linePoints[0].y - linePoints[1].y)};
+                    var magnitudeLimit = Math.sqrt(Math.pow(directionVector.x,2)+Math.pow(directionVector.y,2));
+                    //obtain unit vector
+                    directionVector.x/=magnitudeLimit;
+                    directionVector.y/=magnitudeLimit;
+                    var a = Math.pow(directionVector.x,2)+Math.pow(directionVector.y,2);
+                    var b = 2*(directionVector.x*linePoints[0].x+directionVector.y*linePoints[0].y-circle.x*directionVector.x-circle.y*directionVector.y)
+                    var c = Math.pow(circle.x,2)+ Math.pow(circle.y,2)+ Math.pow(linePoints[0].x,2)+ Math.pow(linePoints[0].y,2)- 2*(linePoints[0].x*circle.x+linePoints[0].y*circle.y)-Math.pow(circle.r,2);
+                    
+                    var determinant = Math.pow(b,2)-4*a*c;
+                    if (determinant==0){
+                        var lambda = Math.pow(b,2)/(2*a);
+                        if (lambda<=magnitudeLimit && lambda >= 0){
+                            return true;
+                        }
+                    }else if(determinant>0){
+                        var lambda = [(Math.pow(b,2)-Math.sqrt(determinant))/(2*a),
+                                      (Math.pow(b,2)+Math.sqrt(determinant))/(2*a)];
+                        for (var i = 0;i<2;i++){
+                            var l = lambda[i];
+                            if (l<=magnitudeLimit && l >= 0){
+                                return true;
+                            }
+                        }   
+                    }
+                    return false;
+                }
+                            
+                function advancedSqCollision (a, b) {
+
+                    /*var a = extractCornerPoints(e1);
+                    var b = extractCornerPoints(e2);*/
                     var polygons = [a, b];
                     var minA, maxA, projected, i, i1, j, minB, maxB;
 
@@ -185,6 +317,7 @@
                 var score = 0;
                 var mapPath = [];
                 var vectorPath = [];
+                var vectorPathRoot = null;
                 var pathRadius = 0;
                 var towers = [];
                 var stopTickFunction = false;
@@ -319,14 +452,15 @@
                 }
 
                 function loadMap(map){
-                    
+                    ;
                     setBaseHealth(map["maxBaseHealth"]);
                     changeHealth(map["startingBaseHealth"]);
                     setResources(map["startingResources"]);
                     //draw the map so objects can interact with it
                     drawMap(map);
                     //calculate path for enemies
-                    calculateVectorPaths();
+                    vectorPathRoot = calculateVectorPaths(mapPath).root;
+                    console.log(vectorPathRoot);
                     //set waves
                     waves = map["waves"];
                     //make sure all correct enemies are loaded
@@ -336,7 +470,6 @@
                     //make sure all correct towers are loaded in
                     prepareEvents();
                     //execute any events to be executed before start of clock   
-                    console.log(events);
                     if (events["pre"]){
                         var preEvents = events["pre"];
                         for (var event in preEvents){
@@ -348,16 +481,60 @@
                     start();
                 }
 
-                function calculateVectorPaths(){
-                    for (i=0;i<mapPath.length-1;i++){
-                        var directionVector = [(mapPath[i+1][0] - mapPath[i][0]),(mapPath[i+1][1] - mapPath[i][1])];
-                        var magnitudeLimit = Math.sqrt(Math.pow(directionVector[0],2)+Math.pow(directionVector[1],2));
-                        //obtain unit vector
-                        directionVector[0]/=magnitudeLimit;
-                        directionVector[1]/=magnitudeLimit;
-                        //calculate limit of magnitude
-                        vectorPath.push([directionVector,magnitudeLimit]);
+                function calculateVectorPaths(points){
+                    var root = null;
+                    var lastSegments = [];
+                    for (var i=0;i<points.length-1;i++){
+                        var currentSegment = new VectorPathSegment();
+                        var p1 = points[i].slice();
+                        var p2 = points[i+1].slice();
+                        if (typeof(p1[0])=="number"){
+                            if (typeof(p2[0])!=="number"){
+                                p2 = p2[0].start;
+                            }
+                            var vector = calculateVector(p1,p2);
+                            currentSegment.x=vector.x;
+                            currentSegment.y=vector.y;
+                            currentSegment.m=vector.m;
+                            if (lastSegments.length==0){
+                                root=currentSegment;
+                            }else{
+                                extendPath(lastSegments,currentSegment,1);
+                            }
+                        lastSegments=[currentSegment];
+                        }else{
+                            //handle split
+                            var start  = p1[0].start.slice();
+                            var endingSegments = [];
+                            for (var j = 1;j<p1.length;j++){
+                                var pathProbability = p1[0]['p'+j];
+                                var pointArray = [start.slice()];
+                                pointArray = pointArray.concat(p1[j].slice());
+                                pointArray.push(p2.slice());
+                                var pathSegments = calculateVectorPaths(pointArray.slice());
+                                extendPath(lastSegments,pathSegments.root,pathProbability);
+                                endingSegments = endingSegments.concat(pathSegments.last.slice());
+                            }
+                            lastSegments=endingSegments.slice();
+                        }
                     }
+                    return {'root':root,'last':lastSegments};
+                }
+                
+                function extendPath(lastSegments,root,prob){
+                    for (var i = 0;i<lastSegments.length;i++){
+                        var s = lastSegments[i];
+                        s.addLink(root,prob);
+                    }
+                }
+                
+                function calculateVector(p1,p2){
+                    var directionVector = {'x':(p2[0] - p1[0]),'y':(p2[1] - p1[1])};
+                    directionVector.m = Math.sqrt(Math.pow(directionVector.x,2)+Math.pow(directionVector.y,2));
+                    //obtain unit vector
+                    directionVector.x/=directionVector.m;
+                    directionVector.y/=directionVector.m;
+                    return directionVector;
                 }
 
                 function drawMap(data){
@@ -365,7 +542,7 @@
                     mapPath = data["path"];
                     var gameContainer = $("#gameSpace");
                     //draw map path using divs
-                    parsePath(mapPath,pathRadius)
+                    parsePath(mapPath.slice(),pathRadius)
                     //position base
                     var baseDiv = $('<div class="baseTile tile">');
                     gameContainer.append(baseDiv);
@@ -376,7 +553,6 @@
                     var pathComponentHeight = pathRadius * 2;
                     for ( i=0;i<path.length-1;i++){
                         if (typeof(path[i][0])!=="number"){
-                            console.log("split",path,typeof(path[i][0]),path[i][0]);
                             //split
                             var currentArray = path[i];
                             var startPoint = currentArray[0]["start"];
@@ -388,11 +564,10 @@
                             }
                             
                             for (j=1;j<currentArray.length;j++){
-                                var pathArray = currentArray[j];
+                                var pathArray = currentArray[j].slice();
                                 pathArray.unshift(startPoint);
                                 pathArray.push(endPoint);
-                                console.log(pathArray);
-                                parsePath(pathArray,pathRadius);
+                                parsePath(pathArray.slice(),pathRadius);
                             }
                         }else{
                             var point = {"x":path[i][0],"y":path[i][1]};
@@ -435,7 +610,6 @@
                     var angleFromHorizontal = Math.atan((pointOrder.to.y-pointOrder.from.y)/(pointOrder.to.x-pointOrder.from.x));
                     pos["x"] = pointOrder.from.x- pathRadius * Math.cos(angleFromHorizontal);
                     pos["y"] = pointOrder.from.y-pathRadius - pathRadius * Math.sin(angleFromHorizontal);
-                    console.log(point,nextPoint,pathComponentHeight,pathRadius,pos,angleFromHorizontal);
                     //use pythagoras to calculate length of div
                     var pathComponentWidth = magnitude({'x':pointOrder.to.x-pointOrder.from.x+2*pathRadius*Math.cos(angleFromHorizontal),'y':pointOrder.to.y-pointOrder.from.y+2*pathRadius*Math.sin(angleFromHorizontal)});
 
@@ -450,7 +624,15 @@
                 
                 function createPathElement(size,pos,angle,pathRadius){
                     var gameContainer = $("#gameSpace")
-                    var pathComponent = $('<div id="'+i+'" class="mapPathTile tile">');
+                    var pathComponent = $(`
+                        <div id="`+i+`" class="mapPathTile tile">
+                            <div class="marker" id = "nw" style="left:`+pathRadius+`; top:0;"></div>
+                            <div class="marker" id = "ne" style="right:`+pathRadius+`; top:0;"></div>
+                            <div class="marker" id = "se" style="right:`+pathRadius+`; bottom:0;"></div>
+                            <div class="marker" id = "sw" style="left:`+pathRadius+`; bottom:0;"></div>
+                            <div class="marker" id = "cw" style="left:`+pathRadius+`; top:`+pathRadius+`;"></div>
+                            <div class="marker" id = "ce" style="right:`+pathRadius+`; top:`+pathRadius+`;"></div>
+                        </div>`);
                     gameContainer.append(pathComponent);
                     pathComponent.css({left: pos.x,
                                         top: pos.y,
@@ -667,37 +849,34 @@
                     });
                     window.game=null;
                 }
-                function calculatePath(x,y,vectorNo,movementRemaining,magnitudeRemaining){
-                    var currentVector = vectorPath[vectorNo];
+                function calculatePath(x,y,currentVector,movementRemaining,magnitudeRemaining){
                     if (movementRemaining<=magnitudeRemaining){
-                        x += currentVector[0][0]*movementRemaining;
-                        y += currentVector[0][1]*movementRemaining;
+                        x += currentVector.x*movementRemaining;
+                        y += currentVector.y*movementRemaining;
                         magnitudeRemaining -=movementRemaining;
-
                     }else{
                         //reach end of path
-                        x += currentVector[0][0]*magnitudeRemaining;
-                        y += currentVector[0][1]*magnitudeRemaining;
-
-                        if(vectorPath.length-1==vectorNo){
+                        x += currentVector.x*magnitudeRemaining;
+                        y += currentVector.y*magnitudeRemaining;
+                        
+                        var nextVector = currentVector.next();
+                        console.log(currentVector,nextVector);
+                        if(nextVector==null){
                             //return as at end anyway
                             magnitudeRemaining=0;
                         }else{
                             //more vector paths to calculate
                             //recalculate movementRemaining
                             movementRemaining -= magnitudeRemaining;
-
-                            //set next vector
-                            vectorNo+=1;
                             //recalculate magnitudeRemaining
-                            magnitudeRemaining = vectorPath[vectorNo][1];
-                            return calculatePath(x,y,vectorNo,movementRemaining,magnitudeRemaining);
+                            magnitudeRemaining = nextVector.m;
+                            return calculatePath(x,y,nextVector,movementRemaining,magnitudeRemaining);
                         }
                     }
                     return {
                         "x":x,
                         "y":y,
-                        "vectorNo":vectorNo,
+                        "vector":currentVector,
                         "magnitudeRemaining":magnitudeRemaining
                     };
                 }
@@ -705,10 +884,11 @@
                     $("#gameSpace .enemy").each(function(i,e){
 
                         //check collision with final base
-                        if ($(this).data("currentVector")==vectorPath.length-1){
+                        if ($(this).data("currentVector").next()==null){
                             if (simpleSqCollision($(this),$(".baseTile"))){
                                 dealBaseDamage($(this).data("damage"));
-                                $(this).remove();   
+                                $(this).remove(); 
+                                return;
                             }   
                         }
                         var returnData = calculatePath($(this).data("currentX"),
@@ -718,7 +898,7 @@
                                                         $(this).data("magnitudeRemaining")
                                                        );
 
-                        $(this).data("currentVector",returnData.vectorNo);
+                        $(this).data("currentVector",returnData.vector);
                         $(this).data("magnitudeRemaining",returnData.magnitudeRemaining);
                         $(this).data("currentX",returnData.x);
                         $(this).data("currentY",returnData.y);
@@ -734,80 +914,7 @@
 
                     });
                 }
-                function customCalculatePath(prevX,prevY,vectorNo,speed,width,height){
-                    var animationQueue = [];
-                    width = parseFloat(width);
-                    height = parseFloat(height);
-                    for (i=vectorNo;i<vectorPath.length;i++){
-                        
-                        var magnitude = vectorPath[i][1];
-                        if (i==vectorNo){
-                            magnitude=Math.pow(
-                                Math.pow(
-                                    (mapPath[i+1][0]-parseFloat(prevX)),2)+
-                                Math.pow((mapPath[i+1][1]-parseFloat(prevY)),2)
-                            ,0.5);
-                        }
-                        
-                        var pos = {"x":mapPath[i+1][0]-(width/2),"y":mapPath[i+1][1]-(height/2)};
-                        var time = (magnitude/speed)*(baseClock/clockMultiplier);
-                        console.log(vectorNo,i,pos,time);
-                        animationQueue.push({"time":time,"pos":pos});
-                    }
-                    return animationQueue;
-                    
-                }
-                function customMoveEnemy(identifier){
-                    if (identifier == undefined || identifier == null){
-                        identifier = "#gameSpace .enemy"
-                    }
-                    $(identifier).each(function(i,e){
-                        
-                        
-                        if ($(this).data("clockMultiplier")!==clockMultiplier){
-                            $(this).velocity("stop",true);
-                            if (clockMultiplier!==0){
-                                var animationQueue = customCalculatePath(
-                                                                $(this).css("left"),
-                                                                $(this).css("top"),
-                                                                $(this).data("currentVector"),
-                                                                $(this).data("speed"),
-                                                                $(this).css("width"),
-                                                                $(this).css("height")
-                                                               );
-                                
-                                var damage = $(this).data("damage")
-                                for (i=0;i<animationQueue.length;i++){
-                                    var animation = animationQueue[i];
-                                    $(this).velocity({
-                                        left:animation.pos.x,
-                                        top:animation.pos.y
-                                    },{
-                                        easing: "linear",
-                                        duration: animation.time,
-                                        complete: function(){
-                                            var nextVector = $(this).data("currentVector")+1;
-                                            if (nextVector == vectorPath.length){
-                                                dealBaseDamage($(this).data("damage"));
-                                                $(this).remove();
-                                            }else{
-                                                $(this).data("currentVector",nextVector);
-                                                $(this).data("magnitudeRemaining",vectorPath[nextVector][1]);  
-                                            }
-                                        },
-                                        progress: function(elements, complete, remaining, start, tweenValue) {    
-                                            $(this).data("magnitudeRemaining",
-                                                         (1-complete)*vectorPath[$(this).data("currentVector")][1]);
-                                        }
-                                    });
-                                }
-                            }
-                            $(this).data("clockMultiplier",clockMultiplier);
-                        }
-                        var ticks = $(this).data("ticks");
-                        $(this).data("ticks", ticks+1);
-                    });
-                }
+                
             
                 function shootProjectiles(){
                     $("#gameSpace .towerContainer:not(.isDragging)").each(function(i,e){
@@ -905,7 +1012,23 @@
                             async: false,
                             success: function(data) {}
                         })['responseJSON'];
-                        var enemyImg = $("<img src='gameComponents/enemies/"+data["icon"]+"' class='enemy " + enemyName + "' style='position: absolute; width:"+data["width"]+"px; height:"+data["height"]+"px;left:"+(mapPath[0][0]-(data["width"]/2))+"px;top:"+(mapPath[0][1]-(data["height"]/2))+"px;' data-health='"+data["health"]+"' data-damage='"+data["damage"]+"' data-death='"+data["death"]+"' data-speed='"+data["speed"]+"' data-current-vector='0' data-magnitude-remaining='"+vectorPath[0][1]+"' data-current-x='"+(mapPath[0][0]-(data["width"]/2))+"' data-current-y='"+(mapPath[0][1]-(data["height"]/2))+"' data-resources='"+data["resources"]+"' data-ticks='0'>");
+                        var enemyImg = $(`<img src='gameComponents/enemies/`+data["icon"]+`' 
+                                            class='enemy ` + enemyName + `' 
+                                            style='
+                                                position: absolute;
+                                                width:`+data["width"]+`px;
+                                                height:`+data["height"]+`px;
+                                                left:`+(mapPath[0][0]-(data["width"]/2))+`px;
+                                                top:`+(mapPath[0][1]-(data["height"]/2))+`px;'
+                                            data-health='`+data["health"]+`' 
+                                            data-damage='`+data["damage"]+`' 
+                                            data-death='`+data["death"]+`' 
+                                            data-speed='`+data["speed"]+`' 
+                                            data-magnitude-remaining='`+vectorPathRoot.m+`' 
+                                            data-current-x='`+(mapPath[0][0]-(data["width"]/2))+`' 
+                                            data-current-y='`+(mapPath[0][1]-(data["height"]/2))+`' 
+                                            data-resources='`+data["resources"]+`' 
+                                            data-ticks='0'>`);
                         data["divBase"]=enemyImg;
                         enemyDB[enemyName]=data;
                         return enemyImg;
@@ -920,6 +1043,7 @@
                         for (var enemyDiv in enemyQueue[clockTime]){
                             if (enemyQueue[clockTime].hasOwnProperty(enemyDiv)){
                                 var enemy = enemyQueue[clockTime][enemyDiv].clone()
+                                enemy.data("currentVector",vectorPathRoot);
                                 $("#gameSpace").append(enemy);
                             }
                         }
@@ -1053,10 +1177,18 @@
                         }
                         currentDrag.css("top",finalY)
                                     .css("left",finalX);
-
+                        
+                        /*var hit_list = currentDrag.children(".tower").collision(".tile");
+                        
+                        if (hit_list.length==0){
+                            currentDrag.removeClass("isColliding");
+                        }else{
+                            currentDrag.addClass("isColliding");
+                        }*/
+                        
                         $(".tile").each(function(i,e){
                             var colliding = false;
-                            if (advancedSqCollision($(this),currentDrag.children(".tower"))){
+                            if (tileCollision($(this),currentDrag.children(".tower"))){
                                 colliding = true
                                 currentDrag.addClass("isColliding");
                                 //break loop
