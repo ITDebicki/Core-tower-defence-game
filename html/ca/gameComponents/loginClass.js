@@ -18,81 +18,77 @@ window.login=(function(){
             type: 'POST',
             method: 'POST',
             dataType: "json",
-            data: {"action":"fetchAvatar", "json":"{}"}
-        }).done(function(response){
-            console.log(response);
-            var file = null;
-             if (response["success"]==true){
-                var file = response["data"];
-            }else{
-                alert(response["error"],response["errorCode"]);   
-            } 
-            if (file == null || file == ""){
-                file = "defaultAvatar.png";
-            }
-            userAvatar = {"file":"restricted/images/avatars/" + file,"expiry":Date.now()+10000*60} //check again in ten minutes
-            if (!(callback === undefined)){
-                callback(userAvatar.file);   
+            data: {"action":"fetchAvatar", "json":"{}"},
+            error:logError,
+            success:function(response){
+                console.log(response);
+                var file = null;
+                 if (response["success"]==true){
+                    var file = response["data"];
+                }else{
+                    alert(response["error"],response["errorCode"]);   
+                } 
+                if (file == null || file == ""){
+                    file = "defaultAvatar.png";
+                }
+                userAvatar = {"file":"restricted/images/avatars/" + file,"expiry":Date.now()+10000*60} //check again in ten minutes
+                callback(userAvatar.file);
             }
         });
 
    }
     
     function login(user,pass,callback){
-        if (validateUser(user) && validatePassword(pass)){
-            $.ajax({
-                url: 'restricted/login.php',
-                type: 'POST',
-                method: 'POST',
-                dataType: "json",
-                data: {"type":"login", "user":user, "password":pass},
-                success:function(response){
-                    if (response["success"]==true){
-                        isLoggedIn = true;
-                        username = response["username"]
-                        if (!(callback === undefined)){
-                            callback(true);   
-                        }
-                    }else{
-                        isLoggedIn = false;
-                        if (!(callback === undefined)){
-                            callback(false,response["error"],response["errorCode"]);   
-                        }
+        $.ajax({
+            url: 'restricted/login.php',
+            type: 'POST',
+            method: 'POST',
+            dataType: "json",
+            data: {"type":"login", "user":user, "password":pass},
+            success:function(response){
+                if (response["success"]==true){
+                    isLoggedIn = true;
+                    username = response["username"]
+                    if (!(callback === undefined)){
+                        callback(true);   
+                    }
+                }else{
+                    isLoggedIn = false;
+                    if (!(callback === undefined)){
+                        callback(false,response["error"],response["errorCode"]);   
                     }
                 }
-            });
-        }else{
-            if (!(callback === undefined)){
-                callback(false);   
-            }
-            return false;
-        }
+            },
+            error:logError
+        });
     }
     
     function logout(callback){
         $.ajax({
-                url: 'restricted/logout.php',
-                dataType: "json",
-                success: function(response){ 
-                    if (response["success"]==true){
-                        isLoggedIn = false;
-                    }
-                    if (!(callback === undefined)){
-                            callback(response["success"],response["error"],response["errorCode"]);   
-                    }
+            url: 'restricted/logout.php',
+            dataType: "json",
+            success: function(response){ 
+                if (response["success"]==true){
+                    isLoggedIn = false;
                 }
-            });
+                if (!(callback === undefined)){
+                    callback(response["success"],response["error"],response["errorCode"]);   
+                }
+            },
+            error:logError
+        });
     }
     
     function createAccount(user,pass,passR,email,callback){
-        if (validateAccountCreationDetails(username,password,passwordR,email)){
+        if (validateAccountCreationDetails(user,pass,passR,email)){
             $.ajax({
                 url: 'restricted/login.php',
                 type: 'POST',
                 method: 'POST',
                 dataType: "json",
-                data: { "type": "create", "user":username, "password":password, "passwordR":passwordR, "email":email},
+                data: { "type": "create", "user":user, "password":pass, "passwordR":passR, "email":email},
                 success: function(response){ 
+                    console.log("response",response);
                     if (response["success"]==true){
                         if (!(callback === undefined)){
                             callback(true);   
@@ -102,7 +98,8 @@ window.login=(function(){
                             callback(false,response["error"],response["errorCode"]);   
                         }
                     }
-                }
+                },
+                error:logError
             });
         }
     }
@@ -145,13 +142,15 @@ window.login=(function(){
             dataType: "json",
             data: { "action": "fetchNotifications", "json":'{"fromDate":' + timestamp +',"limit":' + limit +'}'},
             success: function(response){ 
+                console.log(response)
                 if (response["success"]==true){
                     var responseData = response["data"];
                     callback(true,responseData);
                 }else{
                     callback(false,response["error"],response["errorCode"]); 
                 }
-            }
+            },
+            error:logError
         });
     }
     
@@ -168,7 +167,8 @@ window.login=(function(){
                 }else{
                     callback(false,response["error"],response["errorCode"]); 
                 }
-            }
+            },
+            error:logError
         });
     }
     
@@ -190,7 +190,8 @@ window.login=(function(){
                     userAvatar=null;
                 }
                 callback(response["success"],response["error"],response["errorCode"]);
-            }
+            },
+            error:logError
         });
     }
     
@@ -207,7 +208,8 @@ window.login=(function(){
                     userAvatar=null;
                 }
                 callback(response["success"],response["error"],response["errorCode"]);
-            }
+            },
+            error:logError
         }); 
     }
     
@@ -219,8 +221,14 @@ window.login=(function(){
             dataType: "json",
             data: {"action":"deleteAccount", "json":"{}"},
             success:function(response){
+                if (response["success"]==true){
+                    isLoggedIn=false;
+                    username=null;
+                    userAvatar=null;
+                }
                 callback(response["success"],response["error"],response["errorCode"]);
-            }
+            },
+            error:logError
         });  
     }
     
@@ -228,12 +236,18 @@ window.login=(function(){
         login:function(user,pass,callback){
             login(user,pass,callback);
         },
+        checkCookie: function(callback){
+            login("","",callback);
+        },
         userAvatar: function(callback){
             //check 10 minute cache first
-            if (userAvatar.hasOwnProperty("file")){
-                if (userAvatar.expiry < Date.now()){
-                    callback(userAvatar.file);
-                    return;
+            if( !(userAvatar==null || userAvatar == undefined) ){
+                console.log(userAvatar);
+                if (userAvatar.hasOwnProperty("file")){
+                    if (userAvatar.expiry < Date.now()){
+                        callback(userAvatar.file);
+                        return;
+                    }
                 }
             }
             fetchUserAvatar(callback);

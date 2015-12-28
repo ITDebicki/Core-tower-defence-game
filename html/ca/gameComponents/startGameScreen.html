@@ -24,8 +24,9 @@
                     //try logging in
                     if (window.login.isLoggedIn()){
                         //isLoggedIN
-                        switchLoggedInWindows();
-                        
+                        loginHandler(true);    
+                    }else{
+                        window.login.checkCookie(cookieLoginHandler);
                     }
                 });
 
@@ -80,9 +81,15 @@
                     }
                 }
                 
+                function cookieLoginHandler(success,error,errorCode){
+                    if (success==true){
+                        loginHandler(true);
+                    }
+                }
+                
                 function loginHandler(success,error,errorCode){
                     if (success){
-                        $("#usernameSpan").html(window.login.user());
+                        $("#usernameSpan").html(window.login.username());
                         window.login.userAvatar(setAvatar);
                         switchLoggedInWindows();
                         //fetch notifications
@@ -146,8 +153,9 @@
                     var password = $("input[name=passwordTextboxCreate]").val();
                     var passwordR = $("input[name=passwordRTextboxCreate]").val();
                     var email = $("input[name=emailTextboxCreate]").val();
-                    
+                    console.log("creating account",username);
                     if (validateAccountCreationDetails(username,password,passwordR,email)){
+                        console.log("creating account");
                         window.login.createAccount(username,password,passwordR,email,createAccountHandler);
                     }else{
                         unlockLoginButtons();
@@ -160,7 +168,7 @@
                         alert("Account created. Please log in");
                         backPressed();
                     }else{
-                        alert(response["error"],response["errorCode"]);   
+                        alert(error,errorCode);   
                     }
                     unlockLoginButtons();
                 }
@@ -256,6 +264,7 @@
                 }
 
                 function fetchedNotificationHandler(success,responseData,errorCode){
+                    console.log(success,responseData);
                     if(success){
                         if (responseData.length==0){
                             noMoreNotifications=true;
@@ -263,7 +272,7 @@
                             noMoreNotifications=false;
                         }
                         for (i=0; i < responseData.length; i++){
-                            generateNotificationDiv(responseData[i]["timestamp"],responseData[i]["type"],responseData[i]["title"],responseData[i]["message"],responseData[i]["opened"]);
+                            generateNotificationDiv(responseData[i]["timestamp"],responseData[i]["type"],responseData[i]["title"],responseData[i]["message"],responseData[i]["read"]);
                         }
                     }else{
                         alert(responseData,errorCode);

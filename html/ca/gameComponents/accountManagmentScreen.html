@@ -3,13 +3,14 @@
         <link rel="stylesheet" type="text/css" href="gameComponents/accountManagmentScreen.css">
         <script>
             window.accountManagementFunctions=(function(){
+                var formdata = false;
                 $("document").ready(function(){
                     lockButtons("#loggedInContainerButtons");
                     //firstly don't show the div
                     $("#overlay").fadeOut(0);
                     $("#wrapper").fadeOut(0);
                     //load all data
-                    var formdata = false;
+                    
 
                     if (window.FormData) {
                         formdata = new FormData();
@@ -25,7 +26,7 @@
                         if (formdata) {
                             if (this.files[0].size > 1048576 || this.files.length > 1){
                                 alert("Please upload one file which is not greater than 2MiB"); 
-                            }else{
+                            }else if(this.files[0]){
                                 formdata.append("MAX_FILE_SIZE","1048576");
                                 formdata.append("userfile[]", this.files[0]);
                                 formdata.append("action","uploadAvatar");
@@ -45,7 +46,11 @@
                         }
 
                     });
-
+                    
+                    $("#avatarSelector").on("dragover",function(e){
+                      e = e || event;
+                      e.preventDefault();
+                    },false);
                     //display and hide change avatar on mouse over of avatar
                     $("#avatarSelector").mouseover(function(evt){
                         $("#avatarUploadText").addClass("hover"); 
@@ -84,6 +89,8 @@
                 
                 function uploadAvatarHandler(success,error,errorCode){
                     $("#avatarUploadText").removeClass("hover");
+                    formdata = new FormData();
+                    $("#avatarSelector").files=[];
                     if (success==true){
                         loadAvatar();
                     }else{

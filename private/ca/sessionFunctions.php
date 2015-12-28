@@ -13,7 +13,7 @@ function end_session() {
 	// Use both for compatibility with all browsers
 	// and all versions of PHP.
 	session_unset();
-  session_destroy();
+    session_destroy();
 }
 
 // Does the request IP match the stored value?
@@ -81,7 +81,7 @@ function confirm_session_is_valid() {
 		// Note that header redirection requires output buffering 
 		// to be turned on or requires nothing has been output 
 		// (not even whitespace).
-		header("Location: /ca/login.php");
+		header("Location: /ca/restricted/login.php");
 		exit;
 	}
 }
@@ -99,7 +99,7 @@ function confirm_user_logged_in() {
 		// Note that header redirection requires output buffering 
 		// to be turned on or requires nothing has been output 
 		// (not even whitespace).
-		header("Location: /ca/login.php");
+		header("Location: /ca/restricted/login.php");
 		exit;
 	}
 }
