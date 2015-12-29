@@ -218,7 +218,8 @@ line-height: 10px
 }
 
 .opened{
-    background-color: lightslategray;
+    background-color: darkgray;
+    opacity:0.5;
 }
 
 .notification .notificationTitle{

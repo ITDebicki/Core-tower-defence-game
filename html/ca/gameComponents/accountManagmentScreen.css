@@ -1,4 +1,4 @@
-#overlay{
+.overlay{
     position: absolute;
     left: 0px;
     top: 0px;
@@ -8,7 +8,7 @@
     background-color: lightgray;
 }
 
-#wrapper{
+.wrapper{
     position: absolute;
     left: 0px;
     top: 0px;
@@ -27,7 +27,6 @@
     left: 80px;
     height: 150px;
     width: 170px;
-    z-index: 1;
 }
 
 #buttonDiv{

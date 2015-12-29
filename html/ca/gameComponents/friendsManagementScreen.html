@@ -1,0 +1,520 @@
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="gameComponents/friendsManagementScreen.css">
+    <script>
+        
+        window.friendsManagement=(function(){
+            
+            function ScrollList(mainElement,newElementConstructor,onElementPress,onScroll){
+                this.primeElement=mainElement;
+                this.constructor=newElementConstructor;
+                this.onElementPress=onElementPress;
+                this.onScroll=onScroll;
+                if (this.onScroll){
+                    $(this.primeElement).scroll(this.scroll);
+                }
+            }
+            ScrollList.prototype = {
+                addElement: function(data){
+                    var element = this.constructor(data);
+                    element.click(this.onElementPress);
+                    $(this.primeElement).append(element);
+                },
+                removeElement: function(id){
+                    $(this.primeElement).children("#"+id).remove();
+                },
+                clearList: function(callback){
+                    $(this.primeElement).velocity({
+                        scrollTop:0
+                    },200,"swing",function(e){
+                        $(this).velocity("slideUp",200,function(){
+                            $(this).empty();
+                            $(this).velocity("slideDown",200);
+                            callback();
+                        });
+                    });
+                },
+                quickClearList: function(callback){
+                    $(this.primeElement).empty();
+                    if (callback){ callback(); }
+                },
+                addElements:function(dataArray){
+                    for (var i = 0;i<dataArray.length;i++){
+                        this.addElement(dataArray[i]);
+                    }
+                }
+            };
+            
+            
+            var friendsScrollList = null;
+            var fRScrollList = null;
+            var fRSScrollList = null;
+            var blockedScrollList = null;
+            var searchList = null;
+            var searchMode = null;
+            var searchArray = [];
+            var oldSearchValue = "";
+            $("document").ready(function(){
+                lockButtons("#loggedInContainerButtons");
+                //firstly don't show the div
+                $("#friendsOverlay").fadeOut(0);
+                $("#contentWrapper").fadeOut(0);
+                $('#searchContainer').fadeOut(0);
+                $("#friendsOverlay").fadeTo(500,0.9);
+                $("#contentWrapper").fadeIn(500);
+                $("#friendsOverlay").click(function(e){
+                    hideSearchList();
+                });
+                $("#searchBoxText").on('input', function() {
+                    var newValue = $(this).val();
+                    console.log(newValue,oldSearchValue);
+                    searchList.quickClearList();
+                    console.log("clearedList");
+                    if (newValue.length > 3){
+                        if (newValue.length > oldSearchValue.length){
+                            //no need to request results again
+                            console.log("refining")
+                            searchArray = filterResults(newValue);
+                            for (var i = 0; i< searchArray.length;i++){
+                                window.login.fetchAvatar(searchArray[i],searchDataHandler);
+                            }
+                        }else{
+                            //request results
+                            searchArray = [];
+                            console.log("fetching");
+                            window.login.getAllUsers(newValue,searchArrayHandler);
+                        }
+                    }else if(newValue.length = 3){
+                        //request results
+                        searchArray = [];
+                        console.log("fetching");
+                        window.login.getAllUsers(newValue,searchArrayHandler);
+                    }else{
+                        //find exact as too many for 1-2 letters
+                        searchArray = [];
+                        window.login.getExactUsers(newValue,searchArrayHandler);
+                    }
+                    oldSearchValue = newValue;
+                });
+                $("#addFriend").click(function(e){
+                    searchMode="add";
+                    showSearchList(this);
+                });
+                $("#addBlock").click(function(e){
+                    searchMode="block";
+                    showSearchList(this);
+                });
+                $("#friendsBackButton").click(function(e){
+                    $("#contentWrapper").fadeOut(100,function(){
+                        removeElement("friendsScreen");
+                    });
+                });
+                $("#refreshFriendsList").click(function(e){
+                    friendsScrollList.clearList(loadFriends);
+                });
+                $("#refreshFriendRequestsList").click(function(e){
+                    fRScrollList.clearList(loadFR);
+                });
+                $("#refreshFriendRequestsSentList").click(function(e){
+                    fRSScrollList.clearList(loadFRS);
+                });
+                $("#refreshBlockedList").click(function(e){
+                    blockedScrollList.clearList(loadBlocked);
+                });
+                friendsScrollList = new ScrollList("#friendsListContainer",createFriendElement,profilePressHandler);
+                fRScrollList = new ScrollList("#friendRequestsRecievedList",createFRElement,profilePressHandler);
+                fRSScrollList = new ScrollList("#friendRequestsSentList",createFRSElement,profilePressHandler);
+                blockedScrollList = new ScrollList("#blockedList",createBlockListElement,profilePressHandler);
+                searchList = new ScrollList("#searchList",createSearchListElement,profilePressHandler);
+                loadFriends();
+                loadFR();
+                loadFRS();
+                loadBlocked();
+            });
+            
+            function filterResults(newValue){
+                console.log(searchArray);
+                var newArray = jQuery.grep(searchArray,function(s,i){
+                    console.log(s,newValue);
+                    if (s.toLowerCase().indexOf(newValue.toLowerCase()) > -1 || s.toLowerCase() == newValue.toLowerCase()){
+                        return true;
+                    }else{
+                        return false;
+                    }
+                });
+                return newArray;
+            }
+            
+            function searchArrayHandler(success,data,errorCode){
+                if (success){
+                    if (data){
+                        searchArray=data;
+                        for (var i = 0; i< data.length;i++){
+                            window.login.fetchAvatar(data[i],searchDataHandler);
+                        }
+                    }else{
+                        searchArray=[];
+                    }
+                }else{
+                    alert(data,errorCode);
+                }
+                
+            }
+            
+            function searchDataHandler(avatarSrc,usr){
+                console.log("Adding element",usr);
+                searchList.addElement({"user":usr,"userAvatar":avatarSrc});
+            }
+            
+            function createFriendElement(data){
+                var username = data["user"];
+                var userAvatar = data["userAvatar"];
+                var container = $("<div class='person'>");
+                var friendAvatar = $('<img class="personAvatar" src="' + userAvatar + '">');
+                var friendUsername = $('<div class="personName">'+username+'</div>');
+                var buttonDivContainer = $('<div class="personButtonDiv">');
+                var blockButton = $('<button id="blockFriend" class="personButton">Block</button>');
+                var removeButton = $('<button id="removeFriend" class="personButton">Remove</button>');
+                blockButton.click(function(evt){
+                    var user = $(this).parent().parent().data("user");
+                    window.login.blockUser(user,blockUserHandler);
+                });
+                removeButton.click(function(evt){
+                    var user = $(this).parent().parent().data("user");
+                    window.login.deleteFriend(user,deleteFriendHandler);
+                });
+                buttonDivContainer.append(blockButton)
+                    .append(removeButton);
+                container.append(friendAvatar)
+                    .append(friendUsername)
+                    .append(buttonDivContainer);
+                container.data("user",username);
+                return container;
+            }
+            
+            function createFRElement(data){
+                var username = data["user"];
+                var userAvatar = data["userAvatar"];
+                var container = $("<div class='person'>");
+                var personAvatar = $('<img class="personAvatar" src="' + userAvatar + '">');
+                var personUsername = $('<div class="personName">'+username+'</div>');
+                var buttonDivContainer = $('<div class="personButtonDiv">');
+                var acceptButton = $('<button id="acceptRequest" class="personButton">Accept</button>');
+                var refuseButton = $('<button id="refuseRequest" class="personButton">Decline</button>');
+                var blockButton = $('<button id="blockPerson" class="personButton">Block</button>');
+                refuseButton.click(function(){
+                    var user = $(this).parent().parent().data("user");
+                    window.login.refuseFriendRequest(user,refuseFRHandler);
+                });
+                blockButton.click(function(evt){
+                    var user = $(this).parent().parent().data("user");
+                    window.login.blockUser(user,blockUserHandler);
+                });
+                acceptButton.click(function(evt){
+                    var user = $(this).parent().parent().data("user");
+                    window.login.acceptFriendRequest(user,acceptFRHandler);
+                });
+                buttonDivContainer.append(acceptButton)
+                    .append(refuseButton)
+                    .append(blockButton);
+                container.append(personAvatar)
+                    .append(personUsername)
+                    .append(buttonDivContainer);
+                container.data("user",username);
+                return container;
+            }
+            
+            function createFRSElement(data){
+                var username = data["user"];
+                var userAvatar = data["userAvatar"];
+                var container = $("<div class='person'>");
+                var personAvatar = $('<img class="personAvatar" src="' + userAvatar + '">');
+                var personUsername = $('<div class="personName">'+username+'</div>');
+                var buttonDivContainer = $('<div class="personButtonDiv">');
+                var deleteButton = $('<button id="deleteRequest" class="personButton">Delete</button>');
+                deleteButton.click(function(evt){
+                    var user = $(this).parent().parent().data("user");
+                    window.login.deleteFriendRequest(user,deleteFRHandler);
+                });
+                buttonDivContainer.append(deleteButton);
+                container.append(personAvatar)
+                    .append(personUsername)
+                    .append(buttonDivContainer);
+                container.data("user",username);
+                return container;
+            }
+            
+            function createBlockListElement(data){
+                var username = data["user"];
+                var userAvatar = data["userAvatar"];
+                var container = $("<div class='person'>");
+                var personAvatar = $('<img class="personAvatar" src="' + userAvatar + '">');
+                var personUsername = $('<div class="personName">'+username+'</div>');
+                var buttonDivContainer = $('<div class="personButtonDiv">');
+                var unblockButton = $('<button id="unblockUser" class="personButton">Unblock</button>');
+                unblockButton.click(function(){
+                    var user = $(this).parent().parent().data("user");
+                    window.login.unblockUser(user,unblockUserHandler);
+                });
+                buttonDivContainer.append(unblockButton);
+                container.append(personAvatar)
+                    .append(personUsername)
+                    .append(buttonDivContainer);
+                container.data("user",username);
+                return container;
+            }
+            
+            function createSearchListElement(data){
+                var username = data["user"];
+                var userAvatar = data["userAvatar"];
+                var container = $("<div class='person' id="+username+">");
+                var personAvatar = $('<img class="personAvatar" src="' + userAvatar + '">');
+                var personUsername = $('<div class="personName">'+username+'</div>');
+                var buttonDivContainer = $('<div class="personButtonDiv">');
+                var actionButton = null;
+                if (searchMode == "add"){
+                    actionButton = $('<button id="addUser" class="personButton">Add</button>');
+                    actionButton.click(function(evt){
+                        var user = $(this).parent().parent().data("user");
+                        window.login.sendFriendRequest(user,sendRequestHandler);
+                        hideSearchList();
+                    });
+                }else{
+                    actionButton = $('<button id="blockUser" class="personButton">Block</button>');
+                    actionButton.click(function(evt){
+                        var user = $(this).parent().parent().data("user");
+                        window.login.blockUser(user,blockUserHandler);
+                        hideSearchList();
+                    });
+                }
+                buttonDivContainer.append(actionButton);
+                container.append(personAvatar)
+                    .append(personUsername)
+                    .append(buttonDivContainer);
+                container.data("user",username);
+                return container;  
+            }
+            
+            function hideSearchList(){
+                $("#searchContainer").velocity("fadeOut",200);
+                $("#searchBoxText").val("");
+                searchArray=[];
+                searchList.quickClearList();
+            }
+            
+            function showSearchList(element){
+                $("#searchBoxText").val("");
+                var searchContainer = $("#searchContainer");
+                var width = $(element).outerWidth();
+                var height = $(element).outerHeight();
+                var x = $(element).offset().left;
+                var y = $(element).offset().top;
+                var searchContainer = $("#searchContainer");
+                searchContainer.fadeTo(0,0.01,function(){
+                    searchArray=[];
+                    searchList.quickClearList();
+                    searchContainer.offset({top: y+height+10,left:x+width/2-150});
+                    searchContainer.fadeTo(200,1,function(){
+                        $("#searchBoxText").focus();
+                    });
+                    
+                });
+            }
+            
+            function blockUserHandler(success,error,errorCode){
+                if(success){
+                    friendsScrollList.clearList(loadFriends);
+                    fRScrollList.clearList(loadFR);
+                    blockedScrollList.clearList(loadBlocked);
+                    fRSScrollList.clearList(loadFRS);
+                }else{
+                    alert(error,errorCode);
+                }
+            }
+            
+            function sendRequestHandler(success,error,errorCode){
+                if(success){
+                    fRSScrollList.clearList(loadFRS);
+                }else{
+                    alert(error,errorCode);
+                }
+            }
+            
+            function profilePressHandler(evt){
+                var user = $(this).parent().parent().data("user");
+                showUserProfile(user);
+            }
+            
+            function showUserProfile(user){
+                
+            }
+            
+            function loadFriends(){
+                window.login.getUserFriends(userFriendsHandler);
+            }
+            
+            function userFriendsHandler(success,data,errorCode){
+                if (success==true){
+                    for (i=0;i<data.length;i++){
+                        window.login.fetchAvatar(data[i],getFriendDataHanlder);
+                    }
+                }else{
+                    alert(data,errorCode);
+                }
+            }
+            
+            function getFriendDataHanlder(avatarSrc,usr){
+                friendsScrollList.addElement({"user":usr,"userAvatar":avatarSrc});
+            }
+                
+            function deleteFriendHandler(success,error,errorCode){
+                if(success){
+                    friendsScrollList.clearList(loadFriends);
+                }else{
+                    alert(error,errorCode);
+                }
+            }
+            
+            function loadBlocked(){
+                window.login.getBlockedUsers(getBlockedUsersHandler);
+            }
+            
+            function getBlockedUsersHandler(success,data,errorCode){
+                if(success){
+                    if (data){
+                        for (var i = 0;i<data.length;i++){
+                            window.login.fetchAvatar(data[i],getBlockedDataHanlder);
+                        }
+                    }
+                    
+                }else{
+                    alert(data,errorCode);
+                }
+            }
+            
+            function getBlockedDataHanlder(avatarSrc,usr){
+                blockedScrollList.addElement({"user":usr,"userAvatar":avatarSrc});
+            }
+            
+            function unblockUserHandler(success,error,errorCode){
+                if(success){
+                    blockedScrollList.clearList(loadBlocked);
+                }else{
+                    alert(error,errorCode);
+                }
+            }
+            
+            function loadFR(){
+                window.login.getFriendRequests(getFriendRequestsHandler);
+            }
+            
+            function getFriendRequestsHandler(success,data,errorCode){
+                if(success){
+                    console.log("FR",data);
+                    if(data){
+                        for (var i = 0;i<data.length;i++){
+                            window.login.fetchAvatar(data[i],getFriendRequestDataHandlder);
+                        }
+                    }
+                }else{
+                    alert(data,errorCode);
+                }
+            }
+            
+            function getFriendRequestDataHandlder(avatarSrc,usr){
+                fRScrollList.addElement({"user":usr,"userAvatar":avatarSrc});
+            }
+            
+            function refuseFRHandler(success,error,errorCode){
+                if(success){
+                    fRScrollList.clearList(loadFR);
+                }else{
+                    alert(error,errorCode);
+                }
+            }
+            
+            function acceptFRHandler(success,error,errorCode){
+                if(success){
+                    fRScrollList.clearList(loadFR);
+                    friendsScrollList.clearList(loadFriends);
+                }else{
+                    alert(error,errorCode);
+                }
+            }
+            
+            function loadFRS(){
+                window.login.getSentFriendRequests(getFriendRequestsSentHandler);
+            }
+            
+            function getFriendRequestsSentHandler(success,data,errorCode){
+                if(success){
+                    console.log("FRS",data);
+                    if (data){
+                        for (var i = 0;i<data.length;i++){
+                            window.login.fetchAvatar(data[i],getFriendRequestSentDataHandlder);
+                        }
+                    }
+                }else{
+                    alert(data,errorCode);
+                }
+            }
+            
+            function getFriendRequestSentDataHandlder(avatarSrc,usr){
+                fRSScrollList.addElement({"user":usr,"userAvatar":avatarSrc});
+            }
+            
+            function deleteFRHandler(success,error,errorCode){
+                if(success){
+                    fRSScrollList.clearList(loadFRS)
+                }else{
+                    alert(error,errorCode);
+                }
+            }
+            return {};
+        })();
+    </script>
+</head>
+<body>
+    <div id="contentWrapper" class="wrapper">
+        <div id="friendsOverlay" class="overlay"></div>
+        <div id="backButtonDiv" class="friendsButtonDiv">
+            <button id="friendsBackButton">Back</button>
+        </div>
+        <div id="friendsContainer">
+            <span id="friendsTitle" class="listTitle">Friends</span>
+            <button id="addFriend" class="listButton">Add friends</button>
+            <button id="refreshFriendsList" class="listButton">Refresh</button>
+            <div id="friendsListContainer" class="customList">
+            </div>
+        </div>
+        <div id="unifiedStackContainer">
+            <div id="friendRequestsRecievedContainer" class="customUnifiedList">
+                <span id="friendRequestTitle" class="unifiedListTitle">Friend requests</span>
+                <button id="refreshFriendRequestsList" class="listButton">Refresh</button>
+                <div id="friendRequestsRecievedList" class="customList">
+                </div>
+            </div>
+            <div id="friendRequestsSentContainer" class="customUnifiedList">
+                <span id="friendRequestsSentTitle" class="unifiedListTitle">Friend requests sent</span>
+                <button id="refreshFriendRequestsSentList" class="listButton">Refresh</button>
+                <div id="friendRequestsSentList" class="customList">
+                </div>
+            </div>
+            <div id="blockedContainer" class="customUnifiedList">
+                <span id="peopleBlockedTitle" class="unifiedListTitle">People blocked</span>
+                <button id="addBlock" class="listButton">Block...</button>
+                <button id="refreshBlockedList" class="listButton">Refresh</button>
+                <div id="blockedList" class="customList">
+                </div>
+            </div>
+        </div>
+        <div id="searchContainer">
+            <div id="textEntryContainer">
+                <input id="searchBoxText" type="search" placeholder="search">
+            </div>
+            <div id=searchList>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

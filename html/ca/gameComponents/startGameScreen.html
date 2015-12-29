@@ -56,10 +56,8 @@
                     })
                 }
 
-                function setAvatar(fileURL){
+                function setAvatar(fileURL,user){
                     $(".userAvatar").each(function(){
-                        console.log(fileURL);
-                        console.log($(this));
                         if ($(this).is("img")){
                             $(this).attr("src",fileURL);
                         }else{
@@ -137,9 +135,8 @@
                 function startPressed(evt){
                     //remove all elements
                     raiseOverlay(600,function(){
-                        console.log("removed");
-                            removeElement("startGameScreen");
-                            loadElement("gameComponents/mapSelector.html","mapSelector");});
+                        removeElement("startGameScreen");
+                        loadElement("gameComponents/mapSelector.html","mapSelector");});
                 }
                 function loadPressed(evt){
                     alert("load pressed");
@@ -153,9 +150,7 @@
                     var password = $("input[name=passwordTextboxCreate]").val();
                     var passwordR = $("input[name=passwordRTextboxCreate]").val();
                     var email = $("input[name=emailTextboxCreate]").val();
-                    console.log("creating account",username);
                     if (validateAccountCreationDetails(username,password,passwordR,email)){
-                        console.log("creating account");
                         window.login.createAccount(username,password,passwordR,email,createAccountHandler);
                     }else{
                         unlockLoginButtons();
@@ -166,6 +161,10 @@
                 function createAccountHandler(success,error,errorCode){
                     if (success){
                         alert("Account created. Please log in");
+                        $("input[name=userTextboxCreate]").val("");
+                        $("input[name=passwordTextboxCreate]").val("");
+                        $("input[name=passwordRTextboxCreate]").val("");
+                        $("input[name=emailTextboxCreate]").val("");
                         backPressed();
                     }else{
                         alert(error,errorCode);   
@@ -208,9 +207,10 @@
                     $("#notificationsListContainer").empty();
                 }
 
-                function generateNotificationDiv(timestamp,type,title,message,opened){
+                function generateNotificationDiv(id,timestamp,type,title,message,opened){
                     //var unixTimeStamp = new Date(timestamp.replace(' ', 'T')).getTime() / Math.pow(10,3);
                     var notification = $("<div id='" + timestamp + "'></div>");
+                    notification.data("idVal",id);
                     var postDate = new Date(timestamp*1000);
                     notification.addClass("notification");
                     notification.data("timestamp",timestamp);
@@ -229,17 +229,30 @@
                     $("#notificationsListContainer").append(notification);
                     var totalHeight = titleDiv.outerHeight(true) + messageDiv.outerHeight(true) + dateDiv.outerHeight(true);
                     notification.height(totalHeight);
+                    notification.click(notificationPressed);
+                }
+                
+                function notificationPressed(evt){
+                    
+                    if ($(this).hasClass("opened")==false){
+                        var id = $(this).data("idVal");
+                        window.login.markAsRead([id],notificationCallback);
+                        $(this).addClass("opened");
+                    }  
+                }
+                
+                function notificationCallback(success,error,errorCode){
+                      if (success==false){
+                          alert(error,errorCode);
+                      }  
                 }
 
                 function scrolledNotifications(evt){
-                    console.log(noMoreNotifications);
                     if (noMoreNotifications==false){
                         if ($(this).scrollTop() + $(this).innerHeight() >= ($(this)[0].scrollHeight)){
                             //when at bottom
                             //find latest timestamp
-                            console.log("loading more");
                             var notification = $("#notificationsListContainer .notification").last()
-                            console.log(notification.data("timestamp"));
                             //load 10 more
                             window.login.fetchNotifications(notification.data("timestamp"),10,fetchedNotificationHandler);
                         }
@@ -264,7 +277,6 @@
                 }
 
                 function fetchedNotificationHandler(success,responseData,errorCode){
-                    console.log(success,responseData);
                     if(success){
                         if (responseData.length==0){
                             noMoreNotifications=true;
@@ -272,7 +284,7 @@
                             noMoreNotifications=false;
                         }
                         for (i=0; i < responseData.length; i++){
-                            generateNotificationDiv(responseData[i]["timestamp"],responseData[i]["type"],responseData[i]["title"],responseData[i]["message"],responseData[i]["read"]);
+                            generateNotificationDiv(responseData[i]["idNotification"],responseData[i]["timestamp"],responseData[i]["type"],responseData[i]["title"],responseData[i]["message"],responseData[i]["opened"]);
                         }
                     }else{
                         alert(responseData,errorCode);
@@ -287,7 +299,7 @@
                 }
                 
                 return{
-                    setAvatar: function(fileURL){
+                    setAvatar: function(fileURL,user){
                         setAvatar(fileURL);
                     }
                 }

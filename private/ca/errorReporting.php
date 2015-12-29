@@ -15,6 +15,7 @@ Error codes:
 
 400 - invalid json
 401 - missing json values
+402 - invalid json value
 
 500 - invalid username or password
 501 - Failed to write to database (unknown error)
@@ -29,6 +30,13 @@ Error codes:
 605 - Unable to generate unique file name
 606 - failed to scale image
 607 - failed to delete file
+
+700 - Friends already
+701 - Reciever has blocked sender
+702 - Request already sent by current sender
+703 - Request already sent by current reciever
+704 - sender has blocked reciever
+705 - User already blocked
 */
 function error_handler($e){
     $displayError = array("success" => false, "error" => $e->getMessage(), "errorCode" => $e->getCode(),"post" => $_POST);

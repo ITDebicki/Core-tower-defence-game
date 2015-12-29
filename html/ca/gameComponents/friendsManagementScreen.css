@@ -1,0 +1,197 @@
+.overlay{
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 100%;
+    opacity: 0.01;
+    background-color: lightgray;
+}
+.wrapper{
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 100%;
+}
+.friendsButtonDiv button{
+    width: 160px;
+    height: 40px;
+    color:black;
+    text-align: center;
+    font-size: 1em;
+    border-radius: 25px;
+    margin-bottom: 30px;  
+}
+#backButtonDiv{
+    position: absolute;
+    left:10px;
+    top:10px;
+}
+
+#friendsContainer {
+    position: absolute;
+    left:200px;
+    top:20px;
+    max-height: 90%;
+    width: 300px;
+    perspective: 1000px;
+    background-color: lightgrey;
+    border-radius: 10px;
+    padding: 5px 5px 5px 5px;
+    margin-bottom: 5px;
+    align-content: center;
+    
+}
+
+.listTitle {
+    font-size: 20pt;
+    font-weight: bold;
+}
+.person{
+    position: relative;
+    background-color: white;
+    border-radius: 10px;
+    padding: 5px 5px 5px 5px;
+    margin-top: 5px;
+}
+
+.personAvatar{
+    width:80px;
+    height:80px;
+    position:relative;
+    display: block;
+}
+.personName{
+    position: absolute;
+    top:0px;
+    left: 100px;
+    font-size: 15pt;
+    font-weight: bold;
+    vertical-align: top;
+}
+.personButtonDiv{
+    position: absolute;
+    left:100px;
+    top:25px;
+    margin-left: 10px;
+    margin-top: 10px;
+}
+
+.personButton{
+    margin-left: 5px;
+    margin-bottom: 5px;
+    height: 20px;
+    color:black;
+    vertical-align: middle;
+    text-align: center;
+    font-size: 12px;
+    border-radius: 7px; 
+    background-color: aliceblue;
+    border-color: aliceblue;
+}
+
+.opened{
+    background-color: darkgray;
+    opacity:0.5;
+}
+
+
+.listButton {
+    float:right;
+    top: -4px;
+    position: relative;
+    height: 20px;
+    color:black;
+    vertical-align: middle;
+    text-align: center;
+    font-size: 11px;
+    border-radius: 7px; 
+    background-color: aliceblue;
+    border-color: aliceblue;
+    margin-right: 10px;
+}
+
+.customList {
+    margin-top: 3px;
+    width: 100%;
+    overflow-y:scroll;
+    max-height:100%;
+}
+#unifiedStackContainer {
+    position: absolute;
+    right:100px;
+    top:20px;
+    max-height: 90%;
+    width:300px;
+    border-radius: 10px;
+    padding: 5px 5px 5px 5px;
+    margin-bottom: 5px;
+    align-content: center;
+    background-color: lightgrey;
+    
+}
+
+
+
+.customUnifiedList {
+    max-height: 33%;
+    position: relative;
+    border-color: chocolate;
+    border-radius: 5px;
+    padding: 5px 5px 5px 5px;
+    margin-bottom: 5px;
+}
+
+.unifiedListTitle {
+    font-size: 15pt;
+    font-weight: bold;
+}
+
+#searchContainer {
+    position: absolute;
+    left:300px;
+    top:300px;
+    width:200px;
+    max-height:300px;
+    border: green;
+    background-color: green;
+    border-radius: 3px;
+    padding: 3px 3px 3px 3px;
+}
+/* shared with before and after */
+#searchContainer:before{
+	content: ' ';
+	height: 0;
+	position: absolute;
+	width: 0;
+	border: 10px solid transparent; /* arrow size */
+}
+
+/* these arrows will point up */
+
+/* top-stacked, smaller arrow */
+#searchContainer:before {
+	border-bottom-color: green;  /* arrow color */
+
+	/* positioning */
+	position: absolute;
+	top: -19px;
+	left: 150px;
+	z-index: 2;
+}
+
+#textEntryContainer {
+    width:100%;
+}
+
+#searchBoxText {
+    width:100%;
+}
+
+#searchList {
+    margin-top: 3px;
+    width: 100%;
+    overflow-y:scroll;
+    max-height:300px;
+}

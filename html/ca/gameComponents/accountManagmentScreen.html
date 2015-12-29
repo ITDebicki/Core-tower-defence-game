@@ -47,6 +47,10 @@
 
                     });
                     
+                    $("#manageFriends").click(function(){
+                        loadElement("gameComponents/friendsManagementScreen.html","friendsScreen");
+                    })
+                    
                     $("#avatarSelector").on("dragover",function(e){
                       e = e || event;
                       e.preventDefault();
@@ -131,8 +135,8 @@
         </script>
     </head>
     <body>
-        <div id="wrapper">
-            <div id="overlay"></div>
+        <div id="wrapper" class="wrapper">
+            <div id="overlay" class="overlay"></div>
             <div id="avatarImageContainer">
                 <img id="avatarImage" class = "userAvatar" src="restricted/images/avatars/defaultAvatar.png">
                 <div id="avatarUploadText">
@@ -148,7 +152,7 @@
             <button id="removeAvatarButton">Remove avatar</button>
             </div>
             <div id="buttonDiv">
-                <button id="manage friends">Manage friends</button>
+                <button id="manageFriends">Manage friends</button>
                 <button id="viewMyHighScores">View Highscores</button>
                 <button id="deleteAllSavesButton">Delete all saves</button>
                 <button id="deleteAccountButton">Delete account</button>
