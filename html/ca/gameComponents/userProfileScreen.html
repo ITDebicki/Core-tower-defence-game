@@ -1,0 +1,220 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="gameComponents/userProfileScreen.css">
+<script>
+    window.userProfile = (function(){
+        /**
+         * Generates a new ScrollList element
+         * @author Ignacy Debicki
+         * @param {object}   mainElement           The div element into which the list should be put
+         * @param {function} newElementConstructor Function to be called which will return a reference to an element of a list to be inserted. Accepts data argument
+         * @param {function} onElementPress        Fucntion to be called when a list element is pressed
+         * @param {function} onScroll              Function to be called when list is scrolled
+         */
+        function ScrollList(mainElement,newElementConstructor,onElementPress,onScroll){
+            this.primeElement=mainElement;
+            this.constructor=newElementConstructor;
+            this.onElementPress=onElementPress;
+            this.onScroll=onScroll;
+            if (this.onScroll){
+                $(this.primeElement).scroll(this.scroll);
+            }
+        }
+        ScrollList.prototype = {
+            /**
+             * Adds element to the list
+             * @author Ignacy Debicki
+             * @param {object} data Dictionary containing values to be passed into the newElementConstructor
+             */
+            addElement: function(data){
+                var element = this.constructor(data);
+                if (this.onElementPress){
+                    element.click(this.onElementPress);
+                }
+                $(this.primeElement).append(element);
+                console.log(element);
+            },
+            /**
+             * Removes element from list
+             * @author Ignacy Debicki
+             * @param {string} id ID of the object to be removed
+             */
+            removeElement: function(id){
+                $(this.primeElement).children("#"+id).remove();
+            },
+            /**
+             * Clear the list with animation of retracting (200ms)
+             * @author Ignacy Debicki
+             * @param {function} callback Function to be performed upon completion
+             */
+            clearList: function(callback){
+                $(this.primeElement).velocity({
+                    scrollTop:0
+                },200,"swing",function(e){
+                    $(this).velocity("slideUp",200,function(){
+                        $(this).empty();
+                        $(this).velocity("slideDown",200);
+                        if(callback){callback();}
+                    });
+                });
+            },
+            /**
+             * Clears the list without animation
+             * @author Ignacy Debicki
+             * @param {function} callback Function to be performed upon completion
+             */
+            quickClearList: function(callback){
+                $(this.primeElement).empty();
+                if (callback){ callback(); }
+            },
+            /**
+             * Adds an array of elements to the list
+             * @author Ignacy Debicki
+             * @param {Array} dataArray Array containing data objects to be added via the addElement function
+             */
+            addElements:function(dataArray){
+                for (var i = 0;i<dataArray.length;i++){
+                    this.addElement(dataArray[i]);
+                }
+            }
+        };
+        var userHighScoresList = null;
+        var mapNames = [];
+        var _user =null;
+        $("document").ready(function(){
+            $("#useProfileOverlay").fadeOut(0);
+            $("#userProfileContentWrapper").fadeOut(0);
+            $("#useProfileOverlay").fadeTo(500,0.9);
+            $("#userProfileContentWrapper").fadeIn(500);
+            $("#userProfileBackButton").click(function(evt){
+                removeElement("userProfileScreen");
+            });
+            $("#userProfileHighScoreRefreshButton").click(function(e){
+                userHighScoresList.clearList(loadHighScores);
+            });
+            //initalise high scores list
+            userHighScoresList = new ScrollList('#userProfileScoresList',highScoreElementConstructor);
+        });
+        
+        /**
+         * Loads the user's information into the page
+         * @author Ignacy Debicki
+         * @param {string} user User's username for which to load data
+         */
+        function loadUser(user){
+            $("#userProfileUsername").html(user);
+            window.login.fetchAvatar(user,loadAvatarHandler);
+            loadHighScores(user);
+        }
+
+        /**
+         * Generates element for highScore list
+         * @author Ignacy Debicki
+         * @param   {object} data Dictionary containing all values for the list element
+         * @returns {object} List element generated
+         */
+        function highScoreElementConstructor(data){
+            var score = data["score"];
+            var rank = data["rank"];
+            var map = data["map"];
+            var timestamp = data["timestamp"];
+            console.log(timestamp);
+            var date = new Date(timestamp * 1000);
+            var container = $("<div class='score'>");
+            var rankDiv = $("<span class='scoreRank'>"+rank+"</span>");
+            var mapDiv = $("<span class='scoreMap'>"+map+"</span>");
+            var scoreDiv = $("<span class='scoreScore'>"+score+"</span>");
+            var dateDiv = $("<span class='scoreDate'>"+date.getDate()+'/'+(date.getMonth() + 1)+'/'+date.getFullYear()+"</span>");
+            container.append(rankDiv)
+                .append(mapDiv)
+                .append(scoreDiv)
+                .append(dateDiv);
+            console.log(container);
+            return container
+        }
+
+
+        /**
+         * Requests high scores and map names in order to load into high scores list
+         * @author Ignacy Debicki
+         * @param {string} user Username for which to display highscores. Default is preset user stored in current _user variable.
+         */
+        function loadHighScores(user){
+            if (!user){ user = _user;}else{ _user = user; }
+            window.login.getAllMaps(function(success,data,errorCode){
+                if(success){
+                    for (var i = 0;i<data.length;i++){
+                        mapNames.splice(data[i]["id"],0,data[i]["name"]);
+                    }
+                    window.login.getUserHighScores(user,loadHighScoresHandler);
+                }else{
+                    alert(data,errorCode);
+                }
+            });
+        }
+        
+        /**
+         * Formats and passes data from getUserHighScores request to the high scores list.
+         * @author Ignacy Debicki
+         * @param {boolean} success   Whether the request completed succesfully
+         * @param {object}  data      Either error message (string) if success==false or dictionary if success == true. See login.getUserHighScores for more info.
+         * @param {number}  errorCode Error code if error occured. Otherwise undefined.
+         */
+        function loadHighScoresHandler(success,data,errorCode){
+            if (success){
+                if(data){
+                    for (var i = 0;i<data.length;i++){
+                        data[i]["map"]=mapNames[i];
+                        userHighScoresList.addElement(data[i]);
+                    }
+                }
+            }else{
+                alert(data,errorCode);
+            }
+        }
+        
+        /**
+         * Sets the file passed as the avatar for the page
+         * @author Ignacy Debicki
+         * @param {string} file File path to the avatar
+         */
+        function loadAvatarHandler(file){
+            $("#userProfileAvatar").attr("src",file);
+        }
+        
+        return {
+            /**
+             * Sets the profile of the user specified
+             * @author Ignacy Debicki
+             * @param {string} user Username of user whos profile to load
+             */
+            loadUser: function(user){
+                loadUser(user);
+            }
+        }
+    })();
+    
+    
+    
+    
+</script>
+</head>
+<body>
+    <div id="userProfileContentWrapper" class="wrapper">
+        <div id="useProfileOverlay" class="overlay"></div>
+        <div id="userProfileBackButtonDiv" class="userProfileButtonDiv">
+            <button id="userProfileBackButton">Back</button>
+        </div>
+        <img id="userProfileAvatar" src="restricted/images/avatars/defaultAvatar.png">
+        <div id="userInfo">
+            <div id="userProfileUsername">USERNAME</div>
+        </div>
+        <div id="userScoresListContainer">
+            <div id="userScoresTitle">Highscores</div>
+            <button id="userProfileHighScoreRefreshButton">Refresh</button>
+            <div id="userProfileScoresList">
+            </div>
+        </div>
+    </div>
+</body>
+</html>

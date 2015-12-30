@@ -216,8 +216,6 @@
                     $("#nextButton").click(rightButtonClick);
                     $("#backButton").click(backToStart);
                     $("#startButton").click(startGame);
-                    //load in game to interact with
-                    loadElement('gameComponents/game.html','mainGame')
                 });
                 function backToStart(){
                     loadBackground('gameComponents/maps/'+carousel.currentItem()["name"]+'.png');
@@ -227,6 +225,13 @@
                 function startGame(){
                     hideControls();
                     loadBackground('gameComponents/maps/'+carousel.currentItem()["name"]+'.png');
+                    loadElement('gameComponents/game.html','mainGame',startGameHandler);
+                }
+                /**
+                 * Callback for the loadElement function. Called when the game resource is loaded into the document
+                 * @author Ignacy Debicki
+                 */
+                function startGameHandler(){
                     window.game.setMap(carousel.currentItem());
                     removeElement("mapSelector");
                 }
@@ -250,29 +255,29 @@
                 }
                 
                 function fetchAvailableMaps(){
-                    $.ajax({
-                        url: 'gameComponents/maps/index.json',
-                        type: 'GET',
-                        method: 'GET',
-                        dataType: "json",
-                        success:function(response){
-                            for (map of response){
-                                addMap(map);
-                            }
-                        },
-                        error:logError
+                    window.login.getAllMaps(function(success,data,errorCode){
+                        if(success){
+                            if(data){
+                                for (var i=0;i<data.length;i++){
+                                    addMap(data[i]["id"],data[i]["name"],data[i]["description"],data[i]["file"],data[i]["image"]);
+                                }
+                            }   
+                        }else{
+                            alert(data,errorCode);
+                        }
                     });
                 }
                 
-                function addMap(map){
+                function addMap(id,name,description,file,image){
                     activeAJAX+=1;
                     $.ajax({
-                        url: 'gameComponents/maps/'+map["name"]+'.mp',
+                        url: 'gameComponents/maps/'+file,
                         type: 'GET',
                         method: 'GET',
                         dataType: "json",
                         success:function(response){
-                            map["div"]=$("<img class='carouselImage' id='"+map["name"]+"' src='gameComponents/maps/"+map["name"]+".png'/>")
+                            var map = {"id":id,"name":name,"description":description}
+                            map["div"]=$("<img class='carouselImage' id='"+name+"' src='gameComponents/maps/"+image+"'/>")
                             map["mapData"]=response;
                             mapArray.push(map);
                             activeAJAX-=1;

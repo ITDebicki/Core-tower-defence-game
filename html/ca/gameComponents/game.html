@@ -340,6 +340,7 @@
                 var valid = true;
                 var warningMessageTimeout=null;
                 var animationArray = [];
+                var mapID = null;
                 
                 
                 
@@ -452,10 +453,10 @@
                 }
 
                 function loadMap(map){
-                    ;
                     setBaseHealth(map["maxBaseHealth"]);
                     changeHealth(map["startingBaseHealth"]);
                     setResources(map["startingResources"]);
+                    mapID = map["id"];
                     //draw the map so objects can interact with it
                     drawMap(map);
                     //calculate path for enemies
@@ -1177,14 +1178,6 @@
                         }
                         currentDrag.css("top",finalY)
                                     .css("left",finalX);
-                        
-                        /*var hit_list = currentDrag.children(".tower").collision(".tile");
-                        
-                        if (hit_list.length==0){
-                            currentDrag.removeClass("isColliding");
-                        }else{
-                            currentDrag.addClass("isColliding");
-                        }*/
                         
                         $(".tile").each(function(i,e){
                             var colliding = false;

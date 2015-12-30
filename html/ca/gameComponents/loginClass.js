@@ -502,9 +502,155 @@ window.login=(function(){
             error:logError
         });
     }
-    
+    /**
+     * Attempts to set the score as a new highscore
+     * @author Ignacy Debicki
+     * @param {number}   score    The score to try to set
+     * @param {number}   map      Id of map the score was achieved on
+     * @param {function} callback Function to call when completed.
+     Requires parameters [success,data,errorCode]. Data will be either:
+     error information (if success==false)
+     or
+     new rank of user for that map (if success==true)
+     */
     function setScore(score,map,callback){
-        
+        $.ajax({
+            url: 'restricted/performAction.php',
+            type: 'POST',
+            method: 'POST',
+            dataType: "json",
+            data: { "action": "addScore", "json":'{"map":"'+map+'","score":'+score+' }'},
+            success: function(response){ 
+                if (response["success"]==true){
+                    callback(true,response["data"]);
+                }else{
+                    callback(false,response["error"],response["errorCode"]); 
+                }
+            },
+            error:logError
+        });
+    }
+    /**
+     * Returns if the score is a new highscore for the user on that map
+     * @author Ignacy Debicki
+     * @param {string}   user     Username of user to check for
+     * @param {number}   score    Score to check
+     * @param {number}   map      Id of map to check for
+     * @param {function} callback Callback which will be called when  function completes.
+     Requires parameters [success,data,errorCode]. Data will be either:
+     error information (if success==false)
+     or
+     0 if not highscore,
+      1 if new highscore over previous score,
+      2 if new highscore and no previous score on the map
+    (if success==true)
+     */
+    function isHighScore(user,score,map,callback){
+        $.ajax({
+            url: 'restricted/performAction.php',
+            type: 'POST',
+            method: 'POST',
+            dataType: "json",
+            data: { "action": "isHighScore", "json":'{"map":"'+map+'","score":'+score+',"user":"'+user+'"}'},
+            success: function(response){ 
+                if (response["success"]==true){
+                    callback(true,response["data"]);
+                }else{
+                    callback(false,response["error"],response["errorCode"]); 
+                }
+            },
+            error:logError
+        });
+    }
+    /**
+     * Returns the rank of the user on the map in the timespan
+     * @author Ignacy Debicki
+     * @param {string} user       Username of user to check for
+     * @param {number} map        Id of map to check for
+     * @param {object} timespan   Dictionary containing from and to timespan.
+     Format ["from" : from, "to" : to].
+     Set "to" = 0 if current date is desired. Both ranges are inclusive
+     * @param {function} callback Function to call once the function completes.
+     Requires parameters [success,data,errorCode].
+     Data will be either:
+     error information (if success==false)
+     or
+     rank of user for that map (if success==true)
+     0 if user does not have score recordeed for map
+     */
+    function userRank(user,map,timespan,callback){
+        $.ajax({
+            url: 'restricted/performAction.php',
+            type: 'POST',
+            method: 'POST',
+            dataType: "json",
+            data: { "action": "userRank", "json":'{"map":"'+map+'","timespan":'+timespan+',"user":"'+user+'"}'},
+            success: function(response){ 
+                if (response["success"]==true){
+                    callback(true,response["data"]);
+                }else{
+                    callback(false,response["error"],response["errorCode"]); 
+                }
+            },
+            error:logError
+        });
+    }
+    /**
+     * Gets all of the highscores and all time rank for each map for a specific user
+     * @author Ignacy Debicki
+     * @param {string}   user     Username of user for whom to get highscores
+     * @param {function} callback Fucntion caled after completion.
+     Requires parameters [success,data,errorCode].
+     Data will be either:
+     error information (if success==false)
+     or
+     Dictionary of format:
+     {mapId : {"score" : score, "rank" : rank, "timestamp" : "timestamp"}} (if success==true)
+     */
+    function getUserHighScores(user,callback){
+        $.ajax({
+            url: 'restricted/performAction.php',
+            type: 'POST',
+            method: 'POST',
+            dataType: "json",
+            data: { "action": "getUserHighScores", "json":'{"user":"'+user+'"}'},
+            success: function(response){ 
+                if (response["success"]==true){
+                    callback(true,response["data"]);
+                }else{
+                    callback(false,response["error"],response["errorCode"]); 
+                }
+            },
+            error:logError
+        });
+    }
+    /**
+     * Gets all the maps available ordered by their levelNo
+     * @author Ignacy Debicki
+     * @param {function} callback Function to call once completed. 
+     Requires parameters [success,data,errorCode].
+     Data will be either:
+     error information (if success==false)
+     or
+     Array of format:
+     {{"id"=>id,"name"=>name,"description"=>description,"file"=>file,"image"=>image}} (if success==true)
+     */
+    function getAllMaps(callback){
+        $.ajax({
+            url: 'restricted/performAction.php',
+            type: 'POST',
+            method: 'POST',
+            dataType: "json",
+            data: { "action": "getMapList", "json":'{}'},
+            success: function(response){ 
+                if (response["success"]==true){
+                    callback(true,response["data"]);
+                }else{
+                    callback(false,response["error"],response["errorCode"]); 
+                }
+            },
+            error:logError
+        });
     }
     
     return{
@@ -534,14 +680,6 @@ window.login=(function(){
         },
         markAsRead: function(msgIds,callback){
             markAsRead(msgIds,callback);
-        },
-        setScore: function(score,map,callback){
-            if (inspectIsOpen()){
-                console.error("Stop trying to cheat!!");
-                //possibly implement a strikes system?
-                return false;
-            }
-            
         },
         uploadAvatar: function(formData,callback){
             uploadAvatar(formData,callback);
@@ -602,6 +740,90 @@ window.login=(function(){
         },
         getExactUsers: function(needle,callback){
             getExactUsers(needle,callback);
+        },
+        /**
+         * Attempts to set the score as a new highscore
+         * @author Ignacy Debicki
+         * @param {number}   score    The score to try to set
+         * @param {number}   map      Id of map the score was achieved on
+         * @param {function} callback Function to call wehn completed. Requires parameters [success,data,errorCode]. Data will be either:
+         error information (if success==false)
+         or
+         new rank of user for that map (if success==true)
+         */
+        setScore: function(score,map,callback){
+            if (inspectIsOpen()){
+                console.error("Stop trying to cheat!!");
+                //possibly implement a strikes system?
+                return false;
+            }  
+        },
+        /**
+         * Returns if the score is a new highscore for the user on that map
+         * @author Ignacy Debicki
+         * @param {string}   user     Username of user to check for
+         * @param {number}   score    Score to check
+         * @param {number}   map      Id of map to check for
+         * @param {function} callback Callback which will be called when  function completes.
+         Requires parameters [success,data,errorCode]. Data will be either:
+         error information (if success==false)
+         or
+         0 if not highscore,
+          1 if new highscore over previous score,
+          2 if new highscore and no previous score on the map
+        (if success==true)
+         */
+        isHighScore: function(user,score,map,callback){
+            isHighScore(user,score,map,callback);
+        },
+        /**
+         * Returns the rank of the user on the map in the timespan
+         * @author Ignacy Debicki
+         * @param {string} user       Username of user to check for
+         * @param {number} map        Id of map to check for
+         * @param {object} timespan   Dictionary containing from and to timespan.
+         Format ["from" : from, "to" : to].
+         Set "to" = 0 if current date is desired. Both ranges are inclusive
+         * @param {function} callback Function to call once the function completes.
+         Requires parameters [success,data,errorCode].
+         Data will be either:
+         error information (if success==false)
+         or
+         rank of user for that map (if success==true)
+         0 if user does not have score recordeed for map
+         */
+        userRank: function(user,map,timespan,callback){
+            userRank(user,map,timespan,callback);
+        },
+        /**
+         * Gets all of the highscores and all time rank for each map for a specific user
+         * @author Ignacy Debicki
+         * @param {string}   user     Username of user for whom to get highscores
+         * @param {function} callback Fucntion caled after completion.
+         Requires parameters [success,data,errorCode].
+         Data will be either:
+         error information (if success==false)
+         or
+         Dictionary of format:
+         {mapId : {"score" : score, "rank" : rank, "timestamp" : timestamp}} (if success==true)
+         */
+        getUserHighScores(user,callback){
+            getUserHighScores(user,callback);
+        },
+        /**
+         * Gets all the maps available ordered by their levelNo
+         * @author Ignacy Debicki
+         * @param {function} callback Function to call once completed. 
+         Requires parameters [success,data,errorCode].
+         Data will be either:
+         error information (if success==false)
+         or
+         Array of format:
+         {{"id":id, "name":name, "description":description, "file":file, "image":image}} (if success==true)
+         */
+        getAllMaps: function(callback){
+            getAllMaps(callback);
         }
+        
     }
 })();

@@ -95,6 +95,21 @@ try{
         case "getExactUsers":
             $result = get_exact_users($jsonData["needle"]);
             break;
+        case "addScore":
+            $result = add_score($jsonData["map"],$jsonData["score"]);
+            break;
+        case "isHighScore":
+            $result = is_high_score($user,$jsonData["map"],$jsonData["score"]);
+            break;
+        case "userRank":
+            $result = user_rank($user,$jsonData["map"],$jsonData["timespan"]);
+            break;
+        case "getUserHighScores":
+            $result = get_user_high_scores($user);
+            break;
+        case "getMapList":
+            $result = get_map_list();
+            break;
         default:
             throw new Exception("POST parameter 'action' not correct",100);
     }

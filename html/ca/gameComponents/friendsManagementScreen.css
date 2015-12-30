@@ -91,12 +91,6 @@
     border-color: aliceblue;
 }
 
-.opened{
-    background-color: darkgray;
-    opacity:0.5;
-}
-
-
 .listButton {
     float:right;
     top: -4px;
@@ -178,7 +172,6 @@
 	position: absolute;
 	top: -19px;
 	left: 150px;
-	z-index: 2;
 }
 
 #textEntryContainer {
@@ -193,5 +186,5 @@
     margin-top: 3px;
     width: 100%;
     overflow-y:scroll;
-    max-height:300px;
+    max-height:250px;
 }

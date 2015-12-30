@@ -59,14 +59,23 @@
                 screen.empty();
                 loadElement("gameComponents/startGameScreen.html","startGameScreen");
             }
-            
-            function loadElement(element,id){
+            /**
+             * Loads the resource into the document
+             * @author Ignacy Debicki
+             * @param {string}   element  URL to the element to load
+             * @param {string}   id       Identifier for the div into which the resource will be loaded
+             * @param {function} callback Function to be called once the element is loaded
+             */
+            function loadElement(element,id,callback){
                 if (blockPageLoading == false){
                     blockPageLoading = true;
                     var screen = $("#gameDiv");
                     screen.append('<div id="' + id +'"></div>')
                     $.get(element, function(data) {
                         $("#" + id).append(data);
+                        if (callback){
+                            callback();
+                        }
                     });
                     blockPageLoading = false;
                 }

@@ -132,7 +132,7 @@ function fetch_avatar($user){
     if(count($result)!=0){
         $file = $result[0]['avatarFile'];
     }else{
-        throw new Exception("No records found",503);
+        $file="";
     }
 
     return $file;
@@ -180,19 +180,13 @@ function get_notifications($from,$limit){
     $_POST['additional']=array($from,$limit,$_SESSION["user"]);
     //fetch records
     $conn = request_connection();
-    $stmt = $conn->prepare('SELECT `idNotification`,`type`,`title`,`message`,UNIX_TIMESTAMP(`timestamp`),`opened` FROM `Notification` WHERE `user` = :username AND UNIX_TIMESTAMP(`timestamp`) < :timestamp ORDER BY `timestamp` DESC LIMIT :limit');
+    $stmt = $conn->prepare('SELECT `idNotification`,`type`,`title`,`message`,UNIX_TIMESTAMP(`timestamp`) AS timestamp,`opened` FROM `Notification` WHERE `user` = :username AND UNIX_TIMESTAMP(`timestamp`) < :timestamp ORDER BY `timestamp` DESC LIMIT :limit');
     $stmt->bindParam(':username',$_SESSION["user"],PDO::PARAM_STR);
     $stmt->bindParam(':timestamp',$from,PDO::PARAM_INT);
     $stmt->bindParam(':limit',$limit,PDO::PARAM_INT);
     $stmt->execute();
     $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    //format to correct data style
-    foreach($result as &$notification){
-        $timestamp = $notification['UNIX_TIMESTAMP(`timestamp`)'];
-        $notification['timestamp']=$timestamp;
-        //remove unsused column
-        unset($notification['UNIX_TIMESTAMP(`timestamp`)']);
-    }
+
     return $result;
 }
 
@@ -463,7 +457,7 @@ function get_blocked_users(){
 
 function get_all_users($needle){
     $conn = request_connection();
-    $stmt = $conn->prepare("SELECT username FROM User WHERE username LIKE :needle AND username != :user ORDER BY username ASC");
+    $stmt = $conn->prepare("SELECT username FROM User WHERE CONVERT(username USING latin1) COLLATE latin1_swedish_ci LIKE :needle AND username != :user ORDER BY username ASC");
     $stmt->execute(array(':needle'=>'%'.$needle.'%', ':user'=>$_SESSION["user"]));
     $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $resultList = [];
@@ -475,8 +469,8 @@ function get_all_users($needle){
 }
 
 function get_exact_users($needle){
-        $conn = request_connection();
-    $stmt = $conn->prepare("SELECT username FROM User WHERE username LIKE :needle AND username != :user ORDER BY username ASC");
+    $conn = request_connection();
+    $stmt = $conn->prepare("SELECT username FROM User WHERE CONVERT(username USING latin1) COLLATE latin1_swedish_ci = :needle AND username != :user ORDER BY username ASC");
     $stmt->execute(array(':needle'=>$needle, ':user'=>$_SESSION["user"]));
     $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $resultList = [];
@@ -486,4 +480,132 @@ function get_exact_users($needle){
     }
     return $resultList;
 }
+/**
+ * Adds high score to the database
+ * @author Ignacy Debicki
+ * @param string  $map   Identifier of map that the score was achieved on
+ * @param integer $score Score achieved
+ * @return integer 0 If not new high score. Returns new all time rank if is new highscore
+ */
+function add_score($map,$score){
+    $isNewHighscore = is_high_score($map,$score);
+    if ($isNewHighscore==1){
+        $stmt = $conn->prepare('UPDATE Score SET scoreVal=:score WHERE user=:user AND map=:map');
+        $stmt->execute(array(':user' => $_SESSION["user"],':map' => $map,':score' => $score));
+        $affectedRows = $stmt->rowCount();
+        if ($affectedRows >= 1){
+            return user_rank($_SESSION["user"],$map);
+        }else{
+           throw new Exception("Failed to write to database",501); 
+        }
+    }elseif($isNewHighscore == 2){
+        $stmt = $conn->prepare('INSERT INTO Score (user,map,scoreVal) VALUES(:user,:map, :score)');
+        $stmt->execute(array(':user' => $_SESSION["user"],':map' => $map,':score' => $score));
+        $affectedRows = $stmt->rowCount();
+        if ($affectedRows >= 1){
+            return user_rank($_SESSION["user"],$map,array("from"=>0,"to"=>0));
+        }else{
+           throw new Exception("Failed to write to database",501); 
+        }
+    }else{
+        return false;
+    }
+    
+}
+/**
+ * Checks if the score for that map for that user is a new highscore for the user
+ * @author Ignacy Debicki
+ * @param  string  $user  Username of user to check for
+ * @param  integer $map   Map identifier of map fow which to check
+ * @param  integer $score Score to check against
+ * @return integer returns 0 if false, 1 if higher than previous score and 2 if no previous score exists
+ */
+function is_high_score($user,$map,$score){
+    $conn = request_connection();
+    $stmt = $conn->prepare("SELECT scoreVal FROM Score WHERE user = :user AND map = :map");
+    $stmt->execute(array(':map'=>$map, ':user'=>$_SESSION["user"]));
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    if(isset($result[0]["scoreVal"])){
+        if ($result[0]["scoreVal"]<$score){
+            return true;
+        }else{
+            return false;
+        }
+    }else{
+        return 2;
+    }
+}
+/**
+ * Returns the rank of the user for the specified map in the specified time period.
+ * @author Ignacy Debicki
+ * @param  string  $user    Username of user to rank
+ * @param  integer $map     Map id of which map to rank user on
+ * @param object $timespan  Dictionary containing from and to timespan in format ["from" => $from, "to" => $to]. Set $to to 0 if current date is desired. Both ranges are inclusive
+ * @return integer Rank of the user. 0 If user does not have high score on the map
+ */
+function user_rank($user,$map,$timespan){
+    if ($timespan["to"]==0){
+        $timespan["to"]=date('Y-m-d G:i:s');
+    }
+    $conn = request_connection();
+    $stmt = $conn->prepare("SELECT 
+                                IF((SELECT idScore FROM Score WHERE BINARY user=:user AND map=:map)>0,count(*)+1,0)
+                            AS rank FROM 
+                                (SELECT count(*) FROM Score WHERE map=:map 
+                                AND (scoreVal > (SELECT scoreVal AS val FROM Score WHERE BINARY user=:user AND map=:map)
+                                OR
+                                (
+                                scoreVal = (SELECT scoreVal FROM Score WHERE BINARY user=:user AND map=:map)
+                                AND 
+                                timestamp <= (SELECT timestamp FROM Score WHERE BINARY user=:user AND map=:map)
+                                AND user != :user
+                                )
+                                ) AND timestamp >= :from AND timestamp <= :to GROUP BY idScore)
+                            AS groupHigher");
+    $stmt->execute(array(':user'=>$user,':map'=>$map,':from'=>$timespan["from"],':to'=>$timespan["to"]));
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    if(isset($result[0]["rank"])){
+        return $result[0]["rank"];
+    }else{
+        throw new Exception("Failed to retrieve data from database",502);
+    }
+}
+
+/**
+ * Gets all of the highscores and all time rank for each map for a specific user
+ * @author Ignacy Debicki
+ * @param  string $user Username of user to get highscores
+ * @return object Dictionary of $map => [score => $score, rank => $rank, timestamp => $timestamp] for each map
+ */
+function get_user_high_scores($user){
+    $conn = request_connection();
+    $stmt = $conn->prepare("SELECT map,scoreVal,UNIX_TIMESTAMP(timestamp) AS timestamp FROM Score WHERE BINARY user=:user");
+    $stmt->execute(array(':user'=>$user));
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    $highScoreList = [];
+    
+    foreach($result as $highscore){
+        $score = $highscore["scoreVal"];
+        $map = $highscore["map"];
+        $rank = user_rank($user,$map,array("from"=>1,"to"=>0));
+        $highScoreList[$map]=array("score"=>$score,"rank"=>$rank,"timestamp"=>$highscore["timestamp"]);
+    }
+    
+    return $highScoreList;
+}
+/**
+ * Gets all maps and returns them in an array acording to their levelNo
+ * @author Ignacy Debicki
+ * @return array Array ordered by levelNo with values of format:
+ ["id"=>$id,"name"=>$name,"description"=>$description,"file"=>$file,"image"=>$image]
+ */
+function get_map_list(){
+    $conn = request_connection();
+    $stmt = $conn->prepare("SELECT idMap AS id,mapName AS name,mapDescription AS description,mapFile AS file,mapImage AS image FROM Map ORDER BY levelNo ASC");
+    $stmt->execute();
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    return $result;
+}
+
 ?>
