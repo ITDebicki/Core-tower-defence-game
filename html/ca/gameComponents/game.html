@@ -1,10 +1,15 @@
 <html>
     <head>
         <link rel="stylesheet" type="text/css" href="gameComponents/game.css">
-        <!--<script src='jcollision/jquery-collision.min.js'></script>-->
         <script>
             
             window.game=(function(){
+                /**
+                 * Returns the number of keys in an object
+                 * @author Ignacy Debicki
+                 * @param   {object} obj Object to check the size of
+                 * @returns {number} No of keys in object
+                 */
                 Object.size = function(obj) {
                     var size = 0, key;
                     for (key in obj) {
@@ -12,7 +17,15 @@
                     }
                     return size;
                 };
-                
+                /**
+                 * Creates a new VectorPathSegment object
+                 * @author Ignacy Debicki
+                 * @param {number} x         X (i) value of unit vector direction
+                 * @param {number} y         Y (j) value of unit vector direction
+                 * @param {number} magnitude Length of vector
+                 * @param {Array}  links     Array of vectors which directly follow on from current vector.
+                 *                              Has form of [{'segment' : nextVectorPathSegment, 'p' : probabilityForVectorSelection}]
+                 */
                 function VectorPathSegment(x,y,magnitude,links){
                     this.x=null;
                     this.y=null;
@@ -34,6 +47,11 @@
                 }
                     
                 VectorPathSegment.prototype = {
+                    /**
+                     * Randomly chooses and returns the next segment from this segments segment links. Returns null if no next segment exists.
+                     * @author Ignacy Debicki
+                     * @returns {object} Reference to next vectorPathSegment or null if no next vectorPathSegment exists.
+                     */
                     next: function(){
                         if (this.links.length==1){
                             return this.links[0].segment;
@@ -51,11 +69,23 @@
                             return this.links[link].segment;
                         }
                     },
+                    /**
+                     * Adds a new link to the vectorPathSegment
+                     * @author Ignacy Debicki
+                     * @param {object} segment     vectorPathSegment to create a new link to
+                     * @param {number} probability Probability this segment will be returned as the next segment (range: 0->1);
+                     */
                     addLink: function(segment,probability){
                         this.links.push({'segment':segment,'p':probability});
                     }
                 };
-
+                /**
+                 * Bounding box collision test - does not account for rotation
+                 * @author Ignacy Debicki
+                 * @param   {object}  e1 Element to test (given already as $(element))
+                 * @param   {object}  e2 Element to test (given already as $(element))
+                 * @returns {boolean} If collision has occured
+                 */
                 function simpleSqCollision(e1, e2) {
                       var x1 = e1.offset().left;
                       var y1 = e1.offset().top;
@@ -73,34 +103,13 @@
                       if (b1 < y2 || y1 > b2 || r1 < x2 || x1 > r2) return false;
                       return true;
                 }
-
-                function extractCornerPoints(element){
-
-                    var points = [];
-                    var matrix = element.css("transform");
-                    var alpha =0;
-                    if (matrix!=='none'){
-                        //calculate angle from affine transform
-                        var values = matrix.split('(')[1].split(')')[0].split(',');
-                        var a = values[0];
-                        var b = values[1];
-                        alpha = Math.atan2(b, a);
-                    }
-
-                    var w = element.outerWidth(false);
-                    var h = element.outerHeight(false);
-
-                    var xOffset=element.offset().left;
-                    var yOffset=element.offset().top;
-
-                    points.push({'x':xOffset+Math.sin(alpha)*h,'y':yOffset});
-                    points.push({'x':xOffset+w*Math.cos(alpha)+Math.sin(alpha)*h,'y':yOffset+w*Math.sin(alpha)});
-                    points.push({'x':(xOffset+w*Math.cos(alpha)),'y':(yOffset+w*Math.sin(alpha))+h*Math.cos(alpha)});
-                    points.push({'x':xOffset,'y':yOffset+h*Math.cos(alpha)});
-
-                    return points
-                }
-                
+                /**
+                 * Checks if an element has collided with a game tile
+                 * @author Ignacy Debicki
+                 * @param   {object}  tile   Tile to be tested. Should be passed in as $(tile)
+                 * @param   {object}  object Object to be tested. Should be passed in as $(object)
+                 * @returns {boolean} If collision occured
+                 */
                 function tileCollision(tile,object){
                     
                     if (tile.hasClass("mapPathTile")){
@@ -140,7 +149,13 @@
                     
                     
                 }
-                
+                /**
+                 * Tests the collision of a cirle element with a rectangular element
+                 * @author Ignacy Debicki
+                 * @param   {object}  circle Reference to circle object. Should be passed in as $(circle)
+                 * @param   {array}  square Reference to corner points of rectangle.
+                 * @returns {boolean} If collision occured
+                 */
                 function circleSqCollision(circle,square){
                     
                     for (var i = 0; i<3;i++){
@@ -152,7 +167,13 @@
                     }
                     return false
                 }
-                
+                /**
+                 * Tests for collision of line with circle
+                 * @author Ignacy Debicki
+                 * @param   {object}  circle     Circle element. Should be passed in as $(circle)
+                 * @param   {Array}   linePoints Array of points that make up the line (A,B)
+                 * @returns {boolean} IF collision occured
+                 */
                 function crLineCollision(circle,linePoints){
                     
                     if (Math.sqrt(Math.pow(linePoints[0].x-circle.x,2)+Math.pow(linePoints[0].y-circle.y,2))<circle.r ||
@@ -189,10 +210,15 @@
                     return false;
                 }
                             
+                /**
+                 * Determines if two rectangles collide - with collision
+                 * @author Ignacy Debicki
+                 * @param   {object}  a Reference to object a. Should be passed in as $(a)
+                 * @param   {object}  b Reference to object b. Should be passed in as $(b)
+                 * @returns {boolean} If collision occured
+                 */
                 function advancedSqCollision (a, b) {
 
-                    /*var a = extractCornerPoints(e1);
-                    var b = extractCornerPoints(e2);*/
                     var polygons = [a, b];
                     var minA, maxA, projected, i, i1, j, minB, maxB;
 
@@ -246,7 +272,13 @@
                     }
                     return true;
                 };
-
+                /**
+                 * Simple circle - rectangle collision test - no rotation
+                 * @author Ignacy Debicki
+                 * @param   {object}  circle Reference to circle. Should be passed in as $(circle)
+                 * @param   {object}  rect   Reference to rectangle. Should be passed in as $(rect)
+                 * @returns {boolean} If collision occurs
+                 */
                 function crCollision(circle, rect) {
                     var cr = circle.outerWidth(true)/2;
                     var cx = circle.offset().left+cr;
@@ -277,7 +309,12 @@
                     var dy = distY - rh / 2;
                     return (dx * dx + dy * dy <= (cr * cr));
                 }
-
+                /**
+                 * Ranks an arrau of enemy objects by the distance they have travelled
+                 * @author Ignacy Debicki
+                 * @param   {Array} enemies Array of enemy objects
+                 * @returns {Array} Array of sorted by distance (Descending) enemies.
+                 */
                 function rankByDistance(enemies){
                     var distanceArray = [];
                     var enemyArray = [];
@@ -341,8 +378,7 @@
                 var warningMessageTimeout=null;
                 var animationArray = [];
                 var mapID = null;
-                
-                
+                var statistics = [];
                 
                 $("document").ready(function(){
                     //set self to hidden
@@ -353,6 +389,7 @@
                     $("#sideBarTowerControl").velocity("slideUp",0);
                     hideUpgradeStats();
                     hideWarning();
+                    initiateStatistics();
 
                     //set handlers
                     $(".timeControl").click(changePlaybackTime);
@@ -389,7 +426,28 @@
                         });
                     }
                 });
-                
+                /**
+                 * initiates all statistics to their initial values
+                 * @author Ignacy Debicki
+                 */
+                function InitiateStatistics(){
+                    statistics["enemiesKilled"]=0;
+                    statistics["towersBuilt"]=0;
+                    statistics["towersUpgraded"]=0;
+                    statistics["projectilesFired"]=0;
+                }
+                /**
+                 * Increments the specified statistic
+                 * @author Ignacy Debicki
+                 * @param {string} statistic Options are: enemiesKilled, towersBuilt, towersUpgraded or projectilesFired
+                 */
+                function incrementStatistic(statistic){
+                    statistics[statistic]++;
+                }
+                /**
+                 * Starts the game tick and shows control elements
+                 * @author Ignacy Debicki
+                 */
                 function start(){
                     console.log("starting");
                     //set wave number to 0
@@ -406,13 +464,19 @@
                     runTick=false;
                     clockTick();
                 }
-                
+                /**
+                 * Starts wave countdown timer
+                 * @author Ignacy Debicki
+                 */
                 function startWaveCounter(){
                     prepareWave();
                     $("#waveControls").velocity("slideDown",100);
                     waveCountDown();
                 }
-
+                /**
+                 * Updates countdown timer
+                 * @author Ignacy Debicki
+                 */
                 function waveCountDown(){
                     $("#timeRemaining").html(timeUntilWave);
                     //decrement time if pause menu is not loaded
@@ -434,7 +498,12 @@
                         $("#waveControls").velocity("slideUp",100);
                     }
                 }
-
+                /**
+                 * Executes schedualed event
+                 * @author Ignacy Debicki
+                 * @param {string} event Type of event
+                 * @param {object} arg   Argument(s) for event 
+                 */
                 function executeEvent(event,arg){
                     console.log(event,arg);
                     switch(event){
@@ -451,7 +520,11 @@
                             console.log("invalid event");
                     }
                 }
-
+                /**
+                 * Loads map into the game.
+                 * @author Ignacy Debicki
+                 * @param {object} map Map to load.
+                 */
                 function loadMap(map){
                     setBaseHealth(map["maxBaseHealth"]);
                     changeHealth(map["startingBaseHealth"]);
@@ -481,7 +554,12 @@
                     }
                     start();
                 }
-
+                /**
+                 * Creates vectorPathSegments describing the path through the array of points
+                 * @author Ignacy Debicki
+                 * @param   {Array}  points Array of points
+                 * @returns {object} The root object of the path and the last object of the path in format {'root':root,'last':lastSegments}
+                 */
                 function calculateVectorPaths(points){
                     var root = null;
                     var lastSegments = [];
@@ -521,23 +599,39 @@
                     }
                     return {'root':root,'last':lastSegments};
                 }
-                
+                /**
+                 * Extends the links of the vectorPathSegments to contain root with probability prob
+                 * @author Ignacy Debicki
+                 * @param {Array}  lastSegments Array of the vectorPathSegments to modify
+                 * @param {object} root         vectorPathSegments to link
+                 * @param {number} prob         Probability of the linked segment to be chosen (range: 0->1)
+                 */
                 function extendPath(lastSegments,root,prob){
                     for (var i = 0;i<lastSegments.length;i++){
                         var s = lastSegments[i];
                         s.addLink(root,prob);
                     }
                 }
-                
+                /**
+                 * Calculates the vector between two points
+                 * @author Ignacy Debicki
+                 * @param   {Array}  p1 Point specified by [x,y]
+                 * @param   {Array}  p2 Point specified by [x,y]
+                 * @returns {object} vector object with properties: x (unit vector in direction x (i)), y (unit vector in direction y (j)),m (magnitude of vector)
+                 */
                 function calculateVector(p1,p2){
-                    var directionVector = {'x':(p2[0] - p1[0]),'y':(p2[1] - p1[1])};
-                    directionVector.m = Math.sqrt(Math.pow(directionVector.x,2)+Math.pow(directionVector.y,2));
+                    var vector = {'x':(p2[0] - p1[0]),'y':(p2[1] - p1[1])};
+                    vector.m = Math.sqrt(Math.pow(vector.x,2)+Math.pow(vector.y,2));
                     //obtain unit vector
-                    directionVector.x/=directionVector.m;
-                    directionVector.y/=directionVector.m;
-                    return directionVector;
+                    vector.x/=vector.m;
+                    vector.y/=vector.m;
+                    return vector;
                 }
-
+                /**
+                 * Draws the map path and base from the points using divs
+                 * @author Ignacy Debicki
+                 * @param {object} data Diction ary containing the path definition and the path radius
+                 */
                 function drawMap(data){
                     pathRadius = data["radius"];
                     mapPath = data["path"];
@@ -549,7 +643,12 @@
                     gameContainer.append(baseDiv);
                     baseDiv.css({left: data["baseLocation"][0] - 35, top: data["baseLocation"][1] - 35, width: data["baseRadius"]*2,height: data["baseRadius"]*2});
                 }
-                
+                /**
+                 * Parses the path definition
+                 * @author Ignacy Debicki
+                 * @param {Array}  path       The path definition made of points and branches
+                 * @param {number} pathRadius Half the width of the path
+                 */
                 function parsePath(path,pathRadius){
                     var pathComponentHeight = pathRadius * 2;
                     for ( i=0;i<path.length-1;i++){
@@ -582,6 +681,14 @@
                         }
                     }
                 }
+                /**
+                 * Creates and appends the path element to the game area.
+                 * @author Ignacy Debicki
+                 * @param {object} point               Point from in format {"x":x,"y":y}
+                 * @param {object} nextPoint           Point to in format {"x":x,"y":y}
+                 * @param {number} pathComponentHeight Height of the element
+                 * @param {number} pathRadius          Half the width of the element
+                 */
                 function parseElement(point,nextPoint,pathComponentHeight,pathRadius){
                     
                     //always take smaller value of x and y
@@ -618,11 +725,23 @@
                     createPathElement({"width":pathComponentWidth,"height":pathComponentHeight},pos,angleFromHorizontal,pathRadius);
                 }
                 
-                
+                /**
+                 * Returns the magnitude of an element
+                 * @author Ignacy Debicki
+                 * @param   {object} vector Vector object in format {"x":x,"y":y}
+                 * @returns {number} Magnitue of vector
+                 */
                 function magnitude(vector){
                     return Math.pow(Math.pow(vector.x,2)+Math.pow(vector.y,2),0.5);
                 }
-                
+                /**
+                 * Creates a path element and appends to game area
+                 * @author Ignacy Debicki
+                 * @param {object} size       Size of element in format {"width":width,"height":height}
+                 * @param {object} pos        Position of element in format {"x":x,"y":y}
+                 * @param {number} angle      Angle from positive x axis the element is tilted at
+                 * @param {number} pathRadius Radius of path (Circular ends)
+                 */
                 function createPathElement(size,pos,angle,pathRadius){
                     var gameContainer = $("#gameSpace")
                     var pathComponent = $(`
@@ -642,7 +761,10 @@
                                         transform:"rotate("+angle+"rad)",
                                         borderRadius: pathRadius});
                 }
-
+                /**
+                 * Parses events dictionary and loads in all necessary resources
+                 * @author Ignacy Debicki
+                 */
                 function prepareEvents(){
                     for (var event in events) {
                         if (events.hasOwnProperty(event)){
@@ -658,7 +780,10 @@
                         }
                     }
                 }
-
+                /**
+                 * Parses waves dictionary and prepares all necessary resources
+                 * @author Ignacy Debicki
+                 */
                 function prepareWaves(){
                     for (var waveKey in waves){
                         //make sure enemies are loaded for the wave
@@ -678,7 +803,10 @@
                     }
 
                 }
-
+                /**
+                 * Scheduales enemies and events for wave
+                 * @author Ignacy Debicki
+                 */
                 function prepareWave(){
                     //queue all enemy for wave
                     enemyQueue = {};
@@ -703,12 +831,20 @@
                         }
                     }
                 }
-
+                /**
+                 * Starts the wave
+                 * @author Ignacy Debicki
+                 * @param {number} waveNo Identifier of wave to start
+                 */
                 function startWave(waveNo){
                     //start tick
                     clockTime=0;
                     runTick=true;
                 }
+                /**
+                 * Attempts to upgrade the currently selected tower
+                 * @author Ignacy Debicki
+                 */
                 function upgradeTower(){
                     $(".isSelected").each(function(i,e){
                         if ($(this).data("upgradeLevel")<2){
@@ -751,7 +887,11 @@
                         }
                     });
                 }
-
+                /**
+                 * Upgrades the currently selected tower
+                 * @author Ignacy Debicki
+                 * @returns {boolean} [[Description]]
+                 */
                 function buyUpgrade(){
                     var currentSelection = $(".isSelected")[0];
                     var towerLevel = $(currentSelection).data("upgradeLevel");
@@ -764,7 +904,10 @@
                         return false;
                     }
                 }
-
+                /**
+                 * Sells the currently selected tower and returns 75% of original resources, rounded down to nearest integer
+                 * @author Ignacy Debicki
+                 */
                 function sellTower(){
                     $(".isSelected").each(function(i,e){
                         //return 75% of resources
@@ -774,7 +917,10 @@
                     });
                     removeTowerSelection();
                 }
-
+                /**
+                 * Updates the displayed information about the selected tower
+                 * @author Ignacy Debicki
+                 */
                 function updateActiveTowerInfo(){
                     $(".isSelected").each(function(i,e){
                         $("#activeTowerImage").attr("src",$(this).children("img").attr("src"));
@@ -789,7 +935,10 @@
                         }
                     });
                 }
-            
+                /**
+                 * Shows the stats for the tower if it were to be upgraded
+                 * @author Ignacy Debicki
+                 */
                 function showUpgradeStats(){
                     var currentSelection = $(".isSelected")[0];
                     var towerLevel = $(currentSelection).data("upgradeLevel");
@@ -801,21 +950,35 @@
                     $("#upgradeTowerCost").html(upgradeTowerData["cost"]);
                     $(".upgradeTowerInfo").css("display","inline-block");
                 }
-            
+                /**
+                 * Hides the stats for the tower if it were to be upgraded
+                 * @author Ignacy Debicki
+                 */
                 function hideUpgradeStats(){
                     $(".upgradeTowerInfo").css("display","none");
                 }
-
+                /**
+                 * Removes selection from currently selected tower
+                 * @author Ignacy Debicki
+                 */
                 function removeTowerSelection(){
                     $(".isSelected").removeClass("isSelected");
                     $("#sideBarTowerControl").velocity("slideUp",100);
                 }
-
+                /**
+                 * Sets the new max health of the base
+                 * @author Ignacy Debicki
+                 * @param {number} newHealth New value of max health
+                 */
                 function setBaseHealth(newHealth){
                     maxHealth=newHealth;
                     $("#healthBar").progressbar( "option", "max", maxHealth );
                 }
-
+                /**
+                 * Changes health to set health and checks if base has been destroyed
+                 * @author Ignacy Debicki
+                 * @param {number} health health to set value to, must be less than maxHealth
+                 */
                 function changeHealth(health){
                     baseHealth=health;
                     $("#healthValue").html(baseHealth);
@@ -827,18 +990,27 @@
                         exitGame();
                     }
                 }
-
+                /**
+                 * Sets the amount of resources
+                 * @author Ignacy Debicki
+                 * @param {number} newResources The new amount of resources the player has
+                 */
                 function setResources(newResources){
                     resources=newResources;
                     $("#resourceValue").html(resources);
                 }
 
-
-
+                /**
+                 * Saves the score of the user
+                 * @author Ignacy Debicki
+                 */
                 function saveScore(){
                     
                 }
-
+                /**
+                 * Exits the currently running game
+                 * @author Ignacy Debicki
+                 */
                 function exitGame(){
                     timeUntilWave=30;
                     runTick=false;
@@ -850,6 +1022,16 @@
                     });
                     window.game=null;
                 }
+                /**
+                 * Calculates path for enemy
+                 * @author Ignacy Debicki
+                 * @param   {number} x                  Current x position of enemy
+                 * @param   {number} y                  Current y position of enemy
+                 * @param   {object} currentVector      Vector the enemy is currently traversing (format {"x":x,"y":y,"m":m})
+                 * @param   {number} movementRemaining  movment the enemy has left
+                 * @param   {number} magnitudeRemaining The remaining length of the vector to be traversed
+                 * @returns {object} New values for {"x":newX,"y":newY,"vector":newCurrentVector,"magnitudeRemaining":newMagnitudeRemaning}
+                 */
                 function calculatePath(x,y,currentVector,movementRemaining,magnitudeRemaining){
                     if (movementRemaining<=magnitudeRemaining){
                         x += currentVector.x*movementRemaining;
@@ -881,6 +1063,10 @@
                         "magnitudeRemaining":magnitudeRemaining
                     };
                 }
+                /**
+                 * Moves all enemies
+                 * @author Ignacy Debicki
+                 */
                 function moveEnemies(){
                     $("#gameSpace .enemy").each(function(i,e){
 
@@ -916,7 +1102,10 @@
                     });
                 }
                 
-            
+                /**
+                 * Shoots projectiles from all towers that can shoot
+                 * @author Ignacy Debicki
+                 */
                 function shootProjectiles(){
                     $("#gameSpace .towerContainer:not(.isDragging)").each(function(i,e){
                         var reloadState = $(this).data("reloadState");
@@ -933,7 +1122,10 @@
 
                     });
                 }
-
+                /**
+                 * Performs game updates and updates in game tick
+                 * @author Ignacy Debicki
+                 */
                 function clockTick(){
                     clockTickRunning=true;
                     //perform updates
@@ -981,7 +1173,11 @@
                         loadElement("gameComponents/pauseMenu.html","pauseMenu");
                     }
                 }
-
+                /**
+                 * Tests wether the wave has ended
+                 * @author Ignacy Debicki
+                 * @returns {boolean} If the wave has ended
+                 */
                 function endOfWave(){
                     if (Object.size(enemyQueue)>0){
                         return false;
@@ -992,18 +1188,31 @@
                     //all enemies from wave killed
                     return true;
                 }
-
+                /**
+                 * Deals damage to the base
+                 * @author Ignacy Debicki
+                 * @param {number} damage Amount of damage dealt
+                 */
                 function dealBaseDamage(damage){
                     changeHealth(baseHealth-damage);
                 }
-
+                /**
+                 * Changes game speed (duration between ticks)
+                 * @author Ignacy Debicki
+                 * @param {object} evt Event triggered by change speed button
+                 */
                 function changePlaybackTime(evt){
                     clockMultiplier = $(this).data("speed");
                     $(".selectedTimeControl").removeClass("selectedTimeControl");
                     $(this).addClass("selectedTimeControl");
                 }
 
-
+                /**
+                 * Loads enemy resource into the enemy dictionary
+                 * @author Ignacy Debicki
+                 * @param   {string} enemyName NAme of enemy to be loaded
+                 * @returns {object} The enemies div template
+                 */
                 function loadEnemy(enemyName){
                     if ((enemyName in enemyDB)==false){
                         var data = $.ajax({
@@ -1038,7 +1247,10 @@
                     }
 
                 }
-
+                /**
+                 * Spawns any enemies awaiting to be spawned in the current tick in the enemyQueue
+                 * @author Ignacy Debicki
+                 */
                 function spawnEnemy(){
                     if (enemyQueue[clockTime]){
                         for (var enemyDiv in enemyQueue[clockTime]){
@@ -1052,7 +1264,11 @@
                     }
 
                 }
-
+                /**
+                 * Loads a tower into the sidebar menu so it can be accessed
+                 * @author Ignacy Debicki
+                 * @param {string} towerName Name of tower to be loaded in
+                 */
                 function loadSideBarTower(towerName){
                     var towerData = loadTower(towerName);
                     var baseTower = towerData["level"][0]
@@ -1087,7 +1303,12 @@
 
                     $("#sideBarTowerSlots").append(towerSideBarDiv);
                 }
-
+                /**
+                 * Loads the tower resource and places it in the tower resource dictionary
+                 * @author Ignacy Debicki
+                 * @param   {string} towerName Name of tower to be loaded
+                 * @returns {object} The template div for the tower
+                 */
                 function loadTower(towerName){
                     if ((towerName in towerDB)==false){
                         var data = $.ajax({
@@ -1127,7 +1348,11 @@
                         return towerDB[towerName][0];
                     }
                 }
-
+                /**
+                 * Attempts to buy tower
+                 * @author Ignacy Debicki
+                 * @param {[[Type]]} evt [[Description]]
+                 */
                 function buyTower(evt){
                     if ((resources>=$(this).data("cost")) && !$(".isDragging")[0]){
                         setResources(resources-$(this).data("cost"));
@@ -1136,7 +1361,11 @@
                         flashWarning("Not enough resources or already bought tower");
                     }
                 }
-
+                /**
+                 * Spawns tower in game area, and makes it follow the mouse. Sets necessary handers to place the tower down in a reasonable place.
+                 * @author Ignacy Debicki
+                 * @param   {object}  tower The tower div to be spawned
+                 */
                 function spawnTower(tower){
                     //remove selection of any previous tower
                     removeTowerSelection();
@@ -1194,19 +1423,30 @@
                     $('#gameSpace').mousedown(placeTower);
 
                 }
-
+                /**
+                 * Places the tower in the game area, if it is not colliding with any game tile.
+                 * @author Ignacy Debicki
+                 * @param {object} e Event triggered by the mouse being pressed to place it down
+                 */
                 function placeTower(e){
                     if (!(currentDrag.hasClass("isColliding"))){
-                            //buy tower
-                            $('#gameSpace').unbind("mousemove");
-                            $('#gameSpace').unbind("mousedown",placeTower);
-                            currentDrag.removeClass("isDragging");
-                            currentDrag.children(".tower").click(selectTower);
-                            //set tower as tile
-                            currentDrag.children(".tower").addClass("tile");
-                            currentDrag=null;
+                        //buy tower
+                        $('#gameSpace').unbind("mousemove");
+                        $('#gameSpace').unbind("mousedown",placeTower);
+                        currentDrag.removeClass("isDragging");
+                        currentDrag.children(".tower").click(selectTower);
+                        //set tower as tile
+                        currentDrag.children(".tower").addClass("tile");
+                        currentDrag=null;
+                        incrementStatistic("towersBuilt");
                     }
                 }
+                /**
+                 * Finds a target within range for tower to fire at
+                 * @author Ignacy Debicki
+                 * @param   {object} tower Tower to find target for (passed in as $(tower))
+                 * @returns {object} Enemy to fire at, or null if no enemy fouund within range
+                 */
                 function findTarget(tower){
                     var targetingDisk = tower.children(".targetDisk");
                     var enemiesColliding = [];
@@ -1224,18 +1464,30 @@
                         return null;
                     }
                 }
-
+                /**
+                 * Selects a tower
+                 * @author Ignacy Debicki
+                 * @param {object} evt Event caused by pressing on tower
+                 */
                 function selectTower(evt){
                     removeTowerSelection();
                     $(this).parent().addClass("isSelected");
                     showTowerOverlay();
                     updateActiveTowerInfo();
                 }
-
+                /**
+                 * Shows the tower information overlay in the sidebar menu
+                 * @author Ignacy Debicki
+                 */
                 function showTowerOverlay(){
                     $("#sideBarTowerControl").velocity("slideDown",100);
                 }
-
+                /**
+                 * Fires a projectile rom the tower towards the target
+                 * @author Ignacy Debicki
+                 * @param {object} tower  Tower that is to be fired (passed in as $(tower))
+                 * @param {object} target Enemy the projectile is to be fired at (passed in as $(target))
+                 */
                 function fireTower(tower,target){
                     var projectileName = tower.data("projectileFired");
                     var projectileDiv = loadProjectile(projectileName).clone();
@@ -1257,7 +1509,10 @@
                         left:targetPosition.x
                     },baseClock/clockMultiplier,"linear",{queue:false});
                 }
-
+                /**
+                 * Checks if a projectile has collided with an enemy and delas damage as necessary
+                 * @author Ignacy Debicki
+                 */
                 function checkProjectileCollisions(){
                     $(".projectile").each(function(){
                         var damage = $(this).data("damage");
@@ -1272,12 +1527,22 @@
                         }
                     })
                 }
-
+                /**
+                 * Kills an enemy and grants the appropriate number of resources to the player
+                 * @author Ignacy Debicki
+                 * @param {object} enemy The enemy to be killed (passed in as $(enemy))
+                 */
                 function enemyKilled(enemy){
                     enemy.remove();
+                    incrementStatistic("enemiesKilled");
                     setResources(resources+enemy.data("resources"));
                 }
-
+                /**
+                 * Loads the projectile resource into the projectile resource dictionary
+                 * @author Ignacy Debicki
+                 * @param   {string} projectileName NAme of projectile to be loaded
+                 * @returns {object} Projectile div template
+                 */
                 function loadProjectile(projectileName){
                     if ((projectileName in projectileDB)==false){
                         var data = $.ajax({
@@ -1295,25 +1560,41 @@
                         return projectileDB[projectileName]["divBase"];
                     }
                 }
-            
+                /**
+                 * Displays a warning in the sidebar menu
+                 * @author Ignacy Debicki
+                 * @param {string} message  Text of warning to be displayed
+                 * @param {number} duration Default 5000 Duration of warning in milliseconds
+                 */
                 function flashWarning(message,duration){
                     duration = typeof duration !== 'undefined' ? duration : 5000;
                     showWarning(message);
                     warningMessageTimeout = setTimeout(hideWarning,duration);
                 }    
-            
+                /**
+                 * Displays warning in sidebar
+                 * @author Ignacy Debicki
+                 * @param {string} message Content of warning
+                 */
                 function showWarning(message){
                     clearTimeout(warningMessageTimeout);
                     $("#warning").show();
                     $("#warningText").html(message);
                 }
-            
+                /**
+                 * Hides the warning from the sidebar menu
+                 * @author Ignacy Debicki
+                 */
                 function hideWarning(){
                     $("#warning").hide();
                     $("#warningText").empty();
                 }
                 
                 return{
+                    /**
+                     * Starts the game clock
+                     * @author Ignacy Debicki
+                     */
                     clockTick: function(){
                         if (clockTickRunning==false){
                             clockTick();
@@ -1324,9 +1605,18 @@
                             flashWarning("Stop trying to cheat!");
                         }   
                     },
+                    /**
+                     * Loads a map into the game area
+                     * @author Ignacy Debicki
+                     * @param {object} mapInfo Description of map
+                     */
                     setMap:function(mapInfo){
                         loadMap(mapInfo["mapData"]);
                     },
+                    /**
+                     * Exits the current game
+                     * @author Ignacy Debicki
+                     */
                     exitGame: function(){
                         exitGame();
                     }

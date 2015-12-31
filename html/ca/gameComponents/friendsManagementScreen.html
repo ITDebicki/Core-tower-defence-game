@@ -173,7 +173,12 @@
                 loadFRS();
                 loadBlocked();
             });
-            
+            /**
+             * Filters the current search array by the new value of the search string
+             * @author Ignacy Debicki
+             * @param   {string} newValue New search sting
+             * @returns {Array}  Array of filtered results
+             */
             function filterResults(newValue){
                 console.log(searchArray);
                 var newArray = jQuery.grep(searchArray,function(s,i){
@@ -186,7 +191,14 @@
                 });
                 return newArray;
             }
-            
+            /**
+             * Handler for fetching search data from db
+             * @author Ignacy Debicki
+             * @param {boolean} success   If fetch was succesfull
+             * @param {object}  data      Either: Error message (String)
+             *                              Or: array of results
+             * @param {number}  errorCode Error code
+             */
             function searchArrayHandler(success,data,errorCode){
                 if (success){
                     if (data){
@@ -202,12 +214,22 @@
                 }
                 
             }
-            
+            /**
+             * Handler for adding a search element
+             * @author Ignacy Debicki
+             * @param {string} avatarSrc URL of the avatar
+             * @param {string} usr       Name of user
+             */
             function searchDataHandler(avatarSrc,usr){
                 console.log("Adding element",usr);
                 searchList.addElement({"user":usr,"userAvatar":avatarSrc});
             }
-            
+            /**
+             * Creates a friend list element
+             * @author Ignacy Debicki
+             * @param   {object} data Dictionary containing {"user":user,"userAvatar":userAvatar}
+             * @returns {object} List element to be appended
+             */
             function createFriendElement(data){
                 var username = data["user"];
                 var userAvatar = data["userAvatar"];
@@ -233,7 +255,12 @@
                 container.data("user",username);
                 return container;
             }
-            
+            /**
+             * Creates a friend request list element
+             * @author Ignacy Debicki
+             * @param   {object} data Dictionary containing {"user":user,"userAvatar":userAvatar}
+             * @returns {object} List element to be appended
+             */
             function createFRElement(data){
                 var username = data["user"];
                 var userAvatar = data["userAvatar"];
@@ -265,7 +292,12 @@
                 container.data("user",username);
                 return container;
             }
-            
+            /**
+             * Creates a sent friend request list element
+             * @author Ignacy Debicki
+             * @param   {object} data Dictionary containing {"user":user,"userAvatar":userAvatar}
+             * @returns {object} List element to be appended
+             */
             function createFRSElement(data){
                 var username = data["user"];
                 var userAvatar = data["userAvatar"];
@@ -285,7 +317,12 @@
                 container.data("user",username);
                 return container;
             }
-            
+            /**
+             * Creates a blocked user list element
+             * @author Ignacy Debicki
+             * @param   {object} data Dictionary containing {"user":user,"userAvatar":userAvatar}
+             * @returns {object} List element to be appended
+             */
             function createBlockListElement(data){
                 var username = data["user"];
                 var userAvatar = data["userAvatar"];
@@ -305,7 +342,12 @@
                 container.data("user",username);
                 return container;
             }
-            
+            /**
+            * Creates a search list element
+             * @author Ignacy Debicki
+             * @param   {object} data Dictionary containing {"user":user,"userAvatar":userAvatar}
+             * @returns {object} List element to be appended
+             */
             function createSearchListElement(data){
                 var username = data["user"];
                 var userAvatar = data["userAvatar"];
@@ -336,14 +378,21 @@
                 container.data("user",username);
                 return container;  
             }
-            
+            /**
+             * Hides the search list
+             * @author Ignacy Debicki
+             */
             function hideSearchList(){
                 $("#searchContainer").velocity("fadeOut",200);
                 $("#searchBoxText").val("");
                 searchArray=[];
                 searchList.quickClearList();
             }
-            
+            /**
+             * Shows the search list from the element
+             * @author Ignacy Debicki
+             * @param {[[Type]]} element [[Description]]
+             */
             function showSearchList(element){
                 $("#searchBoxText").val("");
                 var searchContainer = $("#searchContainer");
@@ -362,7 +411,13 @@
                     
                 });
             }
-            
+            /**
+             * Handler for blocking user
+             * @author Ignacy Debicki
+             * @param {boolean} success   If block was succesfull
+             * @param {string}  error     Error message
+             * @param {number}  errorCode Error code
+             */
             function blockUserHandler(success,error,errorCode){
                 if(success){
                     friendsScrollList.clearList(loadFriends);
@@ -373,7 +428,13 @@
                     alert(error,errorCode);
                 }
             }
-            
+            /**
+             * Handler for sendong a friend request
+             * @author Ignacy Debicki
+             * @param {boolean} success   If sending was succesfull
+             * @param {string}  error     Error message
+             * @param {number}  errorCode Error code
+             */
             function sendRequestHandler(success,error,errorCode){
                 if(success){
                     fRSScrollList.clearList(loadFRS);
@@ -381,25 +442,43 @@
                     alert(error,errorCode);
                 }
             }
-            
+            /**
+             * handler for pressing a profile
+             * @author Ignacy Debicki
+             * @param {object} evt Event caused by profile being pressed
+             */
             function profilePressHandler(evt){
                 if (!$(evt.toElement).is("button")){
                     var user = $(this).data("user");
                     showUserProfile(user);
                 }
             }
-            
+            /**
+             * Shows the user profile
+             * @author Ignacy Debicki
+             * @param {string} user Username of user to show
+             */
             function showUserProfile(user){
                 showingProfileForUser = user;
                 loadElement("gameComponents/userProfileScreen.html","userProfileScreen",function(){
                     window.userProfile.loadUser(showingProfileForUser);
                 });
             }
-            
+            /**
+             * Populates the friends list
+             * @author Ignacy Debicki
+             */
             function loadFriends(){
                 window.login.getUserFriends(userFriendsHandler);
             }
-            
+            /**
+             * Handler for populating friends list
+             * @author Ignacy Debicki
+             * @param {boolean} success   If friend fetch was succesfull
+             * @param {object}  data      Either: Error message (if success==false)
+             *                              Or: Array of users                 
+             * @param {number}  errorCode Error code
+             */
             function userFriendsHandler(success,data,errorCode){
                 if (success==true){
                     for (i=0;i<data.length;i++){
@@ -409,11 +488,22 @@
                     alert(data,errorCode);
                 }
             }
-            
+            /**
+             * Handler for fetching friend data
+             * @author Ignacy Debicki
+             * @param {string} avatarSrc URL to avatar file
+             * @param {string} usr       Username of user who's avatar it is
+             */
             function getFriendDataHanlder(avatarSrc,usr){
                 friendsScrollList.addElement({"user":usr,"userAvatar":avatarSrc});
             }
-                
+            /**
+             * Handler for deleting a friend 
+             * @author Ignacy Debicki
+             * @param {boolean} success   If deletion was succesfull
+             * @param {string}  error     Error message
+             * @param {number}  errorCode Error code
+             */
             function deleteFriendHandler(success,error,errorCode){
                 if(success){
                     friendsScrollList.clearList(loadFriends);
@@ -421,11 +511,21 @@
                     alert(error,errorCode);
                 }
             }
-            
+            /**
+             * Populates the blocked users table
+             * @author Ignacy Debicki
+             */
             function loadBlocked(){
                 window.login.getBlockedUsers(getBlockedUsersHandler);
             }
-            
+            /**
+             * Handler for getting blocked users
+             * @author Ignacy Debicki
+             * @param {boolean} success   If fetch was succesfull
+             * @param {object}  data      Either: Error message (if success==false)
+             *                              Or: Array of users 
+             * @param {number}  errorCode Error code
+             */
             function getBlockedUsersHandler(success,data,errorCode){
                 if(success){
                     if (data){
@@ -438,11 +538,22 @@
                     alert(data,errorCode);
                 }
             }
-            
+            /**
+             * Handler for fetching blocked users data
+             * @author Ignacy Debicki
+             * @param {string} avatarSrc URL of avatar file
+             * @param {string} usr       Ussername of user
+             */
             function getBlockedDataHanlder(avatarSrc,usr){
                 blockedScrollList.addElement({"user":usr,"userAvatar":avatarSrc});
             }
-            
+            /**
+             * Handler for unblocking a user
+             * @author Ignacy Debicki
+             * @param {boolean} success   IF unblocking ws succesfull
+             * @param {string}  error     Error message
+             * @param {number}  errorCode Error code
+             */
             function unblockUserHandler(success,error,errorCode){
                 if(success){
                     blockedScrollList.clearList(loadBlocked);
@@ -450,11 +561,21 @@
                     alert(error,errorCode);
                 }
             }
-            
+            /**
+             * Populates the friend request table
+             * @author Ignacy Debicki
+             */
             function loadFR(){
                 window.login.getFriendRequests(getFriendRequestsHandler);
             }
-            
+            /**
+             * Handler for fetching friend requests
+             * @author Ignacy Debicki
+             * @param {boolean} success   If fetch was succesfull
+             * @param {object}  data      Either: Error message (if success==false)
+             *                              Or: Array of users 
+             * @param {number}  errorCode Error code
+             */
             function getFriendRequestsHandler(success,data,errorCode){
                 if(success){
                     console.log("FR",data);
@@ -467,11 +588,22 @@
                     alert(data,errorCode);
                 }
             }
-            
+            /**
+             * Handler for fetching user data
+             * @author Ignacy Debicki
+             * @param {string} avatarSrc URL of avatar file
+             * @param {string} usr       Username of user
+             */
             function getFriendRequestDataHandlder(avatarSrc,usr){
                 fRScrollList.addElement({"user":usr,"userAvatar":avatarSrc});
             }
-            
+            /**
+             * Handler for refusing friend requests
+             * @author Ignacy Debicki
+             * @param {boolean} success   If refusal was succesfull
+             * @param {string}  error     Error message
+             * @param {number}  errorCode Error code
+             */
             function refuseFRHandler(success,error,errorCode){
                 if(success){
                     fRScrollList.clearList(loadFR);
@@ -479,7 +611,13 @@
                     alert(error,errorCode);
                 }
             }
-            
+            /**
+             * Handler for accepting friend requests
+             * @author Ignacy Debicki
+             * @param {boolean} success   If acceptation was succesfull
+             * @param {string}  error     Error message
+             * @param {number}  errorCode Error code
+             */
             function acceptFRHandler(success,error,errorCode){
                 if(success){
                     fRScrollList.clearList(loadFR);
@@ -488,11 +626,21 @@
                     alert(error,errorCode);
                 }
             }
-            
+            /**
+             * Populates the Sent friend requests list
+             * @author Ignacy Debicki
+             */
             function loadFRS(){
                 window.login.getSentFriendRequests(getFriendRequestsSentHandler);
             }
-            
+            /**
+             * Handler for fetching the sent friend requests
+             * @author Ignacy Debicki
+             * @param {boolean} success   If fetch was succesfull
+             * @param {object}  data      Either: Error message (if success==false)
+             *                              Or: Array of users 
+             * @param {number}  errorCode Error code
+             */
             function getFriendRequestsSentHandler(success,data,errorCode){
                 if(success){
                     console.log("FRS",data);
@@ -505,11 +653,22 @@
                     alert(data,errorCode);
                 }
             }
-            
+            /**
+             * Handler for getting frend requests sent user data
+             * @author Ignacy Debicki
+             * @param {string} avatarSrc URL of avatar file
+             * @param {string} usr       Username of user
+             */
             function getFriendRequestSentDataHandlder(avatarSrc,usr){
                 fRSScrollList.addElement({"user":usr,"userAvatar":avatarSrc});
             }
-            
+            /**
+             * Handler for deleting a sent friend request
+             * @author Ignacy Debicki
+             * @param {boolean} success   If deletion was succesfull
+             * @param {string}  error     Error message
+             * @param {number}  errorCode Error code
+             */
             function deleteFRHandler(success,error,errorCode){
                 if(success){
                     fRSScrollList.clearList(loadFRS)

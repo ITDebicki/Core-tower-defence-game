@@ -13,9 +13,14 @@
                     var imgKey = null;
                     var baseElementWidth = 0;
                     var animating = false;
-                    
+                    /**
+                     * Rotates the carousel to the set index
+                     * @author Ignacy Debicki
+                     * @param {number} index     Index to rotate to
+                     * @param {string} direction Optional. Direction to spin. Accepts "right" or "left". By default chooses shortest path
+                     */
                     function rotateToIndex(index,direction){
-                        if (direction !== left || direction !== "right"){
+                        if (direction !== "left" || direction !== "right"){
                             //determine quickest direction
                             if (currentIndex-index>rotatorArray.length/2){
                                 direction="left";
@@ -48,7 +53,10 @@
                             }
                         }
                     }
-                    
+                    /**
+                     * Rotates the carousel left
+                     * @author Ignacy Debicki
+                     */
                     function rotateLeft(){
                         if (animating == false){
                             animating=true
@@ -85,7 +93,10 @@
                             currentIndex = nextIndex;
                         }
                     }
-                    
+                    /**
+                     * Rotates the carousel right
+                     * @author Ignacy Debicki
+                     */
                     function rotateRight(){
                         if (animating == false){
                             animating=true
@@ -122,14 +133,22 @@
                             currentIndex = nextIndex;
                         }
                     }
-                    
+                    /**
+                     * Adds an item to the carousel
+                     * @author Ignacy Debicki
+                     * @param {object} item $(item) object to be appended
+                     */
                     function appendItem(item){
                         var itemImg = item[imgKey]
                         baseElement.append(itemImg);
                         itemImg.css("margin-left",baseElementWidth*2)
                                 .css("position","absolute");
                     }
-                    
+                    /**
+                     * Loads the item into the carousel
+                     * @author Ignacy Debicki
+                     * @param {object} item $(item) object to be appended
+                     */
                     function loadItem(item){
                         appendItem(item);
                         var itemImg = item[imgKey];
@@ -138,6 +157,14 @@
                     }
                     
                     return {
+                        /**
+                         * Initiates the carousel
+                         * @author Ignacy Debicki
+                         * @param {object} elem  Element to initiate the carousel on
+                         * @param {Array}  array Array of items to insert into the carousel
+                         * @param {number} index Starting index of the carousel
+                         * @param {string} key   The key of the image in the item element
+                         */
                         initCarousel:function(elem,array,index,key){
                             rotatorArray = array;
                             currentIndex = index;
@@ -152,9 +179,19 @@
                             $(elem).append(baseElement)
                             loadItem(rotatorArray[index]);
                         },
+                        /**
+                         * Adds an item to the carousel
+                         * @author Ignacy Debicki
+                         * @param {object} item Item object
+                         */
                         addItem:function(item){
                             rotatorArray.push(item);
                         },
+                        /**
+                         * Removes an item from the carousel
+                         * @author Ignacy Debicki
+                         * @param {object} item Item object
+                         */
                         removeItem:function(item){
                             var itemIndex = rotatorArray.indexOf(item);
                             if (itemIndex==currentIndex){
@@ -164,6 +201,13 @@
                             }
                             rotatorArray.splice(itemIndex,1);
                         },
+                        /**
+                         * Rotates the carousel to the given index
+                         * @author Ignacy Debicki
+                         * @param   {number}  index     Index to rotate to
+                         * @param   {string}  direction Optional. Direction to rotate. Accepts "right" or "left". Default: shortest path
+                         * @returns {boolean} Returns false if action cannot be currently performed. Else returns the item it has rotated to
+                         */
                         rotateToIndex:function(index,direction){
                             if (animating){
                                 return false;
@@ -172,6 +216,13 @@
                                 return rotatorArray[currentIndex];
                             }
                         },
+                        /**
+                         * Rotates the carousel to the specific item
+                         * @author Ignacy Debicki
+                         * @param   {object}  item      Item object to rotate to
+                         * @param   {string}  direction Optional. Direction to rotate. Accepts "right" or "left". Default: shortest path
+                         * @returns {boolean} Returns false if action cannot be currently performed
+                         */
                         rotateToItem:function(item,direction){
                             if (animating){
                                 return false;
@@ -181,6 +232,11 @@
                                 return rotatorArray[currentIndex];
                             }
                         },
+                        /**
+                         * Rotates the carousel right
+                         * @author Ignacy Debicki
+                         * @returns {boolean} Returns false if action cannot be currently performed. Else returns the item it has rotated to
+                         */
                         rotateRight:function(){
                             if (animating){
                                 return false;
@@ -189,6 +245,11 @@
                                 return rotatorArray[currentIndex];
                             }
                         },
+                        /**
+                         * Rotates the carousel left
+                         * @author Ignacy Debicki
+                         * @returns {boolean} Returns false if action cannot be currently performed. Else returns the item it has rotated to
+                         */
                         rotateLeft:function(){
                             if (animating){
                                 return false;
@@ -198,6 +259,11 @@
                             }
                             
                         },
+                        /**
+                         * Returns the current item object
+                         * @author Ignacy Debicki
+                         * @returns {object} Item object
+                         */
                         currentItem:function(){
                             return rotatorArray[currentIndex];
                         }
@@ -217,11 +283,18 @@
                     $("#backButton").click(backToStart);
                     $("#startButton").click(startGame);
                 });
+                /**
+                 * Returns to startGameScreen
+                 * @author Ignacy Debicki
+                 */
                 function backToStart(){
                     loadBackground('gameComponents/maps/'+carousel.currentItem()["name"]+'.png');
                     hideControls(300,function(){showStartScreen();});
                 }
-                
+                /**
+                 * Starts the gmae with the currently selected map
+                 * @author Ignacy Debicki
+                 */
                 function startGame(){
                     hideControls();
                     loadBackground('gameComponents/maps/'+carousel.currentItem()["name"]+'.png');
@@ -235,7 +308,10 @@
                     window.game.setMap(carousel.currentItem());
                     removeElement("mapSelector");
                 }
-                
+                /**
+                 * Rotates the carousel to the left and displays the new map information
+                 * @author Ignacy Debicki
+                 */
                 function leftButtonClick(){
                     var map = carousel.rotateRight();
                     if (map!==false){
@@ -245,6 +321,10 @@
                     }
                     
                 }
+                /**
+                 * Rotates the carousel to the right and displays the new map information
+                 * @author Ignacy Debicki
+                 */
                 function rightButtonClick(){
                     var map = carousel.rotateLeft();
                     if (map!==false){
@@ -253,7 +333,10 @@
                         showText();
                     }
                 }
-                
+                /**
+                 * Fetches and adds all available maps
+                 * @author Ignacy Debicki
+                 */
                 function fetchAvailableMaps(){
                     window.login.getAllMaps(function(success,data,errorCode){
                         if(success){
@@ -267,7 +350,15 @@
                         }
                     });
                 }
-                
+                /**
+                 * Adds the map to the map array and sets the start map if no more maps are being loaded
+                 * @author Ignacy Debicki
+                 * @param {number} id          Id of map
+                 * @param {string} name        Name of map
+                 * @param {string} description Description of map
+                 * @param {string} file        URL to map file
+                 * @param {string} image       URL to image file
+                 */
                 function addMap(id,name,description,file,image){
                     activeAJAX+=1;
                     $.ajax({
@@ -290,31 +381,53 @@
                     });
                     
                 }
+                /**
+                 * Sets the Map title and description
+                 * @author Ignacy Debicki
+                 * @param {string} title       Title of map
+                 * @param {string} description Description of map
+                 */
                 function setText(title,description){
                     $("#mapTitleText").html(title);
                     $("#mapDescriptionText").html(description);
                 }
-                
+                /**
+                 * Hides the title and description of the map
+                 * @author Ignacy Debicki
+                 * @param {number} duration Duration of animation to hide the map title & description in milliseconds
+                 */
                 function hideText(duration){
                     if (duration == null || duration == undefined){
                         duration = 300;
                     }
                     $("#textDiv").velocity("transition.slideDownBigOut",duration);
                 }
-                
+                /**
+                 * Shows the title and description of map
+                 * @author Ignacy Debicki
+                 * @param {number} duration Duration of animation to show the map title & description in milliseconds
+                 */
                 function showText(duration){
                     if (duration == null || duration == undefined){
                         duration = 300;
                     }
                     $("#textDiv").velocity("transition.slideUpBigIn",duration);
                 }
-                
+                /**
+                 * Shows the carousel controls
+                 * @author Ignacy Debicki
+                 */
                 function showControls(){
                     $("#infoDiv").velocity("transition.slideUpBigIn",1000);
                     $("#prevButton").velocity("transition.slideLeftBigIn",1000);
                     $("#nextButton").velocity("transition.slideRightBigIn",1000);
                 }
-                
+                /**
+                 * Hides the carousel controls
+                 * @author Ignacy Debicki
+                 * @param {number}   duration Length of animation to hide the controls in milliseconds
+                 * @param {function} callback Fucntion to be performed upon completion of hiding the carousel controls.
+                 */
                 function hideControls(duration,callback){
                     if (callback == null || callback == undefined){
                         callback = function(){}
@@ -330,7 +443,11 @@
                     });
                     
                 }
-                
+                /**
+                 * Sets the start map to the specified map
+                 * @author Ignacy Debicki
+                 * @param {string} mapName Name of map to be shown
+                 */
                 function setStartMap(mapName){
                     for (i=0;i<mapArray.length;i++){
                         var map = mapArray[i];
@@ -341,6 +458,11 @@
                         }
                     }
                 }
+                /**
+                 * Initiates the carousel from the map array and moves the carousel to the specififed index
+                 * @author Ignacy Debicki
+                 * @param {number} index Index to start at
+                 */
                 function initiateCarousel(index){
                     carousel.initCarousel("#mapCarousel",mapArray,index,"div");
                     $("#gameDiv").css("background-image","none");
@@ -348,7 +470,11 @@
                     showText();
                     showControls();
                 }
-                
+                /**
+                 * Parses the current background of the game area to determine the map
+                 * @author Ignacy Debicki
+                 * @returns {string} Name of map in the background
+                 */
                 function parseBackground(){
                     var backgroundPath = $("#gameDiv").css("background-image");
                     backgroundPath = backgroundPath.replace('")','');

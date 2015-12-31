@@ -90,7 +90,13 @@
                     //unlock buttons
                     unlockButtons("#loggedInContainerButtons");
                 });
-                
+                /**
+                 * Handler for uploading an avatar
+                 * @author Ignacy Debicki
+                 * @param {boolean} success   If upload was succesfull
+                 * @param {string}  error     Error message
+                 * @param {number}  errorCode Error code
+                 */
                 function uploadAvatarHandler(success,error,errorCode){
                     $("#avatarUploadText").removeClass("hover");
                     formdata = new FormData();
@@ -101,7 +107,13 @@
                         alert(error,errorCode);      
                     }
                 }
-                
+                /**
+                 * Handler for removing an avatar
+                 * @author Ignacy Debicki
+                 * @param {boolean} success   If removal was succesfull
+                 * @param {string}  error     Error message
+                 * @param {number}  errorCode Error code
+                 */
                 function removeAvatarHandler(success,error,errorCode){
                     if (success==true){
                         loadAvatar();
@@ -110,7 +122,13 @@
                         alert(error,errorCode); 
                     }
                 }
-                
+                /**
+                 * Handler for deletion of account
+                 * @author Ignacy Debicki
+                 * @param {boolean} success   If removal of account was succesfull
+                 * @param {string}  error     Error message
+                 * @param {number}  errorCode Error code
+                 */
                 function deleteAccountHandler(success,error,errorCode){
                     if (success==true){
                         clearScreenToStartScreen();
@@ -118,14 +136,20 @@
                         alert(error,errorCode); 
                     }
                 }
-                
-                function hideOverlay(evt){
+                /**
+                 * Hides the account management overlay
+                 * @author Ignacy Debicki
+                 */
+                function hideOverlay(){
                     $("#wrapper").fadeOut(100,function(){
                         removeElement("accountManagmentScreen");
                     });
 
                 }
-
+                /**
+                 * Loads the suer avatar into the page
+                 * @author Ignacy Debicki
+                 */
                 function loadAvatar(){
                     window.login.userAvatar(window.startScreen.setAvatar);
                 }

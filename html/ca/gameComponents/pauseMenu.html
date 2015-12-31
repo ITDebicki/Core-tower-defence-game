@@ -18,8 +18,11 @@
                     $("#overlay").fadeTo(500,0.9);
                     $("#wrapper").fadeIn(500);
                 });
-
-                function resumeGame(evt){
+                /**
+                 * Hides pause menu and resumes the game
+                 * @author Ignacy Debicki
+                 */
+                function resumeGame(){
                     removeOverlay();
                     //set multiplier to 1
                     $("#play1X").trigger("click");
@@ -27,18 +30,27 @@
                     setTimeout(window.game.clockTick,500);
 
                 }
-
-                function saveGame(evt){
+                /**
+                 * Saves the game
+                 * @author Ignacy Debicki
+                 */
+                function saveGame(){
                     
                 }
-
+                /**
+                 * Removes the pause menu overlay
+                 * @author Ignacy Debicki
+                 */
                 function removeOverlay(){
                     $("#wrapper").fadeOut(100,function(){
                         removeElement("pauseMenu");
                     });
                 }
-
-                function exitAskGame(evt){
+                /**
+                 * Exits the game, requires confirmation from user
+                 * @author Ignacy Debicki
+                 */
+                function exitAskGame(){
                     console.log("exiting game");
                     if(confirm("You will lose all your progress since your last save. Are you sure you want to quit?")){
                         removeOverlay();

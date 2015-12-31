@@ -29,11 +29,18 @@
                         window.login.checkCookie(cookieLoginHandler);
                     }
                 });
-
-                function showAccountManagment(evt){
+                /**
+                 * Shows the account management page
+                 * @author Ignacy Debicki
+                 */
+                function showAccountManagment(){
                     loadElement("gameComponents/accountManagmentScreen.html","accountManagmentScreen");
                 }
-                
+                /**
+                 * Lowers the overlay
+                 * @author Ignacy Debicki
+                 * @param {number} duration Length of animation in milliseconds
+                 */
                 function lowerOverlay(duration){
                     if (duration == null || duration == undefined){
                         duration = 600;
@@ -42,7 +49,12 @@
                         duration:duration
                     })
                 }
-                
+                /**
+                 * Raises the overlay
+                 * @author Ignacy Debicki
+                 * @param {number}   duration Duration of animation
+                 * @param {function} callback Function to be called when animation comletes
+                 */
                 function raiseOverlay(duration,callback){
                     if (duration == null || duration == undefined){
                         duration = 600;
@@ -55,8 +67,12 @@
                         complete:callback
                     })
                 }
-
-                function setAvatar(fileURL,user){
+                /**
+                 * Set the user avatar
+                 * @author Ignacy Debicki
+                 * @param {string}   fileURL URL of avatar
+                 */
+                function setAvatar(fileURL){
                     $(".userAvatar").each(function(){
                         if ($(this).is("img")){
                             $(this).attr("src",fileURL);
@@ -66,8 +82,11 @@
 
                     });
                 }
-
-                function login(evt){
+                /**
+                 * Attempts to login using the details provided in the username and password fields
+                 * @author Ignacy Debicki
+                 */
+                function login(){
                     lockLoginButtons();
                     var username = $("input[name=userTextbox]").val();
                     var password = $("input[name=passwordTextbox]").val();
@@ -78,13 +97,25 @@
                         unlockLoginButtons();
                     }
                 }
-                
+                /**
+                 * Handler for verifying session cookie
+                 * @author Ignacy Debicki
+                 * @param {boolean} success   If verification was successfull
+                 * @param {string}  error     Error message
+                 * @param {number}  errorCode Error code
+                 */
                 function cookieLoginHandler(success,error,errorCode){
                     if (success==true){
                         loginHandler(true);
                     }
                 }
-                
+                /**
+                 * Handler for logging in
+                 * @author Ignacy Debicki
+                 * @param {boolean} success   If login was succesfull
+                 * @param {string}  error     Error message
+                 * @param {number}  errorCode Error code
+                 */
                 function loginHandler(success,error,errorCode){
                     if (success){
                         $("#usernameSpan").html(window.login.username());
@@ -97,7 +128,10 @@
                     }
                     unlockLoginButtons();
                 }
-
+                /**
+                 * Switches the display from being logged in to being logged out and vice versa
+                 * @author Ignacy Debicki
+                 */
                 function switchLoggedInWindows(){
                     //lock buttons
                     lockButtons("button");
@@ -112,10 +146,20 @@
                     $("input[name=emailTextboxCreate]").val("");
                     unlockButtons("button");
                 }
-                function logout(evt){
+                /**
+                 * Logs the current user out
+                 * @author Ignacy Debicki
+                 */
+                function logout(){
                     window.login.logout(logoutHandler);
                 }
-                
+                /**
+                 * Handler for logging the user out
+                 * @author Ignacy Debicki
+                 * @param {boolean} success   If logout was succesfull
+                 * @param {string}  error     Error message
+                 * @param {number}  errorCode Error code
+                 */
                 function logoutHandler(success,error,errorCode){
                     if(success){
                         switchLoggedInWindows();
@@ -123,28 +167,49 @@
                         alert(error,errorCode);
                     }
                 }
-
-                function backPressed(evt){
+                /**
+                 * Handler for back pressed on acount creation window
+                 * @author Ignacy Debicki
+                 */
+                function backPressed(){
                     $("#flipper").removeClass('flipped');
                 }
-
-                function createAccountButtonClicked(evt){
+                /**
+                 * Handler for clicking the account creation button
+                 * @author Ignacy Debicki
+                 */
+                function createAccountButtonClicked(){
                     $("#flipper").addClass('flipped');
                 }
-
-                function startPressed(evt){
+                /**
+                 * Handler for pressing the start game button
+                 * @author Ignacy Debicki
+                 */
+                function startPressed(){
                     //remove all elements
                     raiseOverlay(600,function(){
                         removeElement("startGameScreen");
                         loadElement("gameComponents/mapSelector.html","mapSelector");});
                 }
-                function loadPressed(evt){
+                /**
+                 * Handler for pressing the load game button
+                 * @author Ignacy Debicki
+                 */
+                function loadPressed(){
                     alert("load pressed");
                 }
-                function optionsPressed(evt){
+                /**
+                 * Handler for pressing the options button
+                 * @author Ignacy Debicki
+                 */
+                function optionsPressed(){
                     alert("options pressed");
                 }
-                function createAccount(evt){
+                /**
+                 * Validates details and attempts to create new user account
+                 * @author Ignacy Debicki
+                 */
+                function createAccount(){
                     lockLoginButtons();
                     var username = $("input[name=userTextboxCreate]").val();
                     var password = $("input[name=passwordTextboxCreate]").val();
@@ -157,7 +222,13 @@
                     }
                     
                 }
-                
+                /**
+                 * Handler for creating an account
+                 * @author Ignacy Debicki
+                 * @param {boolean} success   If creation was succesfull
+                 * @param {string}  error     Error message
+                 * @param {number}  errorCode Error code
+                 */
                 function createAccountHandler(success,error,errorCode){
                     if (success){
                         alert("Account created. Please log in");
@@ -171,19 +242,39 @@
                     }
                     unlockLoginButtons();
                 }
-                
+                /**
+                 * Validates username to check it is alphanumeric
+                 * @author Ignacy Debicki
+                 * @param   {string}  username The username to validate
+                 * @returns {boolean} If valid
+                 */
                 function validateUser(username){
                     if (username == "" || /^[a-zA-Z0-9]+$/.test(username)==false){
                         return false;
                     }
                     return true;
                 }
+                /**
+                 * Validates password to check it is not blank
+                 * @author Ignacy Debicki
+                 * @param   {string}  password Password to validate
+                 * @returns {boolean} If valid
+                 */
                 function validatePassword(password){
                     if(/\s/g.test(password)||password==""){
                         return false;   
                     }
                     return true;
                 }
+                /**
+                 * Validates that details passedin for account creation are valid
+                 * @author Ignacy Debicki
+                 * @param   {string}  username  Username to check
+                 * @param   {string}  password  Password to check
+                 * @param   {string}  passwordR Repeated password to check
+                 * @param   {string}  email     Email to check
+                 * @returns {boolean} If details are valid
+                 */
                 function validateAccountCreationDetails(username,password,passwordR,email){
                     //check that username does not breach rules
                     if (validateUser(username)==false){
@@ -192,7 +283,7 @@
                     }
                     //check that password does not breach rules
                     if (validatePassword(password)==false || validatePassword(passwordR)==false || password != passwordR){
-                        alert("Password is blank or do not match")
+                        alert("Password is blank or does not match")
                         return false;
                     }
                     //check email does not breach rules
@@ -202,11 +293,23 @@
                     }
                     return true;
                 }
-
+                /**
+                 * Clears all notifications from the notifications list
+                 * @author Ignacy Debicki
+                 */
                 function clearAllNotifications(){
                     $("#notificationsListContainer").empty();
                 }
-
+                /**
+                 * Generates a new notification in the notification list
+                 * @author Ignacy Debicki
+                 * @param {number}  id        Identifier of the notifiction
+                 * @param {number}  timestamp Timestamp of notification creatinon or update
+                 * @param {string}  type      Type of notification
+                 * @param {string}  title     Title of notification
+                 * @param {string}  message   Message of notification
+                 * @param {boolean} opened    If the notification has already been previously read
+                 */
                 function generateNotificationDiv(id,timestamp,type,title,message,opened){
                     //var unixTimeStamp = new Date(timestamp.replace(' ', 'T')).getTime() / Math.pow(10,3);
                     var notification = $("<div id='" + timestamp + "'></div>");
@@ -231,8 +334,11 @@
                     notification.height(totalHeight);
                     notification.click(notificationPressed);
                 }
-                
-                function notificationPressed(evt){
+                /**
+                 * Marks notification as read. Performs necessary action based on notification type
+                 * @author Ignacy Debicki
+                 */
+                function notificationPressed(){
                     
                     if ($(this).hasClass("opened")==false){
                         var id = $(this).data("idVal");
@@ -240,14 +346,23 @@
                         $(this).addClass("opened");
                     }  
                 }
-                
+                /**
+                 * Callback for marking a notificatin as read
+                 * @author Ignacy Debicki
+                 * @param {boolean} success   If db update was succesfull
+                 * @param {string}  error     Error message
+                 * @param {number}  errorCode Error code
+                 */
                 function notificationCallback(success,error,errorCode){
                       if (success==false){
                           alert(error,errorCode);
                       }  
                 }
-
-                function scrolledNotifications(evt){
+                /**
+                 * If notification list at bottom, fetches more notifications
+                 * @author Ignacy Debicki
+                 */
+                function scrolledNotifications(){
                     if (noMoreNotifications==false){
                         if ($(this).scrollTop() + $(this).innerHeight() >= ($(this)[0].scrollHeight)){
                             //when at bottom
@@ -259,7 +374,10 @@
                     }
 
                 }
-
+                /**
+                 * Clears list and reloads notifications
+                 * @author Ignacy Debicki
+                 */
                 function refreshNotifications(){
                     //animate to top
                     $('#notificationsListContainer').velocity({
@@ -275,7 +393,20 @@
                         $('#notificationsListContainer').velocity("slideDown",200);
                     }); 
                 }
-
+                /**
+                 * Callback for fetching notifiactions from db
+                 * @author Ignacy Debicki
+                 * @param {boolean} success      If fetch was succesfull
+                 * @param {object}  responseData Either: error message (if success == false) 
+                 *                               Or: array of notification objects of format:
+                 *                               {"idNotification":idNotification,
+                 *                               "timestamp":timestamp,
+                 *                               "type":type,
+                 *                               "title":title,
+                 *                               "message":message,
+                 *                               "opened":opened}
+                 * @param {number}  errorCode    Error code
+                 */
                 function fetchedNotificationHandler(success,responseData,errorCode){
                     if(success){
                         if (responseData.length==0){
@@ -290,16 +421,28 @@
                         alert(responseData,errorCode);
                     }
                 }
-
+                /**
+                 * Locks he login buttons from being pressed
+                 * @author Ignacy Debicki
+                 */
                 function lockLoginButtons(){
                     lockButtons("#flipContainer button");
                 }
+                /**
+                 * Unlocks the login buttons
+                 * @author Ignacy Debicki
+                 */
                 function unlockLoginButtons(){
                     unlockButtons("#flipContainer button");
                 }
                 
                 return{
-                    setAvatar: function(fileURL,user){
+                    /**
+                     * Sets the user avatar to the specified avatar
+                     * @author Ignacy Debicki
+                     * @param {string} fileURL URL of file to be used a avatar
+                     */
+                    setAvatar: function(fileURL){
                         setAvatar(fileURL);
                     }
                 }
