@@ -3,7 +3,12 @@
 require_once("dbConnection.php");
 require_once("errorReporting.php");
 require_once("generalFunctions.php");
-
+/**
+ * Create a new user account
+ * @author Ignacy Debicki
+ * @param  object  $jsonData Dictionary containing values for keys: username,password,email
+ * @return boolean True if creation was succesfull
+ */
 function create_account($jsonData){  
     //initiate variables for entire scope
     $user="";
@@ -48,7 +53,11 @@ function create_account($jsonData){
         throw new Exception("Failed to write to database",501);
     }
 }
-
+/**
+ * Deletes the current session user's account
+ * @author Ignacy Debicki
+ * @return boolean If deletion was succesfull
+ */
 function delete_account(){
     //firstly remove avatar file
     try{
@@ -72,7 +81,12 @@ function delete_account(){
     }
     
 }
-
+/**
+ * Returns if the password for the username is correct
+ * @author Ignacy Debicki
+ * @param  object  $jsonData Dictionary containing values for keys: username,password
+ * @return boolean If password is correct
+ */
 function validate_user($jsonData){
     $user="";
     $password="";
@@ -102,7 +116,12 @@ function validate_user($jsonData){
 
     return password_verify($password,$storedHash);   
 }
-
+/**
+ * Logs the login of the user in the database
+ * @author Ignacy Debicki
+ * @param  string  $user User to log the login for
+ * @return boolean If logging was succesfull
+ */
 function log_login($user){
     //send request
     $conn = request_connection();
@@ -118,7 +137,12 @@ function log_login($user){
     }    
     
 }
-
+/**
+ * Gets the avatar file name for th euser
+ * @author Ignacy Debicki
+ * @param  string $user Username of user
+ * @return string Name of avatar file
+ */
 function fetch_avatar($user){
     if ($user ==''){
         $user = $_SESSION["user"];
@@ -138,7 +162,12 @@ function fetch_avatar($user){
     return $file;
     
 }
-
+/**
+ * Sets a new avatar and deletes the previous avatar
+ * @author Ignacy Debicki
+ * @param  string  $filename filename of new avatar
+ * @return boolean If update was succesfull
+ */
 function set_avatar($filename){
     //send request
     //fetch previous filename
@@ -160,36 +189,57 @@ function set_avatar($filename){
         throw new Exception("Failed to write to database",501);
     }
 }
-
-function set_thumbnail($filename){
+/**
+ * Sets the thumbnail for the save
+ * @author Ignacy Debicki
+ * @param  string  $filename Name of thumbnail file
+ * @param integer $save     save identifier
+ * @return boolean If succesfull
+ */
+function set_thumbnail($filename,$save){
     
-    
+   return true 
 }
-
+/**
+ * Removes the user's avatar and sets the default avatar
+ * @author Ignacy Debicki
+ * @return boolean If update was succesfull
+ */
 function remove_avatar(){ 
     //remove entry from database
-    set_avatar("");
+    return set_avatar("");
 }
-
-function get_notifications($from,$limit){
+/**
+ * Gets notifications for the current session user
+ * @author Ignacy Debicki
+ * @param  integer $to    Timestamp to fetch notifications up to
+ * @param  integer $limit Maximum number of records to return
+ * @return array   Array of notification objects with keys: idNotification, type, title, message, timestamp, opened
+ */
+function get_notifications($to,$limit){
     //if from 0, set to curent timestamp
-    $_POST["original"]=array($from,$limit);
-    $from = (int)($from!=0) ? $from : time();
+    $_POST["original"]=array($to,$limit);
+    $to = (int)($to!=0) ? $to : time();
     //if number 0, set infinity
     $limit = (int)($limit>0) ? $limit : PHP_INT_MAX;
-    $_POST['additional']=array($from,$limit,$_SESSION["user"]);
+    $_POST['additional']=array($to,$limit,$_SESSION["user"]);
     //fetch records
     $conn = request_connection();
     $stmt = $conn->prepare('SELECT `idNotification`,`type`,`title`,`message`,UNIX_TIMESTAMP(`timestamp`) AS timestamp,`opened` FROM `Notification` WHERE `user` = :username AND UNIX_TIMESTAMP(`timestamp`) < :timestamp ORDER BY `timestamp` DESC LIMIT :limit');
     $stmt->bindParam(':username',$_SESSION["user"],PDO::PARAM_STR);
-    $stmt->bindParam(':timestamp',$from,PDO::PARAM_INT);
+    $stmt->bindParam(':timestamp',$to,PDO::PARAM_INT);
     $stmt->bindParam(':limit',$limit,PDO::PARAM_INT);
     $stmt->execute();
     $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     return $result;
 }
-
+/**
+ * Marks notification as read
+ * @author Ignacy Debicki
+ * @param  array   $msgIDs Array of notification ids to set as read
+ * @return boolean If update was succesfull
+ */
 function mark_as_read($msgIDs){
     $where_in = implode(',', $msgIDs);
     $conn = request_connection();
@@ -203,7 +253,15 @@ function mark_as_read($msgIDs){
        throw new Exception("Failed to write all to database",501); 
     }
 }
-
+/**
+ * Creates and sends a new notification to a user
+ * @author Ignacy Debicki
+ * @param  string  $user    Username of user
+ * @param  string  $type    Type of notification
+ * @param  string  $title   Title of message
+ * @param  string  $message Message content of notification
+ * @return boolean If creation and sending was succesfull
+ */
 function create_notification($user,$type,$title,$message){
     $conn = request_connection();
     $stmt = $conn->prepare('INSERT INTO Notification (user,type,title,message) VALUES(:user,:type,:title,:message)');
@@ -215,16 +273,29 @@ function create_notification($user,$type,$title,$message){
        throw new Exception("Failed to write to database",501); 
     }
 }
-
+/**
+ * Updates a value of a notification
+ * @author Ignacy Debicki
+ * @param integer $id     Identifier of notification to update
+ * @param object  $update Dictionary of columns and values to update in format {field => $value}
+ * @return boolean If updates were succesfull
+ */
 function update_notification($id,$update){
-    //update to be passed in as dictionary of column:updatedValue
+    //update to be passed in as dictionary of field:updatedValue
     
     foreach($update as $column => $value){
         update_notification_column($id,$column,$value);
     }
-    
+    return true
 }
-
+/**
+ * Updates a field for the notification
+ * @author Ignacy Debicki
+ * @param  integer $id     ID of notification to update
+ * @param  string  $column Name of field to update. Can only have values of: type,title or message
+ * @param  string  $value  Value to chenge the field to
+ * @return boolean If update was succesfull
+ */
 function update_notification_column($id,$column,$value){
     $allowedColumns = ["type","title","message"];
     if (in_array($column,$allowedColumns,true)){
@@ -242,7 +313,12 @@ function update_notification_column($id,$column,$value){
         throw new Exception('Invalid column value',402);
     }
 }
-
+/**
+ * Creates and sends a new friend request
+ * @author Ignacy Debicki
+ * @param  string  $userTo Username of user
+ * @return boolean If sending was succesfull
+ */
 function create_friend_request($userTo){
     $conn = request_connection();
     $stmtCheck = $conn->prepare('SELECT * FROM Friend WHERE (user_sender = :userTo AND user_reciever = :userFrom) OR (user_sender = :userFrom AND user_reciever = :userTo)');
@@ -292,7 +368,12 @@ function create_friend_request($userTo){
        throw new Exception("Failed to write to database",501); 
     }
 }
-
+/**
+ * Deletes an unaccepted friend request
+ * @author Ignacy Debicki
+ * @param  string  $userTo User the invite ws originally sent to
+ * @return boolean If deletion ws succesfull
+ */
 function delete_friend_request($userTo){
     $conn = request_connection();
     $stmt = $conn->prepare('DELETE FROM Friend WHERE user_sender = :userFrom AND user_reciever = :userTo AND accepted IS NULL');
@@ -304,7 +385,12 @@ function delete_friend_request($userTo){
        throw new Exception("Failed to write to database",501); 
     }
 }
-
+/**
+ * Accepts a friend request
+ * @author Ignacy Debicki
+ * @param  string  $userFrom Who the friend request was from
+ * @return boolean If acceptation was succesfull
+ */
 function accept_friend_request($userFrom){
     $conn = request_connection();
     $stmt = $conn->prepare('UPDATE Friend SET accepted = 1 WHERE user_sender = :userFrom AND user_reciever = :userTo AND accepted IS NULL');
@@ -316,7 +402,12 @@ function accept_friend_request($userFrom){
        throw new Exception("Failed to write to database",501); 
     }
 }
-
+/**
+ * Refuses a freind request from a user
+ * @author Ignacy Debicki
+ * @param  string  $userFrom User the request is from
+ * @return boolean IF refusal was succesfull
+ */
 function refuse_friend_request($userFrom){
     $conn = request_connection();
     $stmt = $conn->prepare('DELETE FROM Friend WHERE user_sender = :userFrom AND user_reciever = :userTo AND accepted IS NULL');
@@ -328,7 +419,12 @@ function refuse_friend_request($userFrom){
        throw new Exception("Failed to write to database",501); 
     }
 }
-
+/**
+ * Deletes a friend
+ * @author Ignacy Debicki
+ * @param  string  $user Username of friend to delete
+ * @return boolean If deletion was succesfull
+ */
 function delete_friend($user){
     $conn = request_connection();
     $stmt = $conn->prepare('DELETE FROM Friend WHERE ((user_sender = :user AND user_reciever = :user2) OR (user_sender = :user2 AND user_reciever = :user)) AND accepted = 1');
@@ -340,7 +436,12 @@ function delete_friend($user){
        throw new Exception("Failed to write to database",501); 
     }
 }
-
+/**
+ * Marks a friend request as read
+ * @author Ignacy Debicki
+ * @param  string  $userFrom The user the request is from
+ * @return boolean if update was succesfull
+ */
 function mark_fr_as_read($userFrom){
     $conn = request_connection();
     $stmt = $conn->prepare('UPDATE Friend SET opened = 1 WHERE user_sender = :userFrom AND user_reciever = :userTo');
@@ -352,7 +453,12 @@ function mark_fr_as_read($userFrom){
        throw new Exception("Failed to write to database",501); 
     }
 }
-
+/**
+ * Blocks the specified user from interacting with the curent user
+ * @author Ignacy Debicki
+ * @param  string  $user Username of user to block
+ * @return boolean If block was succesfull
+ */
 function block_user($user){
     $conn = request_connection();
     $stmtCheck = $conn->prepare('DELETE FROM Friend WHERE ((user_sender = :userTo AND user_reciever = :userFrom) OR (user_sender = :userFrom AND user_reciever = :userTo)) AND (accepted = 1 OR accepted IS NULL)');
@@ -366,7 +472,12 @@ function block_user($user){
        throw new Exception("Failed to write to database",501); 
     }
 }
-
+/**
+ * Unblocks a user
+ * @author Ignacy Debicki
+ * @param  string  $user Username of user to unblock
+ * @return boolean If succesfull
+ */
 function unblock_user($user){
     $conn = request_connection();
     $stmt = $conn->prepare('DELETE FROM Friend WHERE user_sender = :userFrom AND user_reciever = :userTo AND accepted = 0');
@@ -378,7 +489,12 @@ function unblock_user($user){
        throw new Exception("Failed to write to database",501); 
     }
 }
-
+/**
+ * Fetches friends of a user
+ * @author Ignacy Debicki
+ * @param  string $user User to fetch friends for. Pass "" for the current session's user
+ * @return array  Array of friend's usernames
+ */
 function get_friends($user){
     if (!$user){
         $user=$_SESSION["user"];
@@ -402,7 +518,11 @@ function get_friends($user){
     }
     return $friendsList;
 }
-
+/**
+ * Gets all friend requests that have not been replied to for the current user
+ * @author Ignacy Debicki
+ * @return array Array of usernames from whom the user has recieved friend requests from and not replied
+ */
 function get_friend_requests(){
     $conn = request_connection();
     $stmt = $conn->prepare('SELECT user_sender FROM Friend WHERE user_reciever = :user AND accepted IS NULL');
@@ -419,7 +539,11 @@ function get_friend_requests(){
     }
     return $friendRequestList;
 }
-
+/**
+ * Gets all friend requests that have been sent by the user and have not been replied to
+ * @author Ignacy Debicki
+ * @return array Array of usernames requests have been sent to
+ */
 function get_sent_friend_requests(){
     $conn = request_connection();
     $stmt = $conn->prepare('SELECT user_reciever FROM Friend WHERE user_sender = :user AND accepted IS NULL');
@@ -437,7 +561,11 @@ function get_sent_friend_requests(){
     }
     return $friendRequestSentList;
 }
-
+/**
+ * Gets a list of all users blocked by the current user
+ * @author Ignacy Debicki
+ * @return array Array of usernames blocked by the current user
+ */
 function get_blocked_users(){
     $conn = request_connection();
     $stmt = $conn->prepare('SELECT user_reciever FROM Friend WHERE user_sender = :user AND accepted = 0');
@@ -454,7 +582,12 @@ function get_blocked_users(){
     }
     return $blockedList;
 }
-
+/**
+ * Search through the username database with a rough search using a search phrase. Returns all usernames containing the search stirng as a substring
+ * @author Ignacy Debicki
+ * @param  string $needle The search string
+ * @return array  Array of usernames matched by the search
+ */
 function get_all_users($needle){
     $conn = request_connection();
     $stmt = $conn->prepare("SELECT username FROM User WHERE CONVERT(username USING latin1) COLLATE latin1_swedish_ci LIKE :needle AND username != :user ORDER BY username ASC");
@@ -467,7 +600,12 @@ function get_all_users($needle){
     }
     return $resultList;
 }
-
+/**
+ * Searches through the username database o find users which match exactly (case insensitive) to the search string
+ * @author Ignacy Debicki
+ * @param  string $needle The search string
+ * @return array  Array of usernames which have matched the search
+ */
 function get_exact_users($needle){
     $conn = request_connection();
     $stmt = $conn->prepare("SELECT username FROM User WHERE CONVERT(username USING latin1) COLLATE latin1_swedish_ci = :needle AND username != :user ORDER BY username ASC");

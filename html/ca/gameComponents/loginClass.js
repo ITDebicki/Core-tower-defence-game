@@ -803,7 +803,7 @@ window.login=(function(){
         logout: function(callback){
             logout(callback);
         },
-        createAccount(user,pass,passR,email,callback){
+        createAccount: function(user,pass,passR,email,callback){
             createAccount(user,pass,passR,email,callback);
         },
         isLoggedIn: function(){
@@ -889,7 +889,7 @@ window.login=(function(){
         userRank: function(user,map,timespan,callback){
             userRank(user,map,timespan,callback);
         },
-        getUserHighScores(user,callback){
+        getUserHighScores: function(user,callback){
             getUserHighScores(user,callback);
         },
         getAllMaps: function(callback){

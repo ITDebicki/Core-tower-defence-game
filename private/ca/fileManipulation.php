@@ -1,5 +1,11 @@
 <?php
     require_once("dbInteractions.php");
+    /**
+     * Parses the filetype of a file
+     * @author Ignacy Debicki
+     * @param  object $file File to get filetype of
+     * @return string The filetype of the file
+     */
     function get_filetype($file){
         $info = getimagesize($file['tmp_name'][0]);
         if ($info === FALSE) {
@@ -21,7 +27,11 @@
         }
         
     }
-
+    /**
+     * Checks the file size of a file to be below 2 MiB
+     * @author Ignacy Debicki
+     * @param object $file File
+     */
     function check_file_size($file){
        $filesize = filesize($file['tmp_name'][0]);
         //allowed file size <= 1 MiB
@@ -29,7 +39,11 @@
            throw new Exception("File larger than 1 MiB",603);
         }
     }
-    
+    /**
+     * Generates a random 10 character name
+     * @author Ignacy Debicki
+     * @return string Random string generated
+     */
     function generate_filename(){
          $characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMONPQRSTUVWXYZ0123456789';
          $filename = '';
@@ -38,7 +52,13 @@
          }
         return $filename;
     }
-
+    /**
+     * Uploads a file and assigns it to the user / save
+     * @author Ignacy Debicki
+     * @param  object  $file           File to upload
+     * @param  string  $targetLocation Where to upload to. Either "avatars" or "mapThumbnails"
+     * @return boolean If succesfull
+     */
     function upload_file($file,$targetLocation){
         try{
             $target_dir = "/var/www/html/ca/restricted/images/";
@@ -82,7 +102,12 @@
             throw $e;   
         }
     }
-    
+    /**
+     * Scales and crops a file to a width and height of 250 px
+     * @author Ignacy Debicki
+     * @param object $file File to scale
+     * @param string $ext  Extenstion of file
+     */
     function scale_file($file,$ext){
         try{
             $height = 250;
@@ -96,7 +121,11 @@
             throw new Exception("Failed to scale image",606,$e);
         }
     }
-
+/**
+ * Removes an avatar file from the directory
+ * @author Ignacy Debicki
+ * @param string $file Name of file
+ */
 function remove_avatar_file($file){
     try{
         if ($file!=NULL || $file!=""){
