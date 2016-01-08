@@ -27,6 +27,7 @@
                             if (this.files[0].size > 1048576 || this.files.length > 1){
                                 alert("Please upload one file which is not greater than 2MiB"); 
                             }else if(this.files[0]){
+                                console.log("Changed...");
                                 formdata.append("MAX_FILE_SIZE","1048576");
                                 formdata.append("userfile[]", this.files[0]);
                                 formdata.append("action","uploadAvatar");
@@ -42,6 +43,7 @@
 
                         //send form
                         if (formdata) {
+                            console.log("Uploading...")
                             window.login.uploadAvatar(formdata,uploadAvatarHandler);
                         }
 
@@ -98,6 +100,7 @@
                  * @param {number}  errorCode Error code
                  */
                 function uploadAvatarHandler(success,error,errorCode){
+                    console.log("Response...",success,error,errorCode)
                     $("#avatarUploadText").removeClass("hover");
                     formdata = new FormData();
                     $("#avatarSelector").files=[];

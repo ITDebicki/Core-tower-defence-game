@@ -4,7 +4,9 @@ require_once("../../../private/ca/dbInteractions.php");
 require_once("../../../private/ca/sessionFunctions.php");
 require_once("../../../private/ca/generalFunctions.php");
 require_once("../../../private/ca/fileManipulation.php");
-protected_page_check_session_credentials();
+if ( !in_array($_POST['action'],["getMapList","getHighScoreList","fetchAvatar"])){
+    protected_page_check_session_credentials();
+}
 header('Content-Type: application/json');
 try{
     $jsonData = null;
@@ -99,7 +101,7 @@ try{
             $result = add_score($jsonData["map"],$jsonData["score"]);
             break;
         case "isHighScore":
-            $result = is_high_score($user,$jsonData["map"],$jsonData["score"]);
+            $result = is_high_score($jsonData["map"],$jsonData["score"]);
             break;
         case "userRank":
             $result = user_rank($user,$jsonData["map"],$jsonData["timespan"]);
@@ -109,6 +111,12 @@ try{
             break;
         case "getMapList":
             $result = get_map_list();
+            break;
+        case "getHighScoreList":
+            $result = get_highscore_list($jsonData["map"],$jsonData["limit"],$jsonData["from"],$json["to"]);
+            break;
+        case "getUserHighScoreForMap":
+            $result = get_user_high_score_for_map($user,$jsonData["map"],$jsonData["from"],$json["to"]);
             break;
         default:
             throw new Exception("POST parameter 'action' not correct",100);

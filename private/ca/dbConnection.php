@@ -20,8 +20,9 @@ function create_connection(){
     try {
         $config = parse_ini_file('caDB.ini');
         $conn = new PDO('mysql' . ':host=' . $config['dbHost'] . ';dbname=' . $config['db'],$config['dbPHPUser'], $config['dbPHPPass']);
+        //$conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         date_default_timezone_set($config['dbTimezone']);
-        //$current_connection = $conn;
         return $conn;
     } catch(PDOException $e){
         throw new Exception("Failed to initiate connection",102,$e);

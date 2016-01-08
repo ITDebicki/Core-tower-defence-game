@@ -1,0 +1,163 @@
+
+#endGameScreenOverlay {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 100%;
+    opacity: 0.01;
+    background-color: lightgray;
+    z-index: 50;
+}
+
+#scoreDiv {
+    position: absolute;
+    z-index: 51;
+    left:140px;
+    top:80px;
+    border-width: 5px;
+    border-radius: 3px;
+    border-color: orange;
+    font-size: 25pt;
+    background-color: lightgoldenrodyellow;
+    width: 250px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+#scoreTitle {
+    display: inline-block;
+}
+
+#scoreValue {
+    display: inline-block;
+}
+
+#statisticsList {
+    z-index: 51;
+    position: absolute;
+    top: 220px;
+    left: 140px;
+    width: 250px;
+}
+
+.statistic{
+    margin-top: 10px;
+}
+
+.statisticTitle{
+    font-size: 18pt;
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.statisticValue{
+    display: inline-block;
+    font-size:  18pt;
+}
+
+#exitButtonDiv {
+    position: absolute;
+    top: 550px;
+    left: 470px;
+    z-index: 51;
+}
+
+#exitButton{
+    width: 160px;
+    height: 40px;
+    color:black;
+    text-align: center;
+    font-size: 1em;
+    border-radius: 25px; 
+}
+#leaderBoardDiv {
+    position: absolute;
+    z-index: 51;
+    width: 300px;
+    left: 640px;
+    top: 80px;
+}
+
+#leadrboardTitle {
+    position: absolute;
+    left: 5px;
+    font-size: 22pt;
+}
+
+#refreshLeaderboardButton {
+    float:right;
+    position: relative;
+    height: 30px;
+    color:black;
+    vertical-align: middle;
+    text-align: center;
+    font-size: 11pt;
+    border-radius: 7px; 
+    background-color: aliceblue;
+    border-color: aliceblue;
+    margin-right: 10px;
+}
+
+#leaderboardList {
+    position: relative;
+    top: 10px;
+    height: 370px;
+    width:300px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+.highscore{
+    position: relative;
+    background-color: rgba(246, 234, 193, 0.75);
+    margin-top: 10px;
+    padding: 5px 5 5 5px;
+    border-radius: 5px;
+}
+
+.highscoreRank{
+    display: inline-block;
+    font-size: 22pt;
+    margin-right: 3px;
+    vertical-align: super;
+    color: #106675;
+}
+
+.highscoreAvatar{
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    margin-right: 10px;
+}
+
+.highscoreUser{
+    display: inline-block;
+    vertical-align: 12px;
+    font-size: 18pt;
+    font-weight: bold;
+}
+
+.highscoreScore{
+    display: inline-block;
+    position: absolute;
+    right: 10px;
+    top: 16px;
+    font-size: 18pt;
+}
+
+.dateDiv{
+    display: block;
+    position: relative;
+    left: 160px;
+    font-size: 10pt;
+    color: gray;
+}
+
+.isCurrentUser.highscore {
+	background-color: rgba(14, 90, 103, 0.75)
+}
+
+.isCurrentUser.highscore .highscoreRank {
+	color: #F6EAC1;
+}

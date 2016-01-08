@@ -1,4 +1,5 @@
 .overlay{
+    z-index:101;
     position: absolute;
     left: 0px;
     top: 0px;
@@ -8,6 +9,7 @@
     background-color: lightgray;
 }
 .score{
+    z-index:102;
     position: relative;
     width: calc( 100% - 10px);
     height: 50px;
@@ -17,6 +19,7 @@
     margin-top: 5px;
 }
 .scoreRank{
+    z-index:102;
     position: relative;
     display: inline-block;
     left: 10px;
@@ -28,6 +31,7 @@
     margin-right: 3px;
 }
 .scoreMap{
+    z-index:102;
     position: absolute;
     display: inline-block;
     top: 21px;
@@ -37,6 +41,7 @@
     margin-right: 3px;
 }
 .scoreScore{
+    z-index:102;
     position: absolute;
     display: inline-block;
     right: 10px;
@@ -46,6 +51,7 @@
     margin-right: 3px;
 }
 .scoreDate{
+    z-index:102;
     position: absolute;
     right:5px;
     bottom: 5px;
@@ -55,6 +61,7 @@
     margin-right: 3px;
 }
 .userProfileButtonDiv #userProfileBackButton{
+    z-index:102;
     width: 160px;
     height: 40px;
     color:black;
@@ -64,6 +71,7 @@
     margin-bottom: 30px;  
 }
 #userProfileBackButton{
+    z-index:102;
     position: absolute;
     left:10px;
     top:10px;
@@ -71,6 +79,7 @@
 
 
 #userProfileAvatar {
+    z-index:102;
     position: absolute;
     left: 200px;
     top: 60px;
@@ -79,6 +88,7 @@
 }
 
 #userInfo {
+    z-index:102;
     position: absolute;
     left: 200px;
     top: 220px;
@@ -87,6 +97,7 @@
 }
 
 #userScoresListContainer {
+    z-index:102;
     position: absolute;
     left: 600px;
     top: 60px;
@@ -94,6 +105,7 @@
 }
 
 #userScoresTitle {
+    z-index:102;
     vertical-align: middle;
     display: inline-block;
     font-size: 20pt;
@@ -101,6 +113,7 @@
 }
 
 #userProfileHighScoreRefreshButton {
+    z-index:102;
     position: absolute;
     display: inline-block;
     right: 0px;
@@ -117,8 +130,13 @@
 }
 
 #userProfileScoresList {
+    z-index:102;
     margin-top: 3px;
     width: 100%;
     overflow-y:scroll;
     max-height:300px;
+}
+
+#userProfileContentWrapper {
+    z-index: 100;
 }

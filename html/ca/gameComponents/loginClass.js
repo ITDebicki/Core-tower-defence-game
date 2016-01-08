@@ -10,10 +10,10 @@ window.login=(function(){
      */
     function inspectIsOpen()
     {
-        console.profile(); 
-        console.profileEnd(); 
-        if (console.clear) console.clear();
-        return console.profiles.length > 0;
+        return false;
+        /*
+        Could use lib https://github.com/zswang/jdetects
+        */
     }
     /**
      * Fetches the avatar for the suer
@@ -264,7 +264,7 @@ window.login=(function(){
             success: function (response) {
                 if(response["success"]==true){
                     //need to set new userAvatar
-                    userAvatar=null;
+                    userAvatarCache[username]=null;
                 }
                 callback(response["success"],response["error"],response["errorCode"]);
             },
@@ -655,6 +655,7 @@ window.login=(function(){
             dataType: "json",
             data: { "action": "addScore", "json":'{"map":"'+map+'","score":'+score+' }'},
             success: function(response){ 
+                console.log("SS",response);
                 if (response["success"]==true){
                     callback(true,response["data"]);
                 }else{
@@ -786,7 +787,63 @@ window.login=(function(){
             error:logError
         });
     }
+    /**
+     * Loads the leaderboard for that map, returning the first (limit) entries, in the specified timespan
+     * @author Ignacy Debicki
+     * @param {number}   map      Map id of map to fetch 
+     * @param {number}   limit    Maximum no. of records to fetch
+     * @param {object}   timespan Dictionary describing time period to fetch highscores from. in format {"from":fromTimestamp,"to":toTimestamp} set "to" = 0 for current timestamp
+     * @param {function} callback Function to perform upon completion. Will be passed parameters: success,data,errorCode
+     *                            Data will be Either the error message (if success==false) or the data in format:
+     *                              [{"user":user,"score":score,"timestamp":timestamp}], in order of rank
+     */
+    function loadLeaderBoard(map,limit,timespan,callback){
+        $.ajax({
+            url: 'restricted/performAction.php',
+            type: 'POST',
+            method: 'POST',
+            dataType: "json",
+            data: { "action": "getHighScoreList", "json":'{"map":'+map+',"limit":'+limit+',"from":'+timespan["from"]+',"to":'+timespan["to"]+'}'},
+            success: function(response){ 
+                console.log(response);
+                if (response["success"]==true){
+                    callback(true,response["data"]);
+                }else{
+                    callback(false,response["error"],response["errorCode"]); 
+                }
+            },
+            error:logError
+        });
+    }
     
+    /**
+     * Gets the user's highscore for a specific rank
+     * @author Ignacy Debicki
+     * @param {number} map      Map id
+     * @param {string} user     Username
+     * @param {object} timespan Dictionary describing time period to fetch highscores from. in format {"from":fromTimestamp,"to":toTimestamp} set "to" = 0 for current timestamp
+     * @param {function} callback Function to perform upon completion. Will be passed parameters: success,data,errorCode
+     *                            Data will be Either the error message (if success==false) or the data in format:
+     *                              [{"rank":rank,"score":score,"timestamp":timestamp}], in order of rank
+     */
+    function getUserHighScoreForMap(map,user,timespan,callback){
+        $.ajax({
+            url: 'restricted/performAction.php',
+            type: 'POST',
+            method: 'POST',
+            dataType: "json",
+            data: { "action": "getUserHighScoreForMap", "json":'{"map":'+map+',"from":'+timespan["from"]+',"to":'+timespan["to"]+',"user":"'+user+'"}'},
+            success: function(response){ 
+                console.log(response,"GUHSFG");
+                if (response["success"]==true){
+                    callback(true,response["data"]);
+                }else{
+                    callback(false,response["error"],response["errorCode"]); 
+                }
+            },
+            error:logError
+        });
+    }
     return{
         login:function(user,pass,callback){
             login(user,pass,callback);
@@ -881,7 +938,10 @@ window.login=(function(){
                 console.error("Stop trying to cheat!!");
                 //possibly implement a strikes system?
                 return false;
-            }  
+            }else{
+                setScore(score,map,callback);
+            }
+           
         },
         isHighScore: function(user,score,map,callback){
             isHighScore(user,score,map,callback);
@@ -894,6 +954,12 @@ window.login=(function(){
         },
         getAllMaps: function(callback){
             getAllMaps(callback);
+        },
+        loadLeaderBoard: function(map,limit,timespan,callback){
+            loadLeaderBoard(map,limit,timespan,callback);
+        },
+        getUserHighScoreForMap: function(map,user,timespan,callback){
+            getUserHighScoreForMap(map,user,timespan,callback);
         }
         
     }

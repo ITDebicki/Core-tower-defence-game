@@ -275,6 +275,7 @@
                 var activeAJAX = 0;
                 
                 $("document").ready(function(){
+                    console.log("Loading maps");
                     hideText(1);
                     hideControls(1);
                     fetchAvailableMaps();
@@ -346,6 +347,7 @@
                                 }
                             }   
                         }else{
+                            console.log("error",data,errorCode);
                             alert(data,errorCode);
                         }
                     });

@@ -197,8 +197,7 @@ function set_avatar($filename){
  * @return boolean If succesfull
  */
 function set_thumbnail($filename,$save){
-    
-   return true 
+   return true ;
 }
 /**
  * Removes the user's avatar and sets the default avatar
@@ -286,7 +285,7 @@ function update_notification($id,$update){
     foreach($update as $column => $value){
         update_notification_column($id,$column,$value);
     }
-    return true
+    return true;
 }
 /**
  * Updates a field for the notification
@@ -627,7 +626,9 @@ function get_exact_users($needle){
  */
 function add_score($map,$score){
     $isNewHighscore = is_high_score($map,$score);
+    $_POST["isNew"]=$isNewHighscore;
     if ($isNewHighscore==1){
+        $conn = request_connection();
         $stmt = $conn->prepare('UPDATE Score SET scoreVal=:score WHERE user=:user AND map=:map');
         $stmt->execute(array(':user' => $_SESSION["user"],':map' => $map,':score' => $score));
         $affectedRows = $stmt->rowCount();
@@ -637,10 +638,12 @@ function add_score($map,$score){
            throw new Exception("Failed to write to database",501); 
         }
     }elseif($isNewHighscore == 2){
+        $conn = request_connection();
         $stmt = $conn->prepare('INSERT INTO Score (user,map,scoreVal) VALUES(:user,:map, :score)');
         $stmt->execute(array(':user' => $_SESSION["user"],':map' => $map,':score' => $score));
         $affectedRows = $stmt->rowCount();
         if ($affectedRows >= 1){
+            $_POST["ad4"]=[$_SESSION["user"],$map,array("from"=>0,"to"=>0)];
             return user_rank($_SESSION["user"],$map,array("from"=>0,"to"=>0));
         }else{
            throw new Exception("Failed to write to database",501); 
@@ -653,21 +656,20 @@ function add_score($map,$score){
 /**
  * Checks if the score for that map for that user is a new highscore for the user
  * @author Ignacy Debicki
- * @param  string  $user  Username of user to check for
  * @param  integer $map   Map identifier of map fow which to check
  * @param  integer $score Score to check against
  * @return integer returns 0 if false, 1 if higher than previous score and 2 if no previous score exists
  */
-function is_high_score($user,$map,$score){
+function is_high_score($map,$score){
     $conn = request_connection();
     $stmt = $conn->prepare("SELECT scoreVal FROM Score WHERE user = :user AND map = :map");
     $stmt->execute(array(':map'=>$map, ':user'=>$_SESSION["user"]));
     $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
     if(isset($result[0]["scoreVal"])){
         if ($result[0]["scoreVal"]<$score){
-            return true;
+            return 1;
         }else{
-            return false;
+            return 0;
         }
     }else{
         return 2;
@@ -682,11 +684,7 @@ function is_high_score($user,$map,$score){
  * @return integer Rank of the user. 0 If user does not have high score on the map
  */
 function user_rank($user,$map,$timespan){
-    if ($timespan["to"]==0){
-        $timespan["to"]=date('Y-m-d G:i:s');
-    }
-    $conn = request_connection();
-    $stmt = $conn->prepare("SELECT 
+    $sql = "SELECT 
                                 IF((SELECT idScore FROM Score WHERE BINARY user=:user AND map=:map)>0,count(*)+1,0)
                             AS rank FROM 
                                 (SELECT count(*) FROM Score WHERE map=:map 
@@ -699,8 +697,23 @@ function user_rank($user,$map,$timespan){
                                 AND user != :user
                                 )
                                 ) AND timestamp >= :from AND timestamp <= :to GROUP BY idScore)
-                            AS groupHigher");
-    $stmt->execute(array(':user'=>$user,':map'=>$map,':from'=>$timespan["from"],':to'=>$timespan["to"]));
+                            AS groupHigher";
+    if ($timespan["to"]==0 || $timespan["to"]==null){
+        $sql = str_replace(":to",'CURRENT_TIMESTAMP()',$sql);
+    }
+    if (!$timespan["from"]){
+        $timespan["from"]=0;
+    }
+    $_POST["a"]=[$user,$map,$timespan];
+    $conn = request_connection();
+    $stmt = $conn->prepare($sql);
+    $stmt->bindValue(':map',$map,PDO::PARAM_INT);
+    $stmt->bindValue(':from',$timespan["from"],PDO::PARAM_INT);
+    if (strpos($sql,":to")){
+        $stmt->bindValue(':to',$timespan["to"],PDO::PARAM_INT);
+    }
+    $stmt->bindValue(':user',$user,PDO::PARAM_STR);
+    $stmt->execute();
     $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
     if(isset($result[0]["rank"])){
         return $result[0]["rank"];
@@ -732,6 +745,51 @@ function get_user_high_scores($user){
     
     return $highScoreList;
 }
+
+/**
+ * Gets a user's highscore for a specific map in the specific timespan
+ * @author Ignacy Debicki
+ * @param  string  $user Username of user to fetch
+ * @param  integer $map  Id of map
+ * @param  integer $from UNIX timestamp from (inclusive)
+ * @param  integer $to   Unix timestamp to (inclusive) - Set to 0 for current timestamp
+ * @return array   Array of values ["score"=>score,"rank"=>rank,"timestamp"=>timestamp]
+ */
+function get_user_high_score_for_map($user,$map,$from,$to){
+    $sql='SELECT scoreVal AS score, UNIX_TIMESTAMP(timestamp) AS timestamp FROM Score WHERE user = :user AND map = :map AND timestamp >= :from AND timestamp <= :to';
+    if ($to==0 || !$to){
+        $_POST["toReplace"]=true;
+        $sql = str_replace(":to",'CURRENT_TIMESTAMP()',$sql);
+    }
+    $conn = request_connection();
+    $stmt = $conn->prepare($sql);
+    $stmt->bindValue(':map',$map,PDO::PARAM_INT);
+    $stmt->bindValue(':from',$from,PDO::PARAM_INT);
+    if (strpos($sql,":to")){
+        $_POST["toBind"]=true;
+        $stmt->bindValue(':to',$to,PDO::PARAM_INT);
+    }
+    $stmt->bindValue(':user',$user,PDO::PARAM_STR);
+    $_POST["val"]=[$user,$map,$from,$to];
+    $stmt->execute();
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $_POST["result1"]=$result;
+    if (!$to){
+        $to=0;
+    }
+    if(!$from){
+        $from=0;
+    }
+    $rank = user_rank($user,$map,["from"=>$from,"to"=>$to]);
+    $_POST["rank"]=$rank;
+    try{
+        $result[0]["rank"]=$rank;
+        return $result[0];
+    }catch(Exception $e){
+        return [];
+    }
+    
+}
 /**
  * Gets all maps and returns them in an array acording to their levelNo
  * @author Ignacy Debicki
@@ -740,10 +798,35 @@ function get_user_high_scores($user){
  */
 function get_map_list(){
     $conn = request_connection();
-    $stmt = $conn->prepare("SELECT idMap AS id,mapName AS name,mapDescription AS description,mapFile AS file,mapImage AS image FROM Map ORDER BY levelNo ASC");
+    $stmt = $conn->prepare("SELECT idMap AS id, mapName AS name, mapDescription AS description, mapFile AS file, mapImage AS image FROM Map ORDER BY levelNo ASC");
     $stmt->execute();
     $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
     return $result;
 }
-
+/**
+ * Gets the highscore list for the map in that timespan
+ * @author Ignacy Debicki
+ * @param  integer $map   Id of map for which to fetch the highscore
+ * @param  integer $limit Maximum no. of records to fetch
+ * @param  integer $from  Timestamp from when to find rank
+ * @param  integer $to    Timestamp up to when to find rank
+ * @return array   Array of highscores arranged by rank for the map in the format [{"user"=>$user,"score"=>score,"timestamp" => timestamp}]
+ */
+function get_highscore_list($map,$limit,$from,$to){
+    $sql='SELECT user, scoreVal AS score, UNIX_TIMESTAMP(timestamp) AS timestamp FROM Score WHERE map = :map AND timestamp >= :from AND timestamp <= :to ORDER BY scoreVal DESC, timestamp ASC LIMIT :limit';
+    if ($to==0){
+        $sql = str_replace(":to",'CURRENT_TIMESTAMP()',$sql);
+    }
+    $conn = request_connection();
+    $stmt = $conn->prepare($sql);
+    $stmt->bindValue(':map',$map,PDO::PARAM_INT);
+    $stmt->bindValue(':from',$from,PDO::PARAM_INT);
+    if (strpos($sql,":to")){
+        $stmt->bindValue(':to',$to,PDO::PARAM_INT);
+    }
+    $stmt->bindValue(':limit',$limit,PDO::PARAM_INT);
+    $stmt->execute();
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    return $result;
+}
 ?>

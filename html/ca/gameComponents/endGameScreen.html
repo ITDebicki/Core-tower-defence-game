@@ -1,0 +1,397 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="gameComponents/endGameScreen.css">
+<script>
+    window.endGameScreen = (function(){
+        
+        
+        /**
+         * Returns the number of keys in an object
+         * @author Ignacy Debicki
+         * @param   {object} obj Object to check the size of
+         * @returns {number} No of keys in object
+         */
+        Object.size = function(obj) {
+            var size = 0, key;
+            for (key in obj) {
+                if (obj.hasOwnProperty(key)) size++;
+            }
+            return size;
+        };
+        
+        /**
+         * Generates a new ScrollList element
+         * @author Ignacy Debicki
+         * @param {object}   mainElement           The div element into which the list should be put
+         * @param {function} newElementConstructor Function to be called which will return a reference to an element of a list to be inserted. Accepts data argument
+         * @param {function} onElementPress        Fucntion to be called when a list element is pressed
+         * @param {function} onScroll              Function to be called when list is scrolled
+         */
+        function ScrollList(mainElement,newElementConstructor,onElementPress,onScroll){
+            this.primeElement=mainElement;
+            this.constructor=newElementConstructor;
+            this.onElementPress=onElementPress;
+            this.onScroll=onScroll;
+            if (this.onScroll){
+                $(this.primeElement).scroll(this.scroll);
+            }
+        }
+        ScrollList.prototype = {
+            /**
+             * Adds element to the list
+             * @author Ignacy Debicki
+             * @param {object} data Dictionary containing values to be passed into the newElementConstructor
+             */
+            addElement: function(data){
+                var element = this.constructor(data);
+                if (this.onElementPress){
+                    element.click(this.onElementPress);
+                }
+                $(this.primeElement).append(element);
+            },
+            /**
+             * Removes element from list
+             * @author Ignacy Debicki
+             * @param {string} id ID of the object to be removed
+             */
+            removeElement: function(id){
+                $(this.primeElement).children("#"+id).remove();
+            },
+            /**
+             * Clear the list with animation of retracting (200ms)
+             * @author Ignacy Debicki
+             * @param {function} callback Function to be performed upon completion
+             */
+            clearList: function(callback){
+                $(this.primeElement).velocity({
+                    scrollTop:0
+                },200,"swing",function(e){
+                    $(this).velocity("slideUp",200,function(){
+                        $(this).empty();
+                        $(this).velocity("slideDown",200);
+                        if(callback){callback();}
+                    });
+                });
+            },
+            /**
+             * Clears the list without animation
+             * @author Ignacy Debicki
+             * @param {function} callback Function to be performed upon completion
+             */
+            quickClearList: function(callback){
+                $(this.primeElement).empty();
+                if (callback){ callback(); }
+            },
+            /**
+             * Adds an array of elements to the list
+             * @author Ignacy Debicki
+             * @param {Array} dataArray Array containing data objects to be added via the addElement function
+             */
+            addElements:function(dataArray){
+                for (var i = 0;i<dataArray.length;i++){
+                    this.addElement(dataArray[i]);
+                }
+            }
+        };
+        
+        /**
+         * Checks if the console is open
+         * @author Ignacy Debicki
+         * @returns {boolean} If console is open
+         */
+        function inspectIsOpen()
+        {
+            return false;
+            /*
+            Could use lib https://github.com/zswang/jdetects
+            */
+        }
+        
+        var statsList = null;
+        var leaderBoard = null;
+        var currentMapId = null;
+        var isValid = true;
+        var leaderBoardDictionary = [];
+        var leaderBoardArray = [];
+        $("doument").ready(function(){
+            $("#endGameScreenOverlay").fadeTo(1,0.01);
+            $("#endGameScreenWrapper").fadeOut(1);
+            $("#invalidAlert").slideUp(1);
+            $("#highScoreDiv").slideUp(1);
+            $("#endGameScreenWrapper").fadeIn(400);
+            $("#endGameScreenOverlay").fadeTo(400,0.9);
+            $("#exitButton").click(window.game.exitGame);
+            $("#refreshLeaderboardButton").click(refreshHighScoreBoard);
+            statsList = new ScrollList("#statisticsList",createStatisticListElement);
+            leaderBoard = new ScrollList("#leaderboardList",createLeaderBoardElement,profilePressHandler);
+        });
+        
+        /**
+        * Creates a statistics list element
+         * @author Ignacy Debicki
+         * @param   {object} data Dictionary containing {"statistic":statisticDisplayName,"value":statisticDisplayValue}
+         * @returns {object} List element to be appended
+         */
+        function createStatisticListElement(data){
+            var statistic = data["statistic"];
+            var statisticValue = data["value"];
+            var container = $("<div class='statistic'>");
+            var statisticTitleDiv = $("<div class='statisticTitle'>"+statistic+"</div>");
+            var statisticValueDiv = $("<div class='statisticValue'>"+statisticValue+"</div>");
+            container.append(statisticTitleDiv)
+                .append(statisticValueDiv);
+            return container;  
+        }
+        
+        function createLeaderBoardElement(data){
+            console.log("adding element");
+            var username = data["user"];
+            var avatar = data["userAvatar"];
+            var rank = data["rank"];
+            var score = data["score"];
+            var timestamp = data["timestamp"];
+            var isCurrentUser = data["isCurrentUser"];
+            var date = new Date(timestamp * 1000);
+            var container = $("<div class='highscore'>");
+            var userAvatar = $('<img class="highscoreAvatar" src="' + avatar + '">');
+            var userUsername = $('<div class="highscoreUser">'+username+'</div>');
+            var rankDiv = $('<div class="highscoreRank">'+rank+'</div>');
+            var scoreDiv = $('<div class="highscoreScore">'+score+'</div>');
+            var dateDiv = $('<div class="dateDiv">'+date.toLocaleString()+'</div>')
+            container.append(rankDiv)
+                .append(userAvatar)
+                .append(userUsername)
+                .append(scoreDiv)
+                .append(dateDiv);
+            if (isCurrentUser){
+                container.addClass("isCurrentUser");
+            }
+            container.data("user",username);
+            return container;
+        }
+        
+        function loadAll(score,map,statistics){
+            currentMapId=map;
+            loadScore(score);
+            loadStatistics(statistics);
+            
+        }
+        
+        /**
+         * Loads statistics from dictionary. Formats ones the game supports
+         * @author Ignacy Debicki
+         * @param {object} statistics Dictionary containing key:value pairs of statistics and their values.
+         */
+        function loadStatistics(statistics){
+            Object.keys(statistics).forEach(function (key) {
+                var val  = statistics[key];
+                var displayText = "";
+                var displayValue = "";
+                switch(key){
+                    case "enemiesKilled":
+                        displayText = "Enemies killed:";
+                        displayValue = val;
+                        break;
+                    case "towersBuilt":
+                        displayText = "Towers built:";
+                        displayValue = val;
+                        break;
+                    case "towersUpgraded":
+                        displayText = "Towers upgraded:";
+                        displayValue = val;
+                        break;
+                    case "projectilesFired":
+                        displayText = "Projectiles fired:";
+                        displayValue = val;
+                        break;
+                    default:
+                        displayText = key;
+                        displayValue = val;
+                        break;
+               }
+                statsList.addElement({"statistic":displayText,"value":displayValue});
+            });
+        }
+        /**
+         * handler for returning data from leaderboard fetch
+         * @author Ignacy Debicki
+         * @param {boolean} success   If fetch was succesfull
+         * @param {object}  data      Either error, if success==false, or array of highscores in descending rank order in format:
+         *                              [{"user":user,"score":score,"timestamp",timestamp}]
+         * @param {number}  errorCode Error code if error occured
+         */
+        function loadLeaderBoardHandler(success,data,errorCode){
+            leaderBoardArray=[]
+            leaderBoardDictionary={};
+            if(success==true){
+                //clear board first
+                leaderBoard.quickClearList();
+                var currentUser = window.login.username();
+                var foundUser = false;
+                console.log(data,data.length);
+                for (var i =0;i<data.length;i++){
+                    var user = data[i]["user"];
+                    data[i]["isCurrentUser"]=false;
+                    if (user==currentUser && currentUser){
+                        foundUser = true;
+                        data[i]["isCurrentUser"]=true;
+                    }
+                    data[i]["rank"]=i+1;
+                    console.log(data[i]);
+                    leaderBoardDictionary[user]=data[i];
+                }
+                if (foundUser==false && window.login.isLoggedIn()){
+                    //get highscore of user as well
+                    console.log(currentMapId,currentUser);
+                    window.login.getUserHighScoreForMap(currentMapId,currentUser,{"from":0,"to":0},fetchUserHighScoreHandler);
+                }else{
+                    fetchAvatars();
+                }
+            }else{
+                alert(data,errorCode);
+            }
+        }
+        
+        function fetchUserHighScoreHandler(success,data,errorCode){
+            if (success == true){
+                if (data!==[]){
+                    var user = window.login.username();
+                    data["user"]=user;
+                    data["isCurrentUser"]=true;
+                    leaderBoardDictionary[user]=data;
+                }
+            }else{
+                alert(data,errorCode);
+            }
+            fetchAvatars();
+        }
+        /**
+         * Handler for pressing a profile
+         * @author Ignacy Debicki
+         * @param {object} evt Event caused by profile being pressed
+         */
+        function profilePressHandler(evt){
+            if (!$(evt.toElement).is("button")){
+                var user = $(this).data("user");
+                showUserProfile(user);
+            }
+        }
+        
+        /**
+         * Shows the user profile
+         * @author Ignacy Debicki
+         * @param {string} user Username of user to show
+         */
+        function showUserProfile(user){
+            showingProfileForUser = user;
+            loadElement("gameComponents/userProfileScreen.html","userProfileScreen",function(){
+                window.userProfile.loadUser(showingProfileForUser);
+            });
+        }
+        
+        function fetchAvatars(){
+            Object.keys(leaderBoardDictionary).forEach(function (user) {
+                window.login.fetchAvatar(user,avatarHandler);
+            });
+        }
+        
+        function avatarHandler(fileURL,user){
+            console.log("Loading avatars");
+            var userInfo = leaderBoardDictionary[user];
+            userInfo["userAvatar"]=fileURL;
+            leaderBoardArray.push(userInfo);
+            console.log(leaderBoardArray.length,Object.size(leaderBoardDictionary));
+            if (leaderBoardArray.length==Object.size(leaderBoardDictionary)){
+                leaderBoardArray = leaderBoardArray.sort(function(obj1,obj2){
+                    return obj1["rank"] - obj2["rank"];
+                });
+                leaderBoard.addElements(leaderBoardArray);
+            }
+        }
+        /**
+         * Displays the score and checks if it is a highscore
+         * @author Ignacy Debicki
+         * @param {number} score Score achieved
+         */
+        function loadScore(score){
+            $("#scoreValue").html(score);
+            if (isValid && window.login.isLoggedIn()){
+                window.login.setScore(score,currentMapId,highScoreCheckerHandler);
+            }else{
+                refreshHighScoreBoard();
+            }
+        }
+        /**
+         * Handler for checking if it is a new highscore
+         * @author Ignacy Debicki
+         * @param {boolean} success   If save was succesfull
+         * @param {object}  data      Either {string} error message or {number} new rank
+         * @param {number}  errorCode Error code
+         */
+        function highScoreCheckerHandler(success,data,errorCode){
+            console.log(success,data,errorCode,"HSCH");
+            if (success==true&&data!=false){
+                //do some effect
+                $("#highScoreDiv").slideDown(200);
+                $("#highScoreDiv").append("<div>New rank: "+data+"</div>");
+                $("#highScoreDiv").css("background-color","green");
+                $("#highScoreDiv").css("color","lavender");
+            }else if(errorCode){
+                alert(data,errorCode);
+            }
+            refreshHighScoreBoard();
+        }
+        
+        function refreshHighScoreBoard(){
+            //refresh highscore board
+            console.log(currentMapId,"currentMap");
+            window.login.loadLeaderBoard(currentMapId,10,{"from":0,"to":0},loadLeaderBoardHandler);
+        }
+        
+        return {
+            /**
+             * Initalises the page to the correct values
+             * @author Ignacy Debicki
+             * @param {number}  score      Score achieved in game
+             * @param {number}  map        Map id that score was achieved on
+             * @param {object}  statistics Dictionary of statistics the game kept track of
+             * @param {boolean} valid      If cheating was detected during the session
+             */
+            initialise: function(score,map,statistics,valid){
+                console.log("map",map);
+                if (inspectIsOpen() || valid==false){
+                    console.error("Stop cheating")
+                    isValid = false;
+                    $("#invalidAlert").slideDown(300);
+                }else{
+                    console.log("logged");
+                }
+                loadAll(score,map,statistics);
+            }
+        }
+        
+    })();
+    
+</script>
+</head>
+<body>
+    <div id="endGameScreenWrapper">
+        <div id="endGameScreenOverlay"></div>
+        <div id="invalidAlert">INVALID: Cheating was detected. This score will not be saved.</div>
+        <div id="scoreDiv">
+            <div id="highScoreDiv">Highscore!</div>
+            <div id="scoreTitle">Score:</div>
+            <div id="scoreValue">SCOREVAL</div>
+        </div>
+        <div id="statisticsList"></div>
+        <div id="leaderBoardDiv">
+            <div id="leadrboardTitle">Leaderboard</div>
+            <button id="refreshLeaderboardButton">Refresh</button>
+            <div id="leaderboardList"></div>
+        </div>
+        <div id="exitButtonDiv">
+        <button id="exitButton">Quit</button>
+        </div>
+    </div>
+</body>
+</html>

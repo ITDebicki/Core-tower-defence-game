@@ -26,6 +26,7 @@
                         //isLoggedIN
                         loginHandler(true);    
                     }else{
+                        lockLoginButtons();
                         window.login.checkCookie(cookieLoginHandler);
                     }
                 });
@@ -73,6 +74,7 @@
                  * @param {string}   fileURL URL of avatar
                  */
                 function setAvatar(fileURL){
+                    console.log("Setting new avatar...", fileURL);
                     $(".userAvatar").each(function(){
                         if ($(this).is("img")){
                             $(this).attr("src",fileURL);
@@ -105,6 +107,7 @@
                  * @param {number}  errorCode Error code
                  */
                 function cookieLoginHandler(success,error,errorCode){
+                    unlockLoginButtons();
                     if (success==true){
                         loginHandler(true);
                     }
@@ -187,6 +190,7 @@
                  */
                 function startPressed(){
                     //remove all elements
+                    console.log("start pressed");
                     raiseOverlay(600,function(){
                         removeElement("startGameScreen");
                         loadElement("gameComponents/mapSelector.html","mapSelector");});
