@@ -5,6 +5,7 @@
             
             window.startScreen=(function(){
                 var noMoreNotifications = false;
+                var loginLoadingScreen = null;
                 $("document").ready(function(){
                     $("#loggedInLeftBar").fadeOut(0);
                     raiseOverlay(1);
@@ -23,10 +24,11 @@
                     lowerOverlay();
                     //try logging in
                     if (window.login.isLoggedIn()){
-                        //isLoggedIN
+                        //isLoggedin
                         loginHandler(true);    
                     }else{
                         lockLoginButtons();
+                        loginLoadingScreen = new loadingScreen(".mainPageLoginPanel");
                         window.login.checkCookie(cookieLoginHandler);
                     }
                 });
@@ -90,6 +92,7 @@
                  */
                 function login(){
                     lockLoginButtons();
+                    loginLoadingScreen = new loadingScreen(".mainPageLoginPanel");
                     var username = $("input[name=userTextbox]").val();
                     var password = $("input[name=passwordTextbox]").val();
                     if (validateUser(username) && validatePassword(password)){
@@ -108,6 +111,8 @@
                  */
                 function cookieLoginHandler(success,error,errorCode){
                     unlockLoginButtons();
+                    loginLoadingScreen.hideLoadingScreen();
+                    loginLoadingScreen=null;
                     if (success==true){
                         loginHandler(true);
                     }
@@ -129,6 +134,10 @@
                     }else{
                         alert(error,errorCode);
                     }
+                    if (loginLoadingScreen){
+                        loginLoadingScreen.hideLoadingScreen();
+                        loginLoadingScreen=null;
+                    } 
                     unlockLoginButtons();
                 }
                 /**
@@ -215,6 +224,7 @@
                  */
                 function createAccount(){
                     lockLoginButtons();
+                    loginLoadingScreen = new loadingScreen(".createAccountPanel");
                     var username = $("input[name=userTextboxCreate]").val();
                     var password = $("input[name=passwordTextboxCreate]").val();
                     var passwordR = $("input[name=passwordRTextboxCreate]").val();
@@ -244,6 +254,10 @@
                     }else{
                         alert(error,errorCode);   
                     }
+                    if (loginLoadingScreen){
+                        loginLoadingScreen.hideLoadingScreen();
+                        loginLoadingScreen=null;
+                    } 
                     unlockLoginButtons();
                 }
                 /**

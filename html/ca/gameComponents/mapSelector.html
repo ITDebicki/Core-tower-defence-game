@@ -273,9 +273,11 @@
                 var mapArray = [];
                 var activeIndex = 0;
                 var activeAJAX = 0;
+                var loadingScreenOverlay = null;
                 
                 $("document").ready(function(){
                     console.log("Loading maps");
+                    loadingScreenOverlay = new loadingScreen("#mapCarousel");
                     hideText(1);
                     hideControls(1);
                     fetchAvailableMaps();
@@ -471,6 +473,8 @@
                     setText(mapArray[index]["name"],mapArray[index]["description"]);
                     showText();
                     showControls();
+                    loadingScreenOverlay.hideLoadingScreen();
+                    loadingScreenOverlay=null;
                 }
                 /**
                  * Parses the current background of the game area to determine the map

@@ -106,7 +106,7 @@
             Could use lib https://github.com/zswang/jdetects
             */
         }
-        
+        var highScoreLoadingScreen = null;
         var statsList = null;
         var leaderBoard = null;
         var currentMapId = null;
@@ -317,6 +317,8 @@
                     return obj1["rank"] - obj2["rank"];
                 });
                 leaderBoard.addElements(leaderBoardArray);
+                highScoreLoadingScreen.hideLoadingScreen();
+                highScoreLoadingScreen=null;
             }
         }
         /**
@@ -356,6 +358,7 @@
         function refreshHighScoreBoard(){
             //refresh highscore board
             console.log(currentMapId,"currentMap");
+            highScoreLoadingScreen = new loadingScreen("#leaderboardList");
             window.login.loadLeaderBoard(currentMapId,10,{"from":0,"to":0},loadLeaderBoardHandler);
         }
         
