@@ -1,1 +1,1 @@
-{"health":10,"damage":1,"speed":20,"death":{},"icon":"exampleEnemy.png","width":40,"height":40,"resources":5}
+{"health":10,"damage":1,"speed":20,"death":{},"icon":"exampleEnemy.png","width":40,"height":40,"resources":5,"score":2}

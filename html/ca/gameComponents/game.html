@@ -367,6 +367,7 @@
                 var mousePos = { x: 0, y: 0 };
                 var maxHealth = 100;
                 var resources = 0;
+                var startingResources = 0;
                 var waves = [];
                 var waveNo = 0;
                 var events = {};
@@ -409,8 +410,6 @@
                         mousePos.y = event.pageY;
                     });
                     $("#gameSpace").mousedown(removeTowerSelection);
-
-
                 });
 
 
@@ -529,6 +528,7 @@
                 function loadMap(map){
                     setBaseHealth(map["maxBaseHealth"]);
                     changeHealth(map["startingBaseHealth"]);
+                    startingResources =map["startingResources"];
                     setResources(map["startingResources"]);
                     console.log("map",map["id"]);
                     mapID = map["id"];
@@ -879,8 +879,6 @@
                                     showUpgradeStats();
                                 }
                                 
-                                //set tower as tile
-
 
                             }else{
                                 flashWarning("Not enough resources to buy upgrade");
@@ -901,6 +899,9 @@
                     var upgradeTowerData = towerDB[towerClass][towerLevel+1];
                     if (resources-upgradeTowerData["cost"]>=0){
                         setResources(resources-upgradeTowerData["cost"]);
+                        incrementStatistic("towersUpgraded");
+                        score-=upgradeTowerData["score"];
+                        console.log(score,"bu");
                         return true;
                     }else{
                         return false;
@@ -987,9 +988,7 @@
                     $("#healthBar").progressbar("value",baseHealth);
                     if (baseHealth<=0){
                         stopTickFunction=true;
-                        alert("your base has been destroyed");
-                        //show high score page
-                        exitGame();
+                        showEndGameScreen(getFinalScore());
                     }
                 }
                 /**
@@ -1000,14 +999,6 @@
                 function setResources(newResources){
                     resources=newResources;
                     $("#resourceValue").html(resources);
-                }
-
-                /**
-                 * Saves the score of the user
-                 * @author Ignacy Debicki
-                 */
-                function saveScore(){
-                    
                 }
                 /**
                  * Exits the currently running game
@@ -1045,7 +1036,6 @@
                         y += currentVector.y*magnitudeRemaining;
                         
                         var nextVector = currentVector.next();
-                        console.log(currentVector,nextVector);
                         if(nextVector==null){
                             //return as at end anyway
                             magnitudeRemaining=0;
@@ -1154,9 +1144,7 @@
                                 waveNo++;
                                 if (waveNo>=waves.length){
                                     //alert("You have won!");
-                                    loadElement("gameComponents/endGameScreen.html","endGameScreen",function(){
-                                        window.endGameScreen.initialise(score,mapID,statistics,valid);
-                                    });
+                                   showEndGameScreen(getFinalScore());
                                     stopTickFunction=true;
                                     runTick=false;
                                 }else{
@@ -1242,6 +1230,7 @@
                                             data-current-x='`+(mapPath[0][0]-(data["width"]/2))+`' 
                                             data-current-y='`+(mapPath[0][1]-(data["height"]/2))+`' 
                                             data-resources='`+data["resources"]+`' 
+                                            data-score='`+data["score"]+`'
                                             data-ticks='0'>`);
                         data["divBase"]=enemyImg;
                         enemyDB[enemyName]=data;
@@ -1325,6 +1314,7 @@
                         towerDB[towerName]=[];
                         for (i=0;i<data["level"].length;i++){
                             var towerLevelData = data["level"][i];
+                            console.log(towerLevelData);
                             var towerDiv = $(`<div class='`+towerName+i+` towerContainer' style='width:`+(towerLevelData["range"]*2)+`px; height:`+(towerLevelData["range"]*2)+`px;'
                                              data-width='`+data["width"]+`' 
                                              data-height='`+data["height"]+`' 
@@ -1337,7 +1327,8 @@
                                              data-total-price='`+towerLevelData["cost"]+`'
                                              data-range='`+towerLevelData["range"]+`' 
                                              data-upgrade-level='`+i+`'
-                                             data-tower-class='`+towerName+`'>
+                                             data-tower-class='`+towerName+`' 
+                                             data-score-val='`+towerLevelData["score"]+`'>
                                              <div class='targetDisk `+towerName+i+`'></div>
                                              <img class= 'tower `+towerName+i+`'
                                                 src='gameComponents/towers/`+towerLevelData["icon"]+`' 
@@ -1440,9 +1431,13 @@
                         currentDrag.removeClass("isDragging");
                         currentDrag.children(".tower").click(selectTower);
                         //set tower as tile
+                        console.log(currentDrag);
+                        score-=currentDrag.data("scoreVal");
+                        console.log(score,"pt");
                         currentDrag.children(".tower").addClass("tile");
                         currentDrag=null;
                         incrementStatistic("towersBuilt");
+                        
                     }
                 }
                 /**
@@ -1537,9 +1532,11 @@
                  * @param {object} enemy The enemy to be killed (passed in as $(enemy))
                  */
                 function enemyKilled(enemy){
-                    enemy.remove();
                     incrementStatistic("enemiesKilled");
                     setResources(resources+enemy.data("resources"));
+                    score+=enemy.data("score");
+                    console.log(score,"ek");
+                    enemy.remove();
                 }
                 /**
                  * Loads the projectile resource into the projectile resource dictionary
@@ -1593,7 +1590,26 @@
                     $("#warning").hide();
                     $("#warningText").empty();
                 }
-                
+                /**
+                 * Calculates the final score
+                 * @author Ignacy Debicki
+                 * @returns {number} Final score
+                 */
+                function getFinalScore(){
+                    console.log(score,score + baseHealth*5 + resources);
+                    return score + baseHealth*5 + resources - startingResources;
+                }
+                /**
+                 * Shows the endGameScreen
+                 * @author Ignacy Debicki
+                 */
+                function showEndGameScreen(finalScore){
+                    stopWaveTimer=true;
+                    stopTickFunction=true;
+                    loadElement("gameComponents/endGameScreen.html","endGameScreen",function(){
+                                    window.endGameScreen.initialise(finalScore,mapID,statistics,valid);
+                    });
+                }
                 return{
                     /**
                      * Starts the game clock
@@ -1633,7 +1649,10 @@
                     exitGame: function(){
                         exitGame();
                     },
-                    
+                    showEndGameScreen: function(endScore){
+                        if (!endScore){endScore=score;}
+                        showEndGameScreen(endScore);
+                    },
                     mapID: function(){
                         return mapID;
                     }

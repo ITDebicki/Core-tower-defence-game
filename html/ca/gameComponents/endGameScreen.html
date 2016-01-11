@@ -142,7 +142,12 @@
                 .append(statisticValueDiv);
             return container;  
         }
-        
+        /**
+         * Creates a new leaderboard element
+         * @author Ignacy Debicki
+         * @param   {object} data Dictionary containing values ["user":user,"userAvatar":userAvatar,"rank"rank,"score":score]
+         * @returns {object} New leaderboard div element
+         */
         function createLeaderBoardElement(data){
             console.log("adding element");
             var username = data["user"];
@@ -169,7 +174,13 @@
             container.data("user",username);
             return container;
         }
-        
+        /**
+         * Loads the page data.
+         * @author Ignacy Debicki
+         * @param {number} score      Score achieved
+         * @param {number} map        Map id of map that the score was achieved on
+         * @param {object} statistics Dictionary of statistics recorded during the game.
+         */
         function loadAll(score,map,statistics){
             currentMapId=map;
             loadScore(score);
