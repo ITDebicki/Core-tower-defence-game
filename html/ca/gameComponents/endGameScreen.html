@@ -149,7 +149,6 @@
          * @returns {object} New leaderboard div element
          */
         function createLeaderBoardElement(data){
-            console.log("adding element");
             var username = data["user"];
             var avatar = data["userAvatar"];
             var rank = data["rank"];
@@ -239,7 +238,6 @@
                 leaderBoard.quickClearList();
                 var currentUser = window.login.username();
                 var foundUser = false;
-                console.log(data,data.length);
                 for (var i =0;i<data.length;i++){
                     var user = data[i]["user"];
                     data[i]["isCurrentUser"]=false;
@@ -248,12 +246,10 @@
                         data[i]["isCurrentUser"]=true;
                     }
                     data[i]["rank"]=i+1;
-                    console.log(data[i]);
                     leaderBoardDictionary[user]=data[i];
                 }
                 if (foundUser==false && window.login.isLoggedIn()){
                     //get highscore of user as well
-                    console.log(currentMapId,currentUser);
                     window.login.getUserHighScoreForMap(currentMapId,currentUser,{"from":0,"to":0},fetchUserHighScoreHandler);
                 }else{
                     fetchAvatars();
@@ -307,11 +303,9 @@
         }
         
         function avatarHandler(fileURL,user){
-            console.log("Loading avatars");
             var userInfo = leaderBoardDictionary[user];
             userInfo["userAvatar"]=fileURL;
             leaderBoardArray.push(userInfo);
-            console.log(leaderBoardArray.length,Object.size(leaderBoardDictionary));
             if (leaderBoardArray.length==Object.size(leaderBoardDictionary)){
                 leaderBoardArray = leaderBoardArray.sort(function(obj1,obj2){
                     return obj1["rank"] - obj2["rank"];
@@ -342,7 +336,6 @@
          * @param {number}  errorCode Error code
          */
         function highScoreCheckerHandler(success,data,errorCode){
-            console.log(success,data,errorCode,"HSCH");
             if (success==true&&data!=false){
                 //do some effect
                 $("#highScoreDiv").slideDown(200);
@@ -357,7 +350,6 @@
         
         function refreshHighScoreBoard(){
             //refresh highscore board
-            console.log(currentMapId,"currentMap");
             highScoreLoadingScreen = new loadingScreen("#leaderboardList");
             window.login.loadLeaderBoard(currentMapId,10,{"from":0,"to":0},loadLeaderBoardHandler);
         }
@@ -372,13 +364,10 @@
              * @param {boolean} valid      If cheating was detected during the session
              */
             initialise: function(score,map,statistics,valid){
-                console.log("map",map);
                 if (inspectIsOpen() || valid==false){
                     console.error("Stop cheating")
                     isValid = false;
                     $("#invalidAlert").slideDown(300);
-                }else{
-                    console.log("logged");
                 }
                 loadAll(score,map,statistics);
             }

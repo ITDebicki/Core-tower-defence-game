@@ -436,7 +436,6 @@
                  * @author Ignacy Debicki
                  */
                 function start(){
-                    console.log("starting");
                     //set wave number to 0
                     waveNo = 0;
                     //set wave timer
@@ -517,13 +516,11 @@
                     changeHealth(map["startingBaseHealth"]);
                     startingResources =map["startingResources"];
                     setResources(map["startingResources"]);
-                    console.log("map",map["id"]);
                     mapID = map["id"];
                     //draw the map so objects can interact with it
                     drawMap(map);
                     //calculate path for enemies
                     vectorPathRoot = calculateVectorPaths(mapPath).root;
-                    console.log(vectorPathRoot);
                     //set waves
                     waves = map["waves"];
                     //make sure all correct enemies are loaded
@@ -888,7 +885,6 @@
                         setResources(resources-upgradeTowerData["cost"]);
                         incrementStatistic("towersUpgraded");
                         score-=upgradeTowerData["score"];
-                        console.log(score,"bu");
                         return true;
                     }else{
                         return false;
@@ -1301,7 +1297,6 @@
                         towerDB[towerName]=[];
                         for (i=0;i<data["level"].length;i++){
                             var towerLevelData = data["level"][i];
-                            console.log(towerLevelData);
                             var towerDiv = $(`<div class='`+towerName+i+` towerContainer' style='width:`+(towerLevelData["range"]*2)+`px; height:`+(towerLevelData["range"]*2)+`px;'
                                              data-width='`+data["width"]+`' 
                                              data-height='`+data["height"]+`' 
@@ -1418,9 +1413,7 @@
                         currentDrag.removeClass("isDragging");
                         currentDrag.children(".tower").click(selectTower);
                         //set tower as tile
-                        console.log(currentDrag);
                         score-=currentDrag.data("scoreVal");
-                        console.log(score,"pt");
                         currentDrag.children(".tower").addClass("tile");
                         currentDrag=null;
                         incrementStatistic("towersBuilt");
@@ -1478,6 +1471,7 @@
                     var projectileName = tower.data("projectileFired");
                     var projectileDiv = loadProjectile(projectileName).clone();
                     var projectileSpeed = projectileDiv.data("speed");
+                    incrementStatistic("projectilesFired");
                     //set damage of tower
                     projectileDiv.data("damage",tower.data("damage"));
                     projectileDiv.data("target",target);
@@ -1522,7 +1516,6 @@
                     incrementStatistic("enemiesKilled");
                     setResources(resources+enemy.data("resources"));
                     score+=enemy.data("score");
-                    console.log(score,"ek");
                     enemy.remove();
                 }
                 /**
@@ -1583,8 +1576,7 @@
                  * @returns {number} Final score
                  */
                 function getFinalScore(){
-                    console.log(score,score + baseHealth*5 + resources);
-                    return score + baseHealth*5 + resources - startingResources;
+                    return score + baseHealth*5;
                 }
                 /**
                  * Shows the endGameScreen
@@ -1617,7 +1609,7 @@
                         stopWaveTimer=true;
                         stopTickFunction=true;
                         loadElement("gameComponents/endGameScreen.html","endGameScreen",function(){
-                                        window.endGameScreen.initialise(score,mapID,{"enemiesKilled":1,"towersBuilt":2,"towersUpgraded":3,"projectilesFired":4},true);
+                                        window.endGameScreen.initialise(score,mapID,{"enemiesKilled":1,"towersBuilt":2,"towersUpgraded":3,"projectilesFired":4},false);
                                     });
                     },
                     /**

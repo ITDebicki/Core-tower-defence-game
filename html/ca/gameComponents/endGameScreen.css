@@ -161,3 +161,12 @@
 .isCurrentUser.highscore .highscoreRank {
 	color: #F6EAC1;
 }
+#invalidAlert {
+    z-index: 105;
+    font-size: 25pt;
+    font-weight: bold;
+    color: red;
+    text-align: center;
+    position: absolute;
+    width: 100%;
+}
