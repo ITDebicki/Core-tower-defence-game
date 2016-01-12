@@ -107,6 +107,7 @@
             */
         }
         var highScoreLoadingScreen = null;
+        var endGameLoadingScreen = null;
         var statsList = null;
         var leaderBoard = null;
         var currentMapId = null;
@@ -181,6 +182,7 @@
          * @param {object} statistics Dictionary of statistics recorded during the game.
          */
         function loadAll(score,map,statistics){
+            endGameLoadingScreen = new loadingScreen("#endGameScreenWrapper");
             currentMapId=map;
             loadScore(score);
             loadStatistics(statistics);
@@ -325,6 +327,8 @@
             if (isValid && window.login.isLoggedIn()){
                 window.login.setScore(score,currentMapId,highScoreCheckerHandler);
             }else{
+                endGameLoadingScreen.hideLoadingScreen();
+                endGameLoadingScreen = null;
                 refreshHighScoreBoard();
             }
         }
@@ -336,6 +340,8 @@
          * @param {number}  errorCode Error code
          */
         function highScoreCheckerHandler(success,data,errorCode){
+            endGameLoadingScreen.hideLoadingScreen();
+            endGameLoadingScreen = null;
             if (success==true&&data!=false){
                 //do some effect
                 $("#highScoreDiv").slideDown(200);
