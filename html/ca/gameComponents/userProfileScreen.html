@@ -90,6 +90,8 @@
                 removeElement("userProfileScreen");
             });
             $("#userProfileHighScoreRefreshButton").click(function(e){
+                userHighScoresList=null;
+                mapNames=null;
                 userHighScoresList.clearList(loadHighScores);
             });
             //initalise high scores list
@@ -140,12 +142,15 @@
          * @param {string} user Username for which to display highscores. Default is preset user stored in current _user variable.
          */
         function loadHighScores(user){
+            console.log("Loading highscores");
             if (!user){ user = _user;}else{ _user = user; }
             window.login.getAllMaps(function(success,data,errorCode){
                 if(success){
+                    console.log("maps",data);
                     for (var i = 0;i<data.length;i++){
-                        mapNames.splice(data[i]["id"],0,data[i]["name"]);
+                        mapNames[data[i]["id"]]=data[i]["name"];
                     }
+                    console.log(mapNames,"mn");
                     window.login.getUserHighScores(user,loadHighScoresHandler);
                 }else{
                     alert(data,errorCode);
@@ -161,11 +166,14 @@
          * @param {number}  errorCode Error code if error occured. Otherwise undefined.
          */
         function loadHighScoresHandler(success,data,errorCode){
+            console.log(success,data,errorCode,"lhsh")
             if (success){
-                if(data){
-                    for (var i = 0;i<data.length;i++){
-                        data[i]["map"]=mapNames[i];
-                        userHighScoresList.addElement(data[i]);
+                for (var key in data){
+                    if (data.hasOwnProperty(key)) {
+                        data[key]["map"]=mapNames[key];
+                        console.log(data,key,"d",mapNames);
+                        userHighScoresList.addElement(data[key]);
+                        console.log(userHighScoresList,"uhsl");
                     }
                 }
             }else{

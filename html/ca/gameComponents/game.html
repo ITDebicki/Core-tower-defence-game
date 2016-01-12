@@ -5,19 +5,6 @@
             
             window.game=(function(){
                 /**
-                 * Returns the number of keys in an object
-                 * @author Ignacy Debicki
-                 * @param   {object} obj Object to check the size of
-                 * @returns {number} No of keys in object
-                 */
-                Object.size = function(obj) {
-                    var size = 0, key;
-                    for (key in obj) {
-                        if (obj.hasOwnProperty(key)) size++;
-                    }
-                    return size;
-                };
-                /**
                  * Creates a new VectorPathSegment object
                  * @author Ignacy Debicki
                  * @constructor
