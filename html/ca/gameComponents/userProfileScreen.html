@@ -8,9 +8,9 @@
         var mapNames = [];
         var _user =null;
         $("document").ready(function(){
-            $("#useProfileOverlay").fadeOut(0);
+            $("#userProfileOverlay").fadeOut(0);
             $("#userProfileContentWrapper").fadeOut(0);
-            $("#useProfileOverlay").fadeTo(500,0.9);
+            $("#userProfileOverlay").fadeTo(500,0.9);
             $("#userProfileContentWrapper").fadeIn(500);
             $("#userProfileBackButton").click(function(evt){
                 removeElement("userProfileScreen");
@@ -135,7 +135,7 @@
 </head>
 <body>
     <div id="userProfileContentWrapper" class="wrapper">
-        <div id="useProfileOverlay" class="overlay"></div>
+        <div id="userProfileOverlay" ></div>
         <div id="userProfileBackButtonDiv" class="userProfileButtonDiv">
             <button id="userProfileBackButton">Back</button>
         </div>

@@ -4,11 +4,284 @@
 <script>
     window.highScoreScreen = (function(){
         
+        var loadingScreenOverlay = null;
+        var mapArray = [];
+        var carousel = new Carousel();
+        var highScoreLoadingScreen = null;
+        var leaderBoard = null;
+        var currentMapId = null;
+        var isValid = true;
+        var leaderBoardDictionary = [];
+        var leaderBoardArray = [];
+        
         $("document").ready(function(){
-                
+            loadingScreenOverlay = new loadingScreen("#mapHighScoreCarousel");
+            hideText(1);
+            fetchAvailableMaps();
+            $("#prevButton").click(leftButtonClick);
+            $("#nextButton").click(rightButtonClick); 
+            $("#backButton").click(function(){
+                loadBackground('gameComponents/maps/'+carousel.currentItem()["name"]+'.png');
+                removeElement("highScoreScreen");
+            });
+            $("#refreshLeaderboardButton").click(refreshHighScoreBoard);
+            leaderBoard = new ScrollList("#leaderboardList",createLeaderBoardElement,profilePressHandler);
         });
         
+        /**
+         * Rotates the carousel to the left and displays the new map information
+         * @author Ignacy Debicki
+         */
+        function leftButtonClick(){
+            var item = carousel.rotateLeft();
+            if (item!==false){
+                refreshHighScoreBoard();
+                hideText();
+                setText(item["name"]);
+                showText();
+            }
+        }
+        /**
+         * Rotates the carousel to the right and displays the new map information
+         * @author Ignacy Debicki
+         */
+        function rightButtonClick(){
+            var item = carousel.rotateRight();
+            if (item!==false){
+                refreshHighScoreBoard();
+                hideText();
+                setText(item["name"]);
+                showText();
+            }
+        }
+        /**
+         * Fetches and adds all available maps
+         * @author Ignacy Debicki
+         */
+        function fetchAvailableMaps(){
+            window.login.getAllMaps(function(success,data,errorCode){
+                if(success){
+                    if(data){
+                        for (var i=0;i<data.length;i++){
+                            var map = {"id":data[i]["id"],"name":data[i]["name"]};
+                            map["div"]=$("<img class='carouselImage' id='"+map.name+"' src='gameComponents/maps/"+data[i]["image"]+"'/>");
+                            mapArray.push(map);
+                                
+                        }
+                        setStartMap(parseBackground());
+                    }   
+                }else{
+                    alert(data,errorCode);
+                }
+            });
+        }
+
+        /**
+         * Sets the Map title and description
+         * @author Ignacy Debicki
+         * @param {string} title       Title of map
+         * @param {string} description Description of map
+         */
+        function setText(title){
+            $("#mapName").html(title);
+        }
+        /**
+         * Hides the title and description of the map
+         * @author Ignacy Debicki
+         * @param {number} duration Duration of animation to hide the map title & description in milliseconds
+         */
+        function hideText(duration){
+            if (duration == null || duration == undefined){
+                duration = 300;
+            }
+            $("#mapName").velocity("transition.slideUpBigOut",duration);
+        }
+        /**
+         * Shows the title and description of map
+         * @author Ignacy Debicki
+         * @param {number} duration Duration of animation to show the map title & description in milliseconds
+         */
+        function showText(duration){
+            if (duration == null || duration == undefined){
+                duration = 300;
+            }
+            $("#mapName").velocity("transition.slideDownBigIn",duration);
+        }
+        /**
+         * Sets the start map to the specified map
+         * @author Ignacy Debicki
+         * @param {string} mapName Name of map to be shown
+         */
+        function setStartMap(mapName){
+            for (i=0;i<mapArray.length;i++){
+                var map = mapArray[i];
+                if (map["name"]==mapName){
+                    initiateCarousel(i);
+                    break;
+                }
+            }
+        }
+        /**
+         * Initiates the carousel from the map array and moves the carousel to the specififed index
+         * @author Ignacy Debicki
+         * @param {number} index Index to start at
+         */
+        function initiateCarousel(index){
+            carousel.initCarousel("#mapHighScoreCarousel",mapArray,index,"div");
+            $("#gameDiv").css("background-image","none");
+            setText(mapArray[index]["name"]);
+            showText();
+            loadingScreenOverlay.hideLoadingScreen();
+            loadingScreenOverlay=null;
+            refreshHighScoreBoard();
+        }
+        /**
+         * Parses the current background of the game area to determine the map
+         * @author Ignacy Debicki
+         * @returns {string} Name of map in the background
+         */
+        function parseBackground(){
+            var backgroundPath = $("#gameDiv").css("background-image");
+            backgroundPath = backgroundPath.replace('")','');
+            backgroundPath = backgroundPath.replace('url("','');
+            var pathArray = backgroundPath.split('/');
+            var backgroundName = pathArray[pathArray.length-1];
+            var backgroundMapString = backgroundName.replace('.png','');
+            return backgroundMapString;
+        }
+        /**
+         * Creates a new leaderboard element
+         * @author Ignacy Debicki
+         * @param   {object} data Dictionary containing values ["user":user,"userAvatar":userAvatar,"rank"rank,"score":score]
+         * @returns {object} New leaderboard div element
+         */
+        function createLeaderBoardElement(data){
+            var username = data["user"];
+            var avatar = data["userAvatar"];
+            var rank = data["rank"];
+            var score = data["score"];
+            var timestamp = data["timestamp"];
+            var isCurrentUser = data["isCurrentUser"];
+            var date = new Date(timestamp * 1000);
+            var container = $("<div class='highscore'>");
+            var userAvatar = $('<img class="highscoreAvatar" src="' + avatar + '">');
+            var userUsername = $('<div class="highscoreUser">'+username+'</div>');
+            var rankDiv = $('<div class="highscoreRank">'+rank+'</div>');
+            var scoreDiv = $('<div class="highscoreScore">'+score+'</div>');
+            var dateDiv = $('<div class="dateDiv">'+date.toLocaleString()+'</div>')
+            container.append(rankDiv)
+                .append(userAvatar)
+                .append(userUsername)
+                .append(scoreDiv)
+                .append(dateDiv);
+            if (isCurrentUser){
+                container.addClass("isCurrentUser");
+            }
+            container.data("user",username);
+            return container;
+        }
+        /**
+         * handler for returning data from leaderboard fetch
+         * @author Ignacy Debicki
+         * @param {boolean} success   If fetch was succesfull
+         * @param {object}  data      Either error, if success==false, or array of highscores in descending rank order in format:
+         *                              [{"user":user,"score":score,"timestamp",timestamp}]
+         * @param {number}  errorCode Error code if error occured
+         */
+        function loadLeaderBoardHandler(success,data,errorCode){
+            leaderBoardArray=[]
+            leaderBoardDictionary={};
+            if(success==true){
+                //clear board first
+                leaderBoard.quickClearList();
+                var currentUser = window.login.username();
+                var foundUser = false;
+                for (var i =0;i<data.length;i++){
+                    var user = data[i]["user"];
+                    data[i]["isCurrentUser"]=false;
+                    if (user==currentUser && currentUser){
+                        foundUser = true;
+                        data[i]["isCurrentUser"]=true;
+                    }
+                    data[i]["rank"]=i+1;
+                    leaderBoardDictionary[user]=data[i];
+                }
+                if (foundUser==false && window.login.isLoggedIn()){
+                    //get highscore of user as well
+                    window.login.getUserHighScoreForMap(carousel.currentItem()["id"],currentUser,{"from":0,"to":0},fetchUserHighScoreHandler);
+                }else{
+                    fetchAvatars();
+                }
+            }else{
+                alert(data,errorCode);
+            }
+        }
         
+        function fetchUserHighScoreHandler(success,data,errorCode){
+            if (success == true){
+                if (Object.size(data)>0){
+                    var user = window.login.username();
+                    data["user"]=user;
+                    data["isCurrentUser"]=true;
+                    leaderBoardDictionary[user]=data;
+                }
+            }else{
+                alert(data,errorCode);
+            }
+            fetchAvatars();
+        }
+        /**
+         * Handler for pressing a profile
+         * @author Ignacy Debicki
+         * @param {object} evt Event caused by profile being pressed
+         */
+        function profilePressHandler(evt){
+            if (!$(evt.toElement).is("button")){
+                var user = $(this).data("user");
+                showUserProfile(user);
+            }
+        }
+        
+        /**
+         * Shows the user profile
+         * @author Ignacy Debicki
+         * @param {string} user Username of user to show
+         */
+        function showUserProfile(user){
+            showingProfileForUser = user;
+            loadElement("gameComponents/userProfileScreen.html","userProfileScreen",function(){
+                window.userProfile.loadUser(showingProfileForUser);
+            });
+        }
+        
+        function fetchAvatars(){
+            Object.keys(leaderBoardDictionary).forEach(function (user) {
+                window.login.fetchAvatar(user,avatarHandler);
+            });
+        }
+        
+        function avatarHandler(fileURL,user){
+            var userInfo = leaderBoardDictionary[user];
+            userInfo["userAvatar"]=fileURL;
+            leaderBoardArray.push(userInfo);
+            if (leaderBoardArray.length==Object.size(leaderBoardDictionary)){
+                leaderBoardArray = leaderBoardArray.sort(function(obj1,obj2){
+                    return obj1["rank"] - obj2["rank"];
+                });
+                leaderBoard.addElements(leaderBoardArray);
+                highScoreLoadingScreen.hideLoadingScreen();
+                highScoreLoadingScreen=null;
+            }
+        }
+        /**
+         * Refreshes the highscore board
+         * @author Ignacy Debicki
+         */
+        function refreshHighScoreBoard(){
+            //refresh highscore board
+            highScoreLoadingScreen = new loadingScreen("#leaderboardList");
+            window.login.loadLeaderBoard(carousel.currentItem()["id"],10,{"from":0,"to":0},loadLeaderBoardHandler);
+        }
         
         return{
             
@@ -17,5 +290,18 @@
 </script>
 </head>
 <body>
+    <div  id="mapHighScoreContainer">
+        <div id="mapHighScoreOverlay"></div>
+        <div id="mapName">Some map name</div>
+        <button class="carouselButton" id="prevButton">&lt;&lt;</button>
+        <button class="carouselButton" id="nextButton">&gt;&gt;</button>
+        <button id="backButton">Back</button>
+        <div id="leaderBoardDiv">
+            <div id="leaderboardTitle">All time leaderboard</div>
+            <button id="refreshLeaderboardButton">Refresh</button>
+            <div id="leaderboardList"></div>
+        </div>
+        <div id="mapHighScoreCarousel"></div>
+    </div>
 </body>
 </html>

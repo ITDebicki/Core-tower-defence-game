@@ -766,14 +766,14 @@ function get_user_high_score_for_map($user,$map,$from,$to){
     $stmt->bindValue(':map',$map,PDO::PARAM_INT);
     $stmt->bindValue(':from',$from,PDO::PARAM_INT);
     if (strpos($sql,":to")){
-        $_POST["toBind"]=true;
         $stmt->bindValue(':to',$to,PDO::PARAM_INT);
     }
     $stmt->bindValue(':user',$user,PDO::PARAM_STR);
-    $_POST["val"]=[$user,$map,$from,$to];
     $stmt->execute();
     $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    $_POST["result1"]=$result;
+    if (count($result)==0){
+        return [];
+    }
     if (!$to){
         $to=0;
     }
@@ -781,7 +781,6 @@ function get_user_high_score_for_map($user,$map,$from,$to){
         $from=0;
     }
     $rank = user_rank($user,$map,["from"=>$from,"to"=>$to]);
-    $_POST["rank"]=$rank;
     try{
         $result[0]["rank"]=$rank;
         return $result[0];

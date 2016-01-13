@@ -1,4 +1,4 @@
-.overlay{
+#userProfileOverlay{
     z-index:101;
     position: absolute;
     left: 0px;

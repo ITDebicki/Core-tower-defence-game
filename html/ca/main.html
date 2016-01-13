@@ -254,6 +254,279 @@
                     }
                 }
             };
+            
+            
+            
+            function Carousel(){
+                
+                var baseElement = null;
+                var currentIndex = 0;
+                var rotatorArray = [];
+                var imgKey = null;
+                var baseElementWidth = 0;
+                this.animating = false;
+                var that = this;
+                /**
+                 * Initiates the carousel
+                 * @author Ignacy Debicki
+                 * @param {object} elem  Element to initiate the carousel on
+                 * @param {Array}  array Array of items to insert into the carousel
+                 * @param {number} index Starting index of the carousel
+                 * @param {string} key   The key of the image in the item element
+                 */
+                this.initCarousel = function(elem,array,index,key){
+                    rotatorArray = array;
+                    currentIndex = index;
+                    imgKey = key;
+                    baseElementWidth = parseFloat($(elem).css("width"));
+                    baseElement = $("<div class='carousel'></div>");
+                    baseElement.css("width",baseElementWidth*3)
+                                .css("height",$(elem).css("height"))
+                                .css("overflow","hidden")
+                                .css("position","absolute")
+                                .css("left",parseInt(-baseElementWidth)+"px")
+                                .css("top","0px");
+                    $(elem).append(baseElement)
+                    loadItem(rotatorArray[index]);
+                }
+                /**
+                 * Rotates the carousel to the set index
+                 * @author Ignacy Debicki
+                 * @param {number} index     Index to rotate to
+                 * @param {string} direction Optional. Direction to spin. Accepts "right" or "left". By default chooses shortest path
+                 */
+                function rotateToIndex(index,direction){
+                    if (direction !== "left" || direction !== "right"){
+                        //determine quickest direction
+                        if (currentIndex-index>rotatorArray.length/2){
+                            direction="left";
+                        }else{
+                            direction="right"
+                        }
+                    }
+                    var numSpins = 0;
+                    if(direction=="left"){
+                        numSpins = rotatorArray.length-Math.abs(currentIndex-index);
+                        if (index>currentIndex){
+                            numSpins = rotatorArray.length-(index-currentIndex);
+                        }else{
+                            numSpins = currentIndex-index;
+                        }
+                    }else{
+
+                        if (index<currentIndex){
+                            numSpins = rotatorArray.length-(currentIndex-index);
+                        }else{
+                            numSpins = index-currentIndex;
+                        }
+                    }
+
+                    for (i=0;i<numSpins;i++){
+                        if(direction=="left"){ 
+                            rotateCarouselLeft(); 
+                        }else{
+                            rotateCarouselRight();
+                        }
+                    }
+                }
+                /**
+                 * Rotates the carousel right
+                 * @author Ignacy Debicki
+                 */
+                function rotateCarouselRight(){
+                    if (that.animating == false){
+                        that.animating=true
+                        var nextIndex = currentIndex - 1;
+                        if (nextIndex < 0){
+                            nextIndex = rotatorArray.length+nextIndex;
+                        }
+                        var prevItem = rotatorArray[currentIndex];
+                        var item = rotatorArray[nextIndex];
+                        if (item["appended"]==false||item["appended"]==undefined||item["appended"]==null){
+                            appendItem(item);
+                            item["appended"]=true;
+                        }
+                        var itemImg = item[imgKey];
+                        var prevItemImg = prevItem[imgKey];
+                        //set img to right of screen
+                        console.log(item["name"],baseElementWidth*2,baseElementWidth,prevItem["name"],baseElementWidth,0);
+                        itemImg.css("margin-left",(baseElementWidth*2));
+                        prevItemImg.velocity({
+                            marginLeft: 0  
+                        },{
+                            duration:500,
+                            easing:"linear"
+                            })
+                        itemImg.velocity({
+                            marginLeft: baseElementWidth
+                        },{
+                            duration:500,
+                            easing:"linear",
+                            complete: function(){
+                                that.animating=false
+                            }
+                        });
+                        currentIndex = nextIndex;
+                    }
+                }
+                /**
+                 * Rotates the carousel left
+                 * @author Ignacy Debicki
+                 */
+                function rotateCarouselLeft(){
+                    if (that.animating == false){
+                        that.animating=true
+                        var nextIndex = currentIndex +1;
+                        if (nextIndex >= rotatorArray.length){
+                            nextIndex = 0;
+                        }
+                        console.log(currentIndex,nextIndex);
+                        var prevItem = rotatorArray[currentIndex];
+                        var item = rotatorArray[nextIndex];
+                        if (item["appended"]==false||item["appended"]==undefined||item["appended"]==null){
+                            appendItem(item);
+                            item["appended"]=true;
+                        }
+                        var itemImg = item[imgKey];
+                        var prevItemImg = prevItem[imgKey];
+                        //set img to left of screen
+                        console.log(item["name"],0,baseElementWidth,prevItem["name"],baseElementWidth,baseElementWidth*2);
+                        itemImg.css("margin-left",0);
+                        prevItemImg.velocity({
+                            marginLeft: (baseElementWidth*2)  
+                        },{
+                            duration:500,
+                            easing:"linear"
+                            });
+                        itemImg.velocity({
+                            marginLeft: baseElementWidth
+                        },{
+                            duration:500,
+                            easing:"linear",
+                            complete: function(){
+                                that.animating=false
+                            }
+                        });
+                        currentIndex = nextIndex;
+                    }
+                }
+                /**
+                 * Adds an item to the carousel
+                 * @author Ignacy Debicki
+                 * @param {object} item $(item) object to be appended
+                 */
+                function appendItem(item){
+                    var itemImg = item[imgKey]
+                    baseElement.append(itemImg);
+                    itemImg.css("margin-left",baseElementWidth*2)
+                            .css("position","absolute");
+                }
+                /**
+                 * Loads the item into the carousel
+                 * @author Ignacy Debicki
+                 * @param {object} item $(item) object to be appended
+                 */
+                function loadItem(item){
+                    appendItem(item);
+                    var itemImg = item[imgKey];
+                    itemImg.css("margin-left",baseElementWidth)
+                            .css("position","absolute");
+                }
+                
+                /**
+                 * Adds an item to the carousel
+                 * @author Ignacy Debicki
+                 * @param {object} item Item object
+                 */
+                this.addItem = function(item){
+                    rotatorArray.push(item);
+                };
+                /**
+                 * Removes an item from the carousel
+                 * @author Ignacy Debicki
+                 * @param {object} item Item object
+                 */
+                this.removeItem = function(item){
+                    var itemIndex = rotatorArray.indexOf(item);
+                    if (itemIndex==currentIndex){
+                        rotateToIndex(0);
+                    }else if (itemIndex < currentIndex){
+                        currentIndex -=1;
+                    }
+                    rotatorArray.splice(itemIndex,1);
+                };
+                
+                /**
+                 * Rotates the carousel to the given index
+                 * @author Ignacy Debicki
+                 * @param   {number}  index     Index to rotate to
+                 * @param   {string}  direction Optional. Direction to rotate. Accepts "right" or "left". Default: shortest path
+                 * @returns {boolean} Returns false if action cannot be currently performed. Else returns the item it has rotated to
+                 */
+                
+                this.rotateToIndex = function(index,direction){
+                    if (this.animating){
+                        return false;
+                    }else{
+                        rotateToIndex(index,direction);
+                        return rotatorArray[currentIndex];
+                    }
+                };
+                
+                /**
+                 * Rotates the carousel to the specific item
+                 * @author Ignacy Debicki
+                 * @param   {object}  item      Item object to rotate to
+                 * @param   {string}  direction Optional. Direction to rotate. Accepts "right" or "left". Default: shortest path
+                 * @returns {boolean} Returns false if action cannot be currently performed
+                 */
+                this.rotateToItem = function(item,direction){
+                    if (this.animating){
+                        return false;
+                    }else{
+                        var itemIndex = rotatorArray.indexOf(item);
+                        rotateToIndex(itemIndex,direction);
+                        return rotatorArray[currentIndex];
+                    }
+                };
+                /**
+                 * Rotates the carousel right
+                 * @author Ignacy Debicki
+                 * @returns {boolean} Returns false if action cannot be currently performed. Else returns the item it has rotated to
+                 */
+                this.rotateRight = function(){
+                    if (this.animating){
+                        return false;
+                    }else{
+                        rotateCarouselRight();
+                        return rotatorArray[currentIndex];
+                    }
+                };
+                
+                /**
+                 * Rotates the carousel left
+                 * @author Ignacy Debicki
+                 * @returns {boolean} Returns false if action cannot be currently performed. Else returns the item it has rotated to
+                 */
+                this.rotateLeft = function(){
+                    if (this.animating){
+                        return false;
+                    }else{
+                        rotateCarouselLeft();
+                        return rotatorArray[currentIndex];
+                    }
+
+                };
+                
+                /**
+                 * Returns the current item object
+                 * @author Ignacy Debicki
+                 * @returns {object} Item object
+                 */
+                this.currentItem=function(){
+                    return rotatorArray[currentIndex];
+                };
+            };
 		</script>
 	</head>
 	<body>

@@ -655,7 +655,6 @@ window.login=(function(){
             dataType: "json",
             data: { "action": "addScore", "json":'{"map":"'+map+'","score":'+score+' }'},
             success: function(response){ 
-                console.log("SS",response);
                 if (response["success"]==true){
                     callback(true,response["data"]);
                 }else{
@@ -805,7 +804,6 @@ window.login=(function(){
             dataType: "json",
             data: { "action": "getHighScoreList", "json":'{"map":'+map+',"limit":'+limit+',"from":'+timespan["from"]+',"to":'+timespan["to"]+'}'},
             success: function(response){ 
-                console.log(response);
                 if (response["success"]==true){
                     callback(true,response["data"]);
                 }else{
@@ -834,7 +832,6 @@ window.login=(function(){
             dataType: "json",
             data: { "action": "getUserHighScoreForMap", "json":'{"map":'+map+',"from":'+timespan["from"]+',"to":'+timespan["to"]+',"user":"'+user+'"}'},
             success: function(response){ 
-                console.log(response,"GUHSFG");
                 if (response["success"]==true){
                     callback(true,response["data"]);
                 }else{

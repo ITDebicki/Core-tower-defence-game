@@ -79,7 +79,7 @@
     top: 80px;
 }
 
-#leadrboardTitle {
+#leaderboardTitle {
     position: absolute;
     left: 5px;
     font-size: 22pt;
@@ -161,6 +161,7 @@
 .isCurrentUser.highscore .highscoreRank {
 	color: #F6EAC1;
 }
+
 #invalidAlert {
     z-index: 105;
     font-size: 25pt;

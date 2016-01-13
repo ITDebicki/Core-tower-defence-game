@@ -89,7 +89,11 @@
                             window.login.deleteAccount(deleteAccountHandler); 
                         }
                     });
-
+                    
+                    //show highscores
+                    $('#viewMyHighScores').click(function(){
+                        loadElement("gameComponents/highScoreScreen.html","highScoreScreen");
+                    })
                     //fade back in
                     $("#overlay").fadeTo(500,0.9);
                     $("#wrapper").fadeIn(500);

@@ -1,9 +1,5 @@
 
-.carousel {
-    position: relative;
-    width: 100%;
-    height: 100%;
-}
+
 
 .button {
     position: relative;
@@ -78,4 +74,10 @@
 
 #mapDescription {
     font-size: 12pt;
+}
+
+#mapCarousel {
+    position: relative;
+    width: 100%;
+    height: 100%;
 }
