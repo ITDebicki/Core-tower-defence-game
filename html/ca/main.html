@@ -86,9 +86,13 @@
                 if (blockPageLoading == false){
                     blockPageLoading = true;
                     var screen = $("#gameDiv");
-                    screen.append('<div id="' + id +'"></div>')
+                    var newDiv = $('<div id="' + id +'"></div>');
+                    screen.append(newDiv);
+                    var ls = new loadingScreen("#"+id);
+                    
                     $.get(element, function(data) {
                         $("#" + id).append(data);
+                        ls.hideLoadingScreen();
                         if (callback){
                             callback();
                         }
@@ -175,6 +179,81 @@
                 return size;
             };
 
+            
+            /**
+             * Generates a new ScrollList element
+             * @author Ignacy Debicki
+             * @param {object}   mainElement           The div element into which the list should be put
+             * @param {function} newElementConstructor Function to be called which will return a reference to an element of a list to be inserted. Accepts data argument
+             * @param {function} onElementPress        Fucntion to be called when a list element is pressed
+             * @param {function} onScroll              Function to be called when list is scrolled
+             */
+            function ScrollList(mainElement,newElementConstructor,onElementPress,onScroll){
+                this.primeElement=mainElement;
+                this.constructor=newElementConstructor;
+                this.onElementPress=onElementPress;
+                this.onScroll=onScroll;
+                if (this.onScroll){
+                    $(this.primeElement).scroll(this.scroll);
+                }
+            }
+            ScrollList.prototype = {
+                /**
+                 * Adds element to the list
+                 * @author Ignacy Debicki
+                 * @param {object} data Dictionary containing values to be passed into the newElementConstructor
+                 */
+                addElement: function(data){
+                    var element = this.constructor(data);
+                    if (this.onElementPress){
+                        element.click(this.onElementPress);
+                    }
+                    $(this.primeElement).append(element);
+                },
+                /**
+                 * Removes element from list
+                 * @author Ignacy Debicki
+                 * @param {string} id ID of the object to be removed
+                 */
+                removeElement: function(id){
+                    $(this.primeElement).children("#"+id).remove();
+                },
+                /**
+                 * Clear the list with animation of retracting (200ms)
+                 * @author Ignacy Debicki
+                 * @param {function} callback Function to be performed upon completion
+                 */
+                clearList: function(callback){
+                    $(this.primeElement).velocity({
+                        scrollTop:0
+                    },200,"swing",function(e){
+                        $(this).velocity("slideUp",200,function(){
+                            $(this).empty();
+                            $(this).velocity("slideDown",200);
+                            if(callback){callback();}
+                        });
+                    });
+                },
+                /**
+                 * Clears the list without animation
+                 * @author Ignacy Debicki
+                 * @param {function} callback Function to be performed upon completion
+                 */
+                quickClearList: function(callback){
+                    $(this.primeElement).empty();
+                    if (callback){ callback(); }
+                },
+                /**
+                 * Adds an array of elements to the list
+                 * @author Ignacy Debicki
+                 * @param {Array} dataArray Array containing data objects to be added via the addElement function
+                 */
+                addElements:function(dataArray){
+                    for (var i = 0;i<dataArray.length;i++){
+                        this.addElement(dataArray[i]);
+                    }
+                }
+            };
 		</script>
 	</head>
 	<body>
