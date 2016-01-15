@@ -30,8 +30,9 @@
  * 603 - File too large
  * 604 - Failed to move file
  * 605 - Unable to generate unique file name
- * 606 - failed to scale image
- * 607 - failed to delete file
+ * 606 - Failed to scale image
+ * 607 - Failed to delete file
+ * 608 - Failed to write file
  * 
  * 700 - Friends already
  * 701 - Reciever has blocked sender

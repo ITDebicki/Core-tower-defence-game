@@ -12,26 +12,15 @@
                  * @param {number} y         Y (j) value of unit vector direction
                  * @param {number} magnitude Length of vector
                  * @param {Array}  links     Array of vectors which directly follow on from current vector.
-                 *                              Has form of [{'segment' : nextVectorPathSegment, 'p' : probabilityForVectorSelection}]
+                 *                           Has form of [{'segment' : nextVectorPathSegment, 'p' : probabilityForVectorSelection}]
+                 * @param {number} id        Identifier of the vector
                  */
-                function VectorPathSegment(x,y,magnitude,links){
-                    this.x=null;
-                    this.y=null;
-                    this.m=null;
-                    this.links=[];
-                    if (typeof(x)!=="undefined"){
-                        this.x=x;
-                    }
-                    if (typeof(y)!=="undefined"){
-                        this.y=y;
-                    }
-                    if (typeof(magnitude)!=="undefined"){
-                        this.m=m;
-                    }
-                    if (typeof(links)!=="undefined"){
-                        this.links=links;
-                    }
-                    
+                function VectorPathSegment(x,y,magnitude,links,id){
+                    this.x = typeof x !== 'undefined' ? x : null;
+                    this.y = typeof y !== 'undefined' ? y : null;
+                    this.m = typeof magnitude !== 'undefined' ? magnitude : null;
+                    this.links = typeof links !== 'undefined' ? links : [];
+                    this.id = typeof id !== 'undefined' ? id : null;
                 }
                     
                 VectorPathSegment.prototype = {
@@ -65,6 +54,43 @@
                      */
                     addLink: function(segment,probability){
                         this.links.push({'segment':segment,'p':probability});
+                    },
+                    /**
+                     * Gets the ID of a segment
+                     * @author Ignacy Debicki
+                     * @returns {number} Id of the segment
+                     */
+                    getId: function(){
+                        return this.id;
+                    },
+                    /**
+                     * Sets the ID of a segment
+                     * @author Ignacy Debicki
+                     * @param {number} newID The new id to be set
+                     */
+                    setId: function(newID){
+                        this.id = newID;
+                    },
+                    /**
+                     * Finds a segment of a specific ID
+                     * @author Ignacy Debicki
+                     * @param   {id} id Id of segment to find
+                     * @returns {object} Returns either false if the segment was not found, or a VectorPathSegment if found
+                     */
+                    findSegmentOfID: function(id){
+                        if(this.id==id){
+                            return this;
+                        }else if (this.links.length > 0){
+                            for (var i = 0; i < this.links.length; i++){
+                                var segment = this.links[i].findSegmentOfID(id);
+                                if (segment!==false){
+                                    return segment;
+                                }
+                            }
+                            return false;
+                        }else{
+                            return false;
+                        }
                     }
                 };
                 /**
@@ -546,10 +572,12 @@
                  * @param   {Array}  points Array of points
                  * @returns {object} The root object of the path and the last object of the path in format {'root':root,'last':lastSegments}
                  */
-                function calculateVectorPaths(points){
+                function calculateVectorPaths(points,idOffset){
+                    idOffset = typeof idOffset !== 'undefined' ? idOffset : 0;
                     var root = null;
                     var lastSegments = [];
                     for (var i=0;i<points.length-1;i++){
+                        var id = idOffset*100+i;
                         var currentSegment = new VectorPathSegment();
                         var p1 = points[i].slice();
                         var p2 = points[i+1].slice();
@@ -561,6 +589,7 @@
                             currentSegment.x=vector.x;
                             currentSegment.y=vector.y;
                             currentSegment.m=vector.m;
+                            currentSegment.id = id;
                             if (lastSegments.length==0){
                                 root=currentSegment;
                             }else{
@@ -576,7 +605,8 @@
                                 var pointArray = [start.slice()];
                                 pointArray = pointArray.concat(p1[j].slice());
                                 pointArray.push(p2.slice());
-                                var pathSegments = calculateVectorPaths(pointArray.slice());
+                                var pathSegments = calculateVectorPaths(pointArray.slice(),idOffset+j);
+                                
                                 extendPath(lastSegments,pathSegments.root,pathProbability);
                                 endingSegments = endingSegments.concat(pathSegments.last.slice());
                             }
@@ -1642,6 +1672,64 @@
                     },
                     mapID: function(){
                         return mapID;
+                    },
+                    exportGame:function(){
+                        var exportMap = {};
+                        if (clockTime==0 && runTick == false){
+                            //currently counting down
+                            exportMap["timeUntilWave"] = timeUntilWave;
+                        }
+                        runTick = false;
+                        stopTickFunction = true;
+                        stopWaveTimer = true;
+                        
+                        $(".isDragging").each(function(i,e){
+                            //refund resources
+                            setResources(resources+$(this).data("price"));
+                            //remove handlers
+                            $('#gameSpace').unbind("");
+                            //remove tower
+                            $(this).remove();
+                        });
+                        
+                        exportMap["map"] = mapID;
+                        exportMap["difficulty"] = "normal";
+                        exportMap["baseHealth"] = baseHealth;
+                        exportMap["currentScore"] = score;
+                        exportMap["currentResources"] = resources;
+                        exportMap["wave"] = waveNo;
+                        exportMap["towers"]  = [];
+                        exportMap["tick"] = clockTime;
+                        $(".towerContainer").each(function(n,e){
+                            console.log(this);
+                            var towerObject = {};
+                            towerObject["type"] = $(this).data("towerClass");
+                            towerObject["upgradeLevel"] = $(this).data("upgradeLevel");
+                            towerObject["reloadState"] = $(this).data("reloadState");
+                            towerObject["position"] = {"x":$(this).position().left, "y":$(this).position().top};
+                            towerObject["effects"] = [];
+                            exportMap["towers"].push(towerObject);
+                        });
+                        exportMap["enemies"]=[];
+                        $(".enemy").each(function(i,e){
+                            var enemyObject = {};
+                            var classList = $(this).attr('class').split(/\s+/);
+                            $.each(classList, function(index, item) {
+                                if (item !== 'enemy') {
+                                    enemyObject["type"]=item;
+                                    return false;
+                                }
+                            });
+                            enemyObject["ticksAlive"] = $(this).data("ticks");
+                            enemyObject["healthRemaining"]  = $(this).data("health");
+                            enemyObject["position"] = {"x":$(this).data("currentX"),"y":$(this).data("currentY")};
+                            enemyObject["effects"] = [];
+                            enemyObject["magnitudeRemaining"] = $(this).data("magnitudeRemaining");
+                            enemyObject["currentVector"]  = $(this).data("currentVector").getId();
+                            exportMap["enemies"].push(enemyObject);
+                        });
+                        
+                        return exportMap;
                     }
                 }
             })();

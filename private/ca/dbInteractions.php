@@ -3,6 +3,7 @@
 require_once("dbConnection.php");
 require_once("errorReporting.php");
 require_once("generalFunctions.php");
+require_once("fileManipulation.php");
 /**
  * Create a new user account
  * @author Ignacy Debicki
@@ -189,16 +190,7 @@ function set_avatar($filename){
         throw new Exception("Failed to write to database",501);
     }
 }
-/**
- * Sets the thumbnail for the save
- * @author Ignacy Debicki
- * @param  string  $filename Name of thumbnail file
- * @param integer $save     save identifier
- * @return boolean If succesfull
- */
-function set_thumbnail($filename,$save){
-   return true ;
-}
+
 /**
  * Removes the user's avatar and sets the default avatar
  * @author Ignacy Debicki
@@ -828,4 +820,137 @@ function get_highscore_list($map,$limit,$from,$to){
     $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
     return $result;
 }
+/**
+ * Fetches a specific save file for the current user
+ * @author Ignacy Debicki
+ * @param  integer $saveId Identifier of the save file to fetch
+ * @return object  Dicitonary of save file
+ */
+function get_save_data($saveID){
+    $conn = request_connection();
+    $stmt = $conn->prepare('SELECT fileLocation FROM Save WHERE user = :user AND idSave = :id');
+    $stmt->execute(array(":user" => $_SESSION["user"], ":id" => $saveID));
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $fileLocation = $result[0]["fileLocation"];
+    $fileContents = file_get_contents('/var/www/private/ca/saves/'.$fileLocation);
+    return $fileContents;
+}
+/**
+ * Fetches all save files for the current user
+ * @author Ignacy Debicki
+ * @return array Array of save objects containing values ["id" => id, "lastUpdate" => lastUpdate, "name" => name, "thumbnail" => "thumbnail" => thumbnail, "map"=>map]
+ */
+function get_saves(){
+    $conn = request_connection();
+    $stmt = $conn->prepare('SELECT idSave AS id, lastUpdate, name, thumbnail, map FROM Save WHERE user = :user ORDER BY lastUpdate DESC');
+    $stmt->execute(array(":user" => $_SESSION["user"]));
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    return $result;
+}
+/**
+ * Updates a save
+ * @author Ignacy Debicki
+ * @param  integer $saveID    Id of save to update
+ * @param  object  $newData   New save data
+ * @param  string  $thumbnail Filename of new thumbnail
+ * @return boolean If update was succesfull
+ */
+function update_save($saveID,$newData,$thumbnail){
+    $conn = request_connection();
+    $stmt = $conn->prepare('SELECT fileLocation,thumbnail FROM Save WHERE user = :user AND idSave = :id');
+    $stmt->execute(array(":user" => $_SESSION["user"], ":id" => $saveId));
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $fileLocation = $result[0]["fileLocation"];
+    $oldThumbnailFile = $result[0]["thumbnail"];
+    if (file_put_contents('/var/www/private/ca/saves/'.$fileLocation,$newData) == false){
+        throw new Exception("Failed to write file",608);
+    }else{
+        remove_thumbnail_file($oldThumbnailFile);
+        $stmt = $conn->prepare('UPDATE Save SET thumbnail = :thumbnail WHERE user = :user AND idSave = :id');
+        $stmt->execute(array(":user" => $_SESSION["user"], ":id" => $saveID, ":thumbnail" => $thumbnail));
+        $affectedRows = $stmt->rowCount();
+        if ($affectedRows>0){
+            return true;
+        }else{
+            throw new Exception("Failed to write to database",501);
+        }
+        
+    }
+}
+/**
+ * Creates a new save
+ * @author Ignacy Debicki
+ * @param  object  $newData   New save data
+ * @param  string  $name      Name of save
+ * @param  string  $thumbnail Filename of thumbnail
+ * @param  integer $map       Map id of map the save was created from
+ * @return boolean If succesfull
+ */
+function create_save($newData,$name,$thumbnail,$map){
+    //generate unique filename
+    $uniqueFilename = false;
+    $filename=null;
+    $repetitions = 0;
+    do{
+        $filename = generate_filename() . ".msd";
+        $uniqueFilename = !(file_exists('/var/www/private/ca/saves/' . $filename));
+        $repetitions++;
+    }while($uniqueFilename==false && $repetitions < 5);
+    
+    if (file_put_contents('/var/www/private/saves/'.$filename,$newData) == false){
+        throw new Exception("Failed to write file",608);
+    }
+    $conn = request_connection();
+    $stmt = $conn->prepare('INSERT INTO Save (user,name,fileLocation,thumbnail,map) VALUES (:user, :name, :fileLocation, :thumbnail, :map)');
+    $stmt->execute(array(":user" => $_SESSION["user"], ":name" => $name, ":fileLocation" => $filename, ":thumbnail" => $thumbnail, ":map" => $map));
+    $affectedRows = $stmt->rowCount();
+    if ($affectedRows > 0){
+        return true;
+    }else{
+        throw new Exception("Failed to write to database",501);
+    }
+}
+/**
+ * Updates the name of a save
+ * @author Ignacy Debicki
+ * @param  integer $saveID  Identifier of save
+ * @param  string  $newName New name of the map
+ * @return boolean If succesfull
+ */
+function update_name($saveID, $newName){
+    $conn = request_connection();
+    $stmt = $conn->prepare('UPDATE Save SET name = :name WHERE user = :user AND idSave = :id');
+    $stmt->execute(array(":user" => $_SESSION["user"], ":id" => $saveID, ":name" => $newName));
+    $affectedRows = $stmt->rowCount();
+    if ($affectedRows>0){
+        return true;
+    }else{
+        throw new Exception("Failed to write to database",501);
+    }
+}
+/**
+ * Deletes a save
+ * @author Ignacy Debicki
+ * @param  integer $saveID Identifier of save to delete
+ * @return boolean If succesfull
+ */
+function delete_save($saveID){
+    $conn = request_connection();
+    $stmt = $conn->prepare('SELECT fileLocation,thumbnail FROM Save WHERE user = :user AND idSave = :id');
+    $stmt->execute(array(":user" => $_SESSION["user"], ":id" => $saveID));
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $fileLocation = $result[0]["fileLocation"];
+    $thumbnailFile = $result[0]["thumbnail"];
+    remove_save_file($fileLocation);
+    remove_thumnail_file($thumbnailFile);
+    $stmt = $conn->prepare('DELETE FROM Save WHERE user = :user AND idSave =:id');
+    $stmt->execute(array(":user" => $_SESSION["user"], ":id" => $saveID));
+    $affectedRows = $stmt->rowCount();
+    if ($affectedRows>0){
+        return true;
+    }else{
+        throw new Exception("Failed to write to database",501);
+    }
+}
+
 ?>

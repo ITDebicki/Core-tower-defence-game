@@ -104,7 +104,7 @@
 #leaderboardList {
     position: relative;
     top: 10px;
-    height: 545px;
+    max-height: 545px;
     width:340px;
     overflow-y: scroll;
     overflow-x: hidden;

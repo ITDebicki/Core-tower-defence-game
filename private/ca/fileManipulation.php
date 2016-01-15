@@ -40,14 +40,18 @@
         }
     }
     /**
-     * Generates a random 10 character name
+     * Generates a random alphanumeric 10 character name
      * @author Ignacy Debicki
-     * @return string Random string generated
+     * @param integer $length Length of name to produce. Defualt 10
+     * @return string  Random string generated
      */
-    function generate_filename(){
+    function generate_filename($length){
+        if (!$length){
+            $length = 10;
+        }
          $characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMONPQRSTUVWXYZ0123456789';
          $filename = '';
-         for ($i = 0; $i < 10; $i++) {
+         for ($i = 0; $i < $length; $i++) {
               $filename .= $characters[rand(0, strlen($characters) - 1)];
          }
         return $filename;
@@ -92,7 +96,7 @@
                 if ($targetLocation == "avatars"){
                     return set_avatar($filename);
                 }else{
-                    return set_thumbnail($filename);
+                    return $filename;
                 }
                 
             } else {
@@ -130,6 +134,39 @@ function remove_avatar_file($file){
     try{
         if ($file!=NULL || $file!=""){
             if (!unlink("/var/www/html/ca/restricted/images/avatars/" . $file)){
+                throw new Exception("Failed to delete file",607);
+            }
+        }
+    } catch(Exception $e){
+        throw $e;
+    }  
+}
+/**
+ * Remove a map thumbnail from the directory
+ * @author Ignacy Debicki
+ * @param string $file Name of file to remove
+ */
+function remove_thumbnail_file($file){
+        try{
+        if ($file!=NULL || $file!=""){
+            if (!unlink("/var/www/html/ca/restricted/images/mapThumbnails/" . $file)){
+                throw new Exception("Failed to delete file",607);
+            }
+        }
+    } catch(Exception $e){
+        throw $e;
+    }  
+}
+
+/**
+ * Remove a map thumbnail from the directory
+ * @author Ignacy Debicki
+ * @param string $file Name of file to remove
+ */
+function remove_save_file($file){
+        try{
+        if ($file!=NULL || $file!=""){
+            if (!unlink("/var/www/private/ca/saves/" . $file)){
                 throw new Exception("Failed to delete file",607);
             }
         }

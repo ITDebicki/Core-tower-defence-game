@@ -841,6 +841,156 @@ window.login=(function(){
             error:logError
         });
     }
+    /**
+     * Gets all the saves of the current user
+     * @author Ignacy Debicki
+     * @param {function} callback Function to call upon completion. Will be passed parameters: success,data,errorCode
+     *                            Data will be Either the error message (if success==false) or the array with objects of format:
+     *                            {"id":id,"lastUpdate":lastUpdate,"name":name,"thumbnail":"thumbnail":thumbnail,"map":map}, in order of lastUpdate
+     */
+    function getSaves(callback){
+        $.ajax({
+            url: 'restricted/performAction.php',
+            type: 'POST',
+            method: 'POST',
+            dataType: "json",
+            data: { "action": "getSaves", "json":'{}'},
+            success: function(response){ 
+                if (response["success"]==true){
+                    callback(true,response["data"]);
+                }else{
+                    callback(false,response["error"],response["errorCode"]); 
+                }
+            },
+            error:logError
+        });
+    }
+    /**
+     * Gets the save data
+     * @author Ignacy Debicki
+     * @param {number}   saveId   Identifier of save for which to get data
+     * @param {function} callback Function to call upon completion. Will be passed parameters: success,data,errorCode
+     *                            Data will be Either the error message (if success==false) or the save data.
+     */
+    function getSaveData(saveId,callback){
+        $.ajax({
+            url: 'restricted/performAction.php',
+            type: 'POST',
+            method: 'POST',
+            dataType: "json",
+            data: { "action": "getSaveData", "json":'{"save":'+saveId+'}'},
+            success: function(response){ 
+                if (response["success"]==true){
+                    callback(true,response["data"]);
+                }else{
+                    callback(false,response["error"],response["errorCode"]); 
+                }
+            },
+            error:logError
+        });
+    }
+    /**
+     * Creates a new save
+     * @author Ignacy Debicki
+     * @param {object} data      Save object to write
+     * @param {string} name      Name of save
+     * @param {string} thumbnail Name of thumbnail to assign
+     * @param {number} map       Id of map save was created on
+     * @param {function} callback Function to call upon completion. Will be passed parameters: success,data,errorCode
+     *                            Data will be Either the error message (if success==false) or true.
+     */
+    function createSave(data,name,thumbnail,map,callback){
+        $.ajax({
+            url: 'restricted/performAction.php',
+            type: 'POST',
+            method: 'POST',
+            dataType: "json",
+            data: { "action": "createSave", "json":'{"saveData":'+JSON.stringify(data)+', "name":"'+name+'", "thumbnail":"'+thumbnail+'", "map":'+map+'}'},
+            success: function(response){ 
+                if (response["success"]==true){
+                    callback(true,response["data"]);
+                }else{
+                    callback(false,response["error"],response["errorCode"]); 
+                }
+            },
+            error:logError
+        });
+    }
+    /**
+     * Overwrites an existing save
+     * @author Ignacy Debicki
+     * @param {number}   saveId    Identifier of save to update
+     * @param {object}   saveData  Save object to write
+     * @param {string}   thumbnail Name of thumnail to assign
+     * @param {function} callback  Function to call upon completion. Will be passed parameters: success,data,errorCode
+     *                             Data will be Either the error message (if success==false) or true.
+     */
+    function updateSave(saveId,saveData,thumbnail,callback){
+        $.ajax({
+            url: 'restricted/performAction.php',
+            type: 'POST',
+            method: 'POST',
+            dataType: "json",
+            data: { "action": "updateSave", "json":'{"saveData":'+JSON.stringify(data)+', "save":'+saveId+', "thumbnail":"'+thumbnail+'"}'},
+            success: function(response){ 
+                if (response["success"]==true){
+                    callback(true,response["data"]);
+                }else{
+                    callback(false,response["error"],response["errorCode"]); 
+                }
+            },
+            error:logError
+        });
+    }
+    /**
+     * Updates the name of a save
+     * @author Ignacy Debicki
+     * @param {number}   saveId   Identifier of save to update
+     * @param {string}   name     New name to update to
+     * @param {function} callback Function to call upon completion. Will be passed parameters: success,data,errorCode
+     *                             Data will be Either the error message (if success==false) or true.
+     */
+    function updateName(saveId,name,callback){
+        $.ajax({
+            url: 'restricted/performAction.php',
+            type: 'POST',
+            method: 'POST',
+            dataType: "json",
+            data: { "action": "updateName", "json":'{"save":'+saveId+', "name":"'+name+'"}'},
+            success: function(response){ 
+                if (response["success"]==true){
+                    callback(true,response["data"]);
+                }else{
+                    callback(false,response["error"],response["errorCode"]); 
+                }
+            },
+            error:logError
+        });
+    }
+    /**
+     * Deltes a save
+     * @author Ignacy Debicki
+     * @param {number}   saveId   Identifier of save to delete
+     * @param {function} callback Function to call upon completion. Will be passed parameters: success,data,errorCode
+     *                            Data will be Either the error message (if success==false) or true.
+     */
+    function deleteSave(saveId,callback){
+        $.ajax({
+            url: 'restricted/performAction.php',
+            type: 'POST',
+            method: 'POST',
+            dataType: "json",
+            data: { "action": "deleteSave", "json":'{"save":'+saveId+'}'},
+            success: function(response){ 
+                if (response["success"]==true){
+                    callback(true,response["data"]);
+                }else{
+                    callback(false,response["error"],response["errorCode"]); 
+                }
+            },
+            error:logError
+        });
+    }
     return{
         login:function(user,pass,callback){
             login(user,pass,callback);
@@ -957,6 +1107,24 @@ window.login=(function(){
         },
         getUserHighScoreForMap: function(map,user,timespan,callback){
             getUserHighScoreForMap(map,user,timespan,callback);
+        },
+        getSaves: function(callback){
+            getSaves(callback);
+        },
+        getSaveData: function(saveId,callback){
+            getSaveData(saveId,callback);
+        },
+        createSave: function(saveData,name,thumbnail,map,callback){
+            createSave(saveData,name,thumbnail,map,callback);
+        },
+        updateSave: function(saveId,saveData,thumbnail,callback){
+            updateSave(saveId,saveData,thumbnail,callback);
+        },
+        updateName: function(saveId, name,callback){
+            updateName(saveId,name,callback);
+        },
+        deleteSave: function(saveId,callback){
+            deleteSave(saveId,callback);
         }
         
     }

@@ -25,7 +25,6 @@ try{
     $result = false;
     $user="";
     if (isset($jsonData["user"])){
-        $_POST["additional2"]=$jsonData["user"];
         $user = $jsonData["user"];
     }
     switch($action){
@@ -117,6 +116,24 @@ try{
             break;
         case "getUserHighScoreForMap":
             $result = get_user_high_score_for_map($user,$jsonData["map"],$jsonData["from"],$json["to"]);
+            break;
+        case "getSaveData":
+            $result = get_save_data($jsonData["save"]);
+            break;
+        case "getSaves":
+            $result = get_saves();
+            break;
+        case "updateSave":
+            $result = update_save($jsonData["save"],$jsonData["saveData"],$jsonData["thumbnail"]);
+            break;
+        case "createSave":
+            $result = create_save($jsonData["saveData"],$jsonData["name"],$jsonData["thumbnail"],$jsonData["map"]);
+            break;
+        case "updateName":
+            $result = update_name($jsonData["save"],$jsonData["name"]);
+            break;
+        case "deleteSave":
+            $reuslt = delete_save($jsonData["save"]);
             break;
         default:
             throw new Exception("POST parameter 'action' not correct",100);
