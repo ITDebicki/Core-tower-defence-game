@@ -3,16 +3,25 @@
         <link rel="stylesheet" type="text/css" href="gameComponents/pauseMenu.css">
         <script>
             window.pauseMenuFunctions=(function(){
+                
+                var saveList = null;
+                var saveListLoadingScreen = null;
+                var gameExport = null;
                 $("document").ready(function(){
                     //firstly don't show the div
                     $("#overlay").fadeOut(0);
                     $("#wrapper").fadeOut(0);
+                    hideSaveScreen(0);
 
                     //set handlers
                     $("#backToGameButton").click(resumeGame);
                     $("#saveGameButton").click(saveGame);
                     $("#exitGameButton").click(exitAskGame);
-
+                    $("#saveScreenBackButton").click(saveScreenBackPress);
+                    $("#savesListNew").click(createNewSaveElement);
+                    $("#saveScreenSaveButton").click(saveGamePressed);
+                    
+                    saveList = new ScrollList("#savesList",createSaveElement,selectElement);
 
                     //fade back in
                     $("#overlay").fadeTo(500,0.9);
@@ -31,11 +40,17 @@
 
                 }
                 /**
-                 * Saves the game
+                 * Shows the save game screen
                  * @author Ignacy Debicki
                  */
                 function saveGame(){
-                    var gameExport = window.game.exportGame();
+                    if (window.login.isLoggedIn()){
+                        gameExport = window.game.exportGame();
+                        console.log(gameExport);
+                        showSaveScreen();
+                    }else{
+                        alert("You are not logged in");
+                    }
                     
                 }
                 /**
@@ -52,11 +67,148 @@
                  * @author Ignacy Debicki
                  */
                 function exitAskGame(){
-                    console.log("exiting game");
+                    console.log("Exiting game");
                     if(confirm("You will lose all your progress since your last save. Are you sure you want to quit?")){
                         removeOverlay();
                         window.game.showEndGameScreen();
                     };
+                }
+                /**
+                 * Shows the save screen
+                 * @author Ignacy Debicki
+                 */
+                function showSaveScreen(){
+                    populateSaveTable();
+                    $("#saveScreenWrapper").fadeIn(200);
+                    $("#saveScreenOverlay").fadeTo(200,0.9);
+                }
+                /**
+                 * Hides the save screen 
+                 * @author Ignacy Debicki
+                 * @param {number} duration How long the animation should take. (Default:200)
+                 */
+                function hideSaveScreen(duration){
+                    duration = typeof duration !== 'undefined' ? duration : 200;
+                    if (saveList){
+                        saveList.quickClearList();
+                    }
+                    $("#saveScreenWrapper").fadeOut(duration);
+                    $("#saveScreenOverlay").fadeOut(duration);
+                    //also remove any new created elements
+                }
+                
+                /**
+                 * Creates a new save list element
+                 * @author Ignacy Debicki
+                 * @param   {object} data Dictionary containing values ["name":name,"id":id,"lastUpdate":timestamp,"map":mapID,"new":isNew] isNEw defaults to false
+                 * @returns {object} New leaderboard div element
+                 */
+                function createSaveElement(data){
+                    console.log(data);
+                    var name = data["name"];
+                    var saveId = data["id"];
+                    var timestamp = data["lastUpdate"];
+                    var map = data["map"];
+                    var newElement = data["new"] || false;
+                    var date = new Date(timestamp * 1000);
+                    var container = $("<div class='save'>");
+                    var saveName = $('<div class="saveName">'+name+'</div>');
+                    if (newElement){
+                        saveName = $('<div class="saveName" contenteditable="true" tabindex="0">'+name+'</div>');
+                        container.addClass("saveSelected");
+                        container.addClass("isNewSave")
+                    }
+                    var dateDiv = $('<div class="saveDateDiv">'+date.toLocaleString()+'</div>')
+                    container.append(saveName)
+                        .append(dateDiv);
+                    container.data("id",saveId);
+                    container.data("map",map);
+                    return container;
+                }
+                
+                /**
+                 * Selects the pressed element
+                 * @author Ignacy Debicki
+                 * @param {object} e Event
+                 */
+                function selectElement(e){
+                    $(".saveSelected").each(function(){
+                        console.log($(this));
+                        $(this).removeClass("saveSelected");
+                    })
+                    $(this).addClass("saveSelected");
+                }
+                /**
+                 * Handler for pressing back button on save screen
+                 * @author Ignacy Debicki
+                 */
+                function saveScreenBackPress(){
+                    hideSaveScreen(200);
+                }
+                /**
+                 * Creates a new save element
+                 * @author Ignacy Debicki
+                 */
+                function createNewSaveElement(){
+                    $(".saveSelected").each(function(){
+                        $(this).removeClass("saveSelected");
+                    })
+                    //also remove any new created elements
+                    $(".isNewSave").remove();
+                    saveList.addElementAtIndex({"name":"New Save", "id":null,"lastUpdate":new Date() / 1000, "map":window.game.mapID(),"new":true},0);
+                }
+                /**
+                 * Popuates the save table with exising saves
+                 * @author Ignacy Debicki
+                 */
+                function populateSaveTable(){
+                    saveListLoadingScreen = new loadingScreen("#savesList");
+                    window.login.getSaves(populateSaveTableHandler);
+                }
+                /**
+                 * Handler for recieving existing save data
+                 * @author Ignacy Debicki
+                 * @param {boolean} success   If fetch was succesfull
+                 * @param {Array}   data      array with objects of format:
+                 *                            {"id":id,"lastUpdate":lastUpdate,"name":name,"thumbnail":thumbnail,"map":map}, in order of lastUpdate
+                 * @param {number}  errorCode Eror code
+                 */
+                function populateSaveTableHandler(success,data,errorCode){
+                    if (success == true){
+                        if (data.length>0){
+                            saveList.addElements(data);
+                        }
+                    }else{
+                        alert(data,errorCode);
+                    }
+                    if (saveListLoadingScreen){
+                        saveListLoadingScreen.hideLoadingScreen();
+                    }
+                }
+                
+                function saveGamePressed(){
+                    var selectedSave = $(".saveSelected");
+                    console.log(selectedSave);
+                    if (selectedSave.hasClass("isNewSave")){
+                        saveListLoadingScreen = new loadingScreen("#savesListContainer");
+                        window.login.createSave(gameExport,selectedSave.children(".saveName").html(),"",window.game.mapID(),saveGameHadler);
+                    }else{
+                        if (confirm("Are you sure you want to overwrite this save?")){
+                            saveListLoadingScreen = new loadingScreen("#savesListContainer");
+                            console.log(selectedSave.data("id"));
+                            window.login.updateSave(selectedSave.data("id"),gameExport,"",saveGameHadler);
+                        }
+                    }
+                }
+                
+                function saveGameHadler(success,data,errorCode){
+                    saveListLoadingScreen.hideLoadingScreen();
+                    if (success == true){
+                        saveList.quickClearList();
+                        populateSaveTable();
+                    }else{
+                        alert(data,errorCode);
+                    }
                 }
             })();
             
@@ -66,11 +218,26 @@
     <body>
         <div id="wrapper">
             <div id="overlay"></div>
-        </div>
-        <div id="buttonDiv">
-            <button id="backToGameButton">Back to game</button>
-            <button id="saveGameButton">Save game</button>
-            <button id="exitGameButton">Exit game</button>
+            <div id="buttonDiv">
+                <button id="backToGameButton">Back to game</button>
+                <button id="saveGameButton">Save game</button>
+                <button id="exitGameButton">Exit game</button>
+            </div>
+            <div id="saveScreenWrapper">
+                <div id="saveScreenOverlay"></div>
+                <div id="savesListContainer">
+                    <div id="savesListHeader">
+                        <div id="savesListTitle">Saves</div>
+                        <button id="savesListNew">Create new</button>
+                    </div>
+                    <div id="savesList"></div>
+                    <div id="savesListFooter">
+                        <button id="saveScreenBackButton">Back</button>
+                        <button id="saveScreenSaveButton">Save</button>
+                    </div>
+                </div>
+                
+            </div>
         </div>
     </body>
 </html>

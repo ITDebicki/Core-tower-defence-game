@@ -80,7 +80,7 @@
             $filename=null;
             $repetitions = 0;
             do{
-                $filename = generate_filename() . "." . $fileType;
+                $filename = generate_filename(10) . "." . $fileType;
                 $uniqueFilename = !(file_exists($target_dir . $filename));
                 $repetitions++;
             }while($uniqueFilename==false && $repetitions < 5);

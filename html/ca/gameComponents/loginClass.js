@@ -846,7 +846,7 @@ window.login=(function(){
      * @author Ignacy Debicki
      * @param {function} callback Function to call upon completion. Will be passed parameters: success,data,errorCode
      *                            Data will be Either the error message (if success==false) or the array with objects of format:
-     *                            {"id":id,"lastUpdate":lastUpdate,"name":name,"thumbnail":"thumbnail":thumbnail,"map":map}, in order of lastUpdate
+     *                            {"id":id,"lastUpdate":lastUpdate,"name":name,"thumbnail":thumbnail,"map":map}, in order of lastUpdate
      */
     function getSaves(callback){
         $.ajax({
@@ -900,6 +900,7 @@ window.login=(function(){
      *                            Data will be Either the error message (if success==false) or true.
      */
     function createSave(data,name,thumbnail,map,callback){
+        console.log('{"saveData":'+JSON.stringify(data)+', "name":"'+name+'", "thumbnail":"'+thumbnail+'", "map":'+map+'}');
         $.ajax({
             url: 'restricted/performAction.php',
             type: 'POST',
@@ -926,12 +927,13 @@ window.login=(function(){
      *                             Data will be Either the error message (if success==false) or true.
      */
     function updateSave(saveId,saveData,thumbnail,callback){
+        conosle.log('{"saveData":'+JSON.stringify(saveData)+', "save":'+saveId+', "thumbnail":"'+thumbnail+'"}');
         $.ajax({
             url: 'restricted/performAction.php',
             type: 'POST',
             method: 'POST',
             dataType: "json",
-            data: { "action": "updateSave", "json":'{"saveData":'+JSON.stringify(data)+', "save":'+saveId+', "thumbnail":"'+thumbnail+'"}'},
+            data: { "action": "updateSave", "json":'{"saveData":'+JSON.stringify(saveData)+', "save":'+saveId+', "thumbnail":"'+thumbnail+'"}'},
             success: function(response){ 
                 if (response["success"]==true){
                     callback(true,response["data"]);

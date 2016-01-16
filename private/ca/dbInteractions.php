@@ -833,7 +833,7 @@ function get_save_data($saveID){
     $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $fileLocation = $result[0]["fileLocation"];
     $fileContents = file_get_contents('/var/www/private/ca/saves/'.$fileLocation);
-    return $fileContents;
+    return json_Decode($fileContents);
 }
 /**
  * Fetches all save files for the current user
@@ -842,7 +842,7 @@ function get_save_data($saveID){
  */
 function get_saves(){
     $conn = request_connection();
-    $stmt = $conn->prepare('SELECT idSave AS id, lastUpdate, name, thumbnail, map FROM Save WHERE user = :user ORDER BY lastUpdate DESC');
+    $stmt = $conn->prepare('SELECT idSave AS id, UNIX_TIMESTAMP(lastUpdate) AS lastUpdate, name, thumbnail, map FROM Save WHERE user = :user ORDER BY lastUpdate DESC');
     $stmt->execute(array(":user" => $_SESSION["user"]));
     $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
     return $result;
@@ -858,14 +858,15 @@ function get_saves(){
 function update_save($saveID,$newData,$thumbnail){
     $conn = request_connection();
     $stmt = $conn->prepare('SELECT fileLocation,thumbnail FROM Save WHERE user = :user AND idSave = :id');
-    $stmt->execute(array(":user" => $_SESSION["user"], ":id" => $saveId));
+    $stmt->execute(array(":user" => $_SESSION["user"], ":id" => $saveID));
     $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $fileLocation = $result[0]["fileLocation"];
     $oldThumbnailFile = $result[0]["thumbnail"];
-    if (file_put_contents('/var/www/private/ca/saves/'.$fileLocation,$newData) == false){
+    if (file_put_contents('/var/www/private/ca/saves/'.$fileLocation,json_encode($newData)) == false){
         throw new Exception("Failed to write file",608);
     }else{
-        remove_thumbnail_file($oldThumbnailFile);
+        //Not curently using thumbnail
+        /**remove_thumbnail_file($oldThumbnailFile);
         $stmt = $conn->prepare('UPDATE Save SET thumbnail = :thumbnail WHERE user = :user AND idSave = :id');
         $stmt->execute(array(":user" => $_SESSION["user"], ":id" => $saveID, ":thumbnail" => $thumbnail));
         $affectedRows = $stmt->rowCount();
@@ -873,7 +874,8 @@ function update_save($saveID,$newData,$thumbnail){
             return true;
         }else{
             throw new Exception("Failed to write to database",501);
-        }
+        }*/
+        return true;
         
     }
 }
@@ -892,12 +894,12 @@ function create_save($newData,$name,$thumbnail,$map){
     $filename=null;
     $repetitions = 0;
     do{
-        $filename = generate_filename() . ".msd";
+        $filename = generate_filename(10) . ".msd";
         $uniqueFilename = !(file_exists('/var/www/private/ca/saves/' . $filename));
         $repetitions++;
     }while($uniqueFilename==false && $repetitions < 5);
     
-    if (file_put_contents('/var/www/private/saves/'.$filename,$newData) == false){
+    if (file_put_contents('/var/www/private/ca/saves/'.$filename,json_encode($newData)) == false){
         throw new Exception("Failed to write file",608);
     }
     $conn = request_connection();

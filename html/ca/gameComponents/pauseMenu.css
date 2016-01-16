@@ -39,3 +39,82 @@
     border-radius: 25px;
     margin-bottom: 30px;   
 }
+#saveScreenWrapper {
+    z-index:10;
+    position: absolute;
+    width:100%;
+    height:100%;
+    top: 0px;
+    left:0px;
+}
+
+#saveScreenOverlay {
+    position: absolute;
+    width:100%;
+    height:100%;
+    top: 0px;
+    left:0px;
+    background-color: lightgray;
+}
+
+#savesListContainer {
+    position: absolute;
+    left: 350px;
+    top: 50px;
+    width: 400px;
+    max-height: 500px;
+}
+
+#savesListTitle {
+    display: inline-block;
+    font-size: 30pt;
+    font-weight: bold;
+}
+
+#savesListNew {
+    position: absolute;
+    right: 5px;
+    width: 100px;
+    height: 30px;
+    color: black;
+    text-align: center;
+    top: 12px;
+    font-size: 10pt;
+    border-radius: 15px;
+    margin-bottom: 30px;
+}
+#savesListFooter button{
+        width: 160px;
+    height: 40px;
+    color:black;
+    text-align: center;
+    font-size: 1em;
+    border-radius: 25px;
+    margin-bottom: 30px;  
+}
+
+#savesListFooter {
+    border-top: 2px dashed black;
+    text-align: center;
+}
+
+.save{
+    border-radius: 10px;
+    padding: 10px;
+    background-color: rgba(246, 234, 193, 0.75);
+}
+
+.saveName{
+    display: inline-block;
+}
+
+.saveDateDiv{
+    display: inline-block;
+    font-size: 8pt;
+    float: right;
+    margin-top: 10px;
+}
+
+.save.saveSelected{
+    background-color: rgba(14, 90, 103, 0.75);
+}

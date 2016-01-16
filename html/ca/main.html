@@ -4,7 +4,7 @@
         <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
-		<!--<script src="https://d3js.org/d3.v3.min.js"></script>-->
+        <!--<script src="html2canvas/html2canvas.js"></script>-->
         <script src="velocity/velocity.min.js"></script>
         <script src="velocity/velocity.ui.min.js"></script>
         <script src="gameComponents/loginClass.js"></script>
@@ -209,6 +209,24 @@
                         element.click(this.onElementPress);
                     }
                     $(this.primeElement).append(element);
+                },
+                /**
+                 * Adds an element to the list at a specific index
+                 * @author Ignacy Debicki
+                 * @param {object} data  Dictionary containing values to be passed into the newElementConstructor
+                 * @param {number} index Index where to insert element (0 is first)
+                 */
+                addElementAtIndex(data,index){
+                    var element = this.constructor(data);
+                    if (this.onElementPress){
+                        element.click(this.onElementPress);
+                    }
+                    if (index>0){
+                        $(this.primeElement).children(':eq('+index-1+')').after(element);
+                    }else{
+                        $(this.primeElement).prepend(element);
+                    }
+                    
                 },
                 /**
                  * Removes element from list

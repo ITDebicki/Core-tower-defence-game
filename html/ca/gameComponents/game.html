@@ -1679,9 +1679,6 @@
                             //currently counting down
                             exportMap["timeUntilWave"] = timeUntilWave;
                         }
-                        runTick = false;
-                        stopTickFunction = true;
-                        stopWaveTimer = true;
                         
                         $(".isDragging").each(function(i,e){
                             //refund resources
@@ -1701,7 +1698,6 @@
                         exportMap["towers"]  = [];
                         exportMap["tick"] = clockTime;
                         $(".towerContainer").each(function(n,e){
-                            console.log(this);
                             var towerObject = {};
                             towerObject["type"] = $(this).data("towerClass");
                             towerObject["upgradeLevel"] = $(this).data("upgradeLevel");
