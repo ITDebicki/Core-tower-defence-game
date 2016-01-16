@@ -82,7 +82,7 @@
                             return this;
                         }else if (this.links.length > 0){
                             for (var i = 0; i < this.links.length; i++){
-                                var segment = this.links[i].findSegmentOfID(id);
+                                var segment = this.links[i].segment.findSegmentOfID(id);
                                 if (segment!==false){
                                     return segment;
                                 }
@@ -393,7 +393,7 @@
                 var warningMessageTimeout=null;
                 var animationArray = [];
                 var mapID = null;
-                var statistics = [];
+                var statistics = {};
                 
                 $("document").ready(function(){
                     //set self to hidden
@@ -535,9 +535,11 @@
                 /**
                  * Loads map into the game.
                  * @author Ignacy Debicki
-                 * @param {object} map Map to load.
+                 * @param {object}  map              Map to load.
+                 * @param {boolean} startImmediately If to start the game immediately after map load (Default true)
                  */
-                function loadMap(map){
+                function loadMap(map,startImmediately){
+                    startImmediately = (typeof startImmediately === 'undefined') ? true : startImmediately;
                     setBaseHealth(map["maxBaseHealth"]);
                     changeHealth(map["startingBaseHealth"]);
                     startingResources =map["startingResources"];
@@ -564,7 +566,10 @@
                             }
                         }
                     }
-                    start();
+                    if (startImmediately){
+                        start();
+                    }
+                    
                 }
                 /**
                  * Creates vectorPathSegments describing the path through the array of points
@@ -1627,6 +1632,79 @@
                                     window.endGameScreen.initialise(finalScore,mapID,statistics,valid);
                     });
                 }
+                
+                function loadGame(gameData,callback){
+                    baseHealth = gameData["baseHealth"];
+                    score = gameData["currentScore"];
+                    resources = gameData["currentResources"];
+                    setResources(resources);
+                    changeHealth(baseHealth);
+                    waveNo = gameData["wave"];
+                    clockTime = gameData["tick"];
+                    mapID = gameData["map"];
+                    statistics = gameData["statistics"];
+                    //spawn all towers
+                    for (var i =0 ;i<gameData["towers"].length;i++){
+                        var towerData = gameData["towers"][i];
+                        var towerDiv = towerDB[towerData["type"]][towerData["upgradeLevel"]]["divBase"].clone();;
+                        towerDiv.data("reloadState",towerData["reloadState"])
+                                .data("totalPrice",towerData["totalPrice"])
+                                .data("effects",towerData["effects"]);
+                        towerDiv.children(".tower").click(selectTower)
+                                                    .addClass("tile");
+                        $("#gameSpace").append(towerDiv);
+                        towerDiv.css({top: towerData["position"]["y"], left: towerData["position"]["x"]})
+                    }
+                    var vectorSegmentCache = {};
+                    for (var i=0;i<gameData["enemies"].length;i++){
+                        var enemyData = gameData["enemies"][i];
+                        var enemyDiv = loadEnemy(enemyData["type"]).clone();
+                        enemyDiv.data("ticks",enemyData["ticksAlive"])
+                                .data("health",enemyData["healthRemaining"])
+                                .data("currentX",enemyData["position"]["x"])
+                                .data("currentY",enemyData["position"]["y"])
+                                .data("effects",enemyData["effects"])
+                                .data("magnitudeRemaining",enemyData["magnitudeRemaining"]);
+                        
+                        var currentVector = vectorSegmentCache[enemyData["currentVector"]];
+                        if (!vectorSegmentCache[enemyData["currentVector"]]){
+                            currentVector  = vectorPathRoot.findSegmentOfID(enemyData["currentVector"]);
+                            vectorSegmentCache[enemyData["currentVector"]] = currentVector;
+                        }
+                        enemyDiv.data("currentVector",currentVector);
+                        $("#gameSpace").append(enemyDiv);
+                        enemyDiv.css({top:enemyData["position"]["y"], left:enemyData["position"]["x"]});
+                    }
+                    
+                    //animate tray in
+                    $("#controlTray").show('slide',{direction:'right'},1000);
+                    console.log(gameData["timeUntilNextWave"]);
+                    if (typeof gameData["timeUntilNextWave"] === 'undefined'){
+                        timeUntilWave = gameData["timeUntilWave"];
+                        runTick = false;
+                        stopWaveTimer = false;
+                        clockTime = 0;
+                        clockTick();
+                        startWaveCounter();
+                    }else{
+                        console.log("Not wave start")
+                        $("#waveControls").velocity("slideUp",100);
+                        prepareWave();
+                        stopWaveTimer = false;
+                        timeUntilWave = 30;
+                        runTick = true;
+                        clockMultiplier = 1;
+                        console.log(enemyQueue,"eq");
+                        for (var i =0;i<=clockTime;i++){
+                            delete enemyQueue[i];
+                        }
+                        console.log(enemyQueue,"eq2");
+                        clockTick();
+                    }
+                    
+                }
+                
+                
                 return{
                     /**
                      * Starts the game clock
@@ -1653,11 +1731,12 @@
                     /**
                      * Loads a map into the game area
                      * @author Ignacy Debicki
-                     * @param {object} mapInfo Description of map
+                     * @param {object}  mapInfo          Description of map
+                     * @param {boolean} startImmediately If to start the game immediately after loading map
                      */
-                    setMap:function(mapInfo){
+                    setMap:function(mapInfo,startImmediately){
                         mapInfo["mapData"]["id"]=parseInt(mapInfo["id"]);
-                        loadMap(mapInfo["mapData"]);
+                        loadMap(mapInfo["mapData"],startImmediately);
                     },
                     /**
                      * Exits the current game
@@ -1697,6 +1776,7 @@
                         exportMap["wave"] = waveNo;
                         exportMap["towers"]  = [];
                         exportMap["tick"] = clockTime;
+                        exportMap["statistics"] = statistics;
                         $(".towerContainer").each(function(n,e){
                             var towerObject = {};
                             towerObject["type"] = $(this).data("towerClass");
@@ -1704,6 +1784,7 @@
                             towerObject["reloadState"] = $(this).data("reloadState");
                             towerObject["position"] = {"x":$(this).position().left, "y":$(this).position().top};
                             towerObject["effects"] = [];
+                            towerObject["totalPrice"] = $(this).data("totalPrice");
                             exportMap["towers"].push(towerObject);
                         });
                         exportMap["enemies"]=[];
@@ -1724,8 +1805,11 @@
                             enemyObject["currentVector"]  = $(this).data("currentVector").getId();
                             exportMap["enemies"].push(enemyObject);
                         });
-                        
+                        console.log(exportMap);
                         return exportMap;
+                    },
+                    loadGame: function(gameData,callback){
+                        loadGame(gameData,callback);
                     }
                 }
             })();

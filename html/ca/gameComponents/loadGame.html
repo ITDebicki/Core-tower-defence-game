@@ -1,0 +1,252 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="gameComponents/loadGame.css">
+<script>
+    
+    window.loadScreen = (function(){
+        var saveList = null;
+        var saveListLoadingScreen = null;
+        var mapToLoad = null;
+        var gameData = null;
+        $("document").ready(function(){
+            //firstly don't show the div
+            $("#loadGameWrapper").fadeOut(0);
+            $("#loadGameScreenOverlay").fadeOut(0);
+
+            //set handlers
+            $("#loadScreenBackButton").click(backPressed);
+            $("#savesListRefresh").click(refreshSaveTable);
+            $("#loadScreenLoadButton").click(loadSave);
+            $("#loadScreenDeleteButton").click(deleteSave);
+            $("#loadGameScreenOverlay").click(function(){
+                $(".saveSelected").each(function(){
+                    console.log($(this));
+                    $(this).removeClass("saveSelected");
+                });
+            })
+
+            saveList = new ScrollList("#savesList",createSaveElement,selectElement);
+
+            //fade back in
+            $("#loadGameScreenOverlay").fadeTo(500,0.9);
+            $("#loadGameWrapper").fadeIn(500);
+            refreshSaveTable();
+        });
+        
+        /**
+         * Refreshes the saves table
+         * @author Ignacy Debicki
+         */
+        function refreshSaveTable(){
+            if (saveList){
+                saveList.quickClearList();
+            }
+            populateSaveTable();
+        }
+        /**
+         * Returns to the previous screen
+         * @author Ignacy Debicki
+         */
+        function backPressed(){
+            $("#loadGameWrapper").fadeOut(200);
+            $("#loadGameScreenOverlay").fadeOut(200);
+            removeElement("loadGameScreen");
+        }
+        
+        /**
+         * Creates a new save list element
+         * @author Ignacy Debicki
+         * @param   {object} data Dictionary containing values ["name":name,"id":id,"lastUpdate":timestamp,"map":mapID,"new":isNew] isNEw defaults to false
+         * @returns {object} New leaderboard div element
+         */
+        function createSaveElement(data){
+            console.log(data);
+            var name = data["name"];
+            var saveId = data["id"];
+            var timestamp = data["lastUpdate"];
+            var map = data["map"];
+            var newElement = data["new"] || false;
+            var date = new Date(timestamp * 1000);
+            var container = $("<div class='save'>");
+            var saveName = $('<div class="saveName" contenteditable="true">'+name+'</div>');
+            saveName.focusin(nameGainedFocus);
+            saveName.focusout(nameLostFocus)
+            var dateDiv = $('<div class="saveDateDiv">'+date.toLocaleString()+'</div>')
+            container.append(saveName)
+                .append(dateDiv);
+            container.data("id",saveId);
+            container.data("map",map);
+            return container;
+        }
+        /**
+         * Function which is called when the name field gains focus
+         * @author Ignacy Debicki
+         */
+        function nameGainedFocus(){
+            $(this).data("oldValue",$(this).html());
+        }
+        /**
+         * Checks if the name has changed once it has lost focus and updates name in database if needed
+         * @author Ignacy Debicki
+         */
+        function nameLostFocus(){
+            if ($(this).html() !== $(this).data("oldValue")){
+                //update name
+                console.log($(this).parent().data("id"),'|',$(this).html());
+                saveListLoadingScreen = new loadingScreen("#savesListContainer");
+                window.login.updateName($(this).parent().data("id"),$(this).html(),updateTableHandler);
+            }
+            $(this).data("oldValue","");
+        }
+        /**
+         * Selects the pressed element
+         * @author Ignacy Debicki
+         * @param {object} e Event
+         */
+        function selectElement(e){
+            $(".saveSelected").each(function(){
+                console.log($(this));
+                $(this).removeClass("saveSelected");
+            });
+            $(this).addClass("saveSelected");
+        }
+        
+        /**
+         * Popuates the save table with exising saves
+         * @author Ignacy Debicki
+         */
+        function populateSaveTable(){
+            saveListLoadingScreen = new loadingScreen("#savesList");
+            window.login.getSaves(populateSaveTableHandler);
+        }
+        
+        /**
+         * Handler for recieving existing save data
+         * @author Ignacy Debicki
+         * @param {boolean} success   If fetch was succesfull
+         * @param {Array}   data      array with objects of format:
+         *                            {"id":id,"lastUpdate":lastUpdate,"name":name,"thumbnail":thumbnail,"map":map}, in order of lastUpdate
+         * @param {number}  errorCode Eror code
+         */
+        function populateSaveTableHandler(success,data,errorCode){
+            if (success == true){
+                if (data.length>0){
+                    saveList.addElements(data);
+                }
+            }else{
+                alert(data,errorCode);
+            }
+            if (saveListLoadingScreen){
+                saveListLoadingScreen.hideLoadingScreen();
+            }
+        }
+        /**
+         * Deletes the currently selected save
+         * @author Ignacy Debicki
+         */
+        function deleteSave(){
+            if ($(".saveSelected")[0]){
+                var selectedSave = $(".saveSelected");
+                if (confirm("Are you sure you want to delete this save?")){
+                    saveListLoadingScreen = new loadingScreen("#savesListContainer");
+                    window.login.deleteSave(selectedSave.data("id"),updateTableHandler);
+                }
+            }else{
+                alert("No save selected");
+            }
+            
+        }
+        
+        /**
+         * Handles response for updates of table from server
+         * @author Ignacy Debicki
+         * @param {boolean} success   If update was succesfull
+         * @param {boolean} data      Either error message (if success==false) or true
+         * @param {number}  errorCode Error code
+         */
+        function updateTableHandler(success,data,errorCode){
+            saveListLoadingScreen.hideLoadingScreen();
+            if (success == true){
+                refreshSaveTable();
+            }else{
+                alert(data,errorCode);
+            }
+        }
+        
+        function loadSave(){
+            if ($(".saveSelected")[0]){
+                var selectedSave = $(".saveSelected");
+                saveListLoadingScreen = new loadingScreen("#savesListContainer");
+                window.login.getSaveData(selectedSave.data("id"),loadSaveHandler);
+            }else{
+                alert("No save selected");
+            }
+        }
+        
+        function loadSaveHandler(success,data,errorCode){
+            if (success){
+                gameData = data;
+                window.login.getAllMaps(mapLoadHandler);
+            }else{
+                alert(data,errorCode);
+                saveListLoadingScreen.hideLoadingScreen();
+            }
+        }
+        
+        function mapLoadHandler(success,data,errorCode){
+            if(success){
+                var selectedSave = $(".saveSelected");
+                var mapID = selectedSave.data("map");
+                for (var i = 0;i<data.length;i++){
+                    if (data[i]["id"] == mapID){
+                        mapToLoad = data[i];
+                        loadBackground('gameComponents/maps/'+data[i]["name"]+'.png');
+                        window.login.getMapData(mapToLoad["file"],getMapDataHandler);
+                        break;
+                    }
+                }
+            }else{
+                alert(data,errorCode);
+                saveListLoadingScreen.hideLoadingScreen();
+            }
+        }
+        
+        function getMapDataHandler(mapData){
+            mapToLoad["mapData"]=mapData;
+            saveListLoadingScreen.hideLoadingScreen();
+            loadElement('gameComponents/game.html','mainGame',startGameHandler);
+        }
+        
+        function startGameHandler(){
+            removeElement("startGameScreen");
+            window.game.setMap(mapToLoad,false);
+            window.game.loadGame(gameData);
+            removeElement("loadGameScreen");
+            
+            
+        }
+        return {};
+    })();
+    
+    
+    
+</script>
+</head>
+<body>
+    <div id="loadGameWrapper">
+        <div id="loadGameScreenOverlay"></div>
+        <div id="savesListContainer">
+            <div id="savesListHeader">
+                <div id="savesListTitle">Saves</div>
+                <button id="savesListRefresh">Refresh</button>
+            </div>
+            <div id="savesList"></div>
+            <div id="savesListFooter">
+                <button id="loadScreenBackButton">Back</button>
+                <button id="loadScreenDeleteButton">Delete</button>
+                <button id="loadScreenLoadButton">Load</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

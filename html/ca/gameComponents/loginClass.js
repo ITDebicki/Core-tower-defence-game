@@ -787,6 +787,25 @@ window.login=(function(){
         });
     }
     /**
+     * Fetches and returns the map data file
+     * @author Ignacy Debicki
+     * @param {string}   file     Name of map file to fetch
+     * @param {function} callback Fucntion to pass result to. Will be the map data.
+     */
+    function getMapData(file,callback){
+        $.ajax({
+            url: 'gameComponents/maps/'+file,
+            type: 'GET',
+            method: 'GET',
+            dataType: "json",
+            success:function(response){
+                callback(response);
+            },
+            error:logError
+        });
+    }
+    
+    /**
      * Loads the leaderboard for that map, returning the first (limit) entries, in the specified timespan
      * @author Ignacy Debicki
      * @param {number}   map      Map id of map to fetch 
@@ -927,7 +946,7 @@ window.login=(function(){
      *                             Data will be Either the error message (if success==false) or true.
      */
     function updateSave(saveId,saveData,thumbnail,callback){
-        conosle.log('{"saveData":'+JSON.stringify(saveData)+', "save":'+saveId+', "thumbnail":"'+thumbnail+'"}');
+        console.log('{"saveData":'+JSON.stringify(saveData)+', "save":'+saveId+', "thumbnail":"'+thumbnail+'"}');
         $.ajax({
             url: 'restricted/performAction.php',
             type: 'POST',
@@ -1103,6 +1122,9 @@ window.login=(function(){
         },
         getAllMaps: function(callback){
             getAllMaps(callback);
+        },
+        getMapData: function(file,callback){
+            getMapData(file,callback);
         },
         loadLeaderBoard: function(map,limit,timespan,callback){
             loadLeaderBoard(map,limit,timespan,callback);

@@ -209,7 +209,12 @@
                  * @author Ignacy Debicki
                  */
                 function loadPressed(){
-                    alert("load pressed");
+                    if (window.login.isLoggedIn()){
+                        loadElement("gameComponents/loadGame.html","loadGameScreen");
+                    }else{
+                        alert("Please log in to load a save");
+                    }
+                    
                 }
                 /**
                  * Handler for pressing the options button

@@ -944,7 +944,7 @@ function delete_save($saveID){
     $fileLocation = $result[0]["fileLocation"];
     $thumbnailFile = $result[0]["thumbnail"];
     remove_save_file($fileLocation);
-    remove_thumnail_file($thumbnailFile);
+    //remove_thumbnail_file($thumbnailFile);
     $stmt = $conn->prepare('DELETE FROM Save WHERE user = :user AND idSave =:id');
     $stmt->execute(array(":user" => $_SESSION["user"], ":id" => $saveID));
     $affectedRows = $stmt->rowCount();

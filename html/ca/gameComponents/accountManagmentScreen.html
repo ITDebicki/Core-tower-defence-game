@@ -50,6 +50,12 @@
                         }
 
                     });
+                    $("#deleteAllSavesButton").click(function(){
+                        if(confirm("Are you sure you want to delete all ypur saves?")){
+                            window.login.getSaves(fetchSavesHandler);
+                        }
+                    })
+                    
                     
                     $("#manageFriends").click(function(){
                         loadElement("gameComponents/friendsManagementScreen.html","friendsScreen");
@@ -169,6 +175,16 @@
                  */
                 function loadAvatar(){
                     window.login.userAvatar(window.startScreen.setAvatar);
+                }
+                
+                function fetchSavesHandler(success,data,errorCode){
+                    if (success){
+                        for (var i=0;i<data.length;i++){
+                            window.login.deleteSave(data[i]["id"],function(a,b,c){});
+                        }
+                    }else{
+                        alert(data,errorCode);
+                    }
                 }
             })();
             
