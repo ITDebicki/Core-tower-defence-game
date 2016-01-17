@@ -28,7 +28,7 @@
                  * @author Ignacy Debicki
                  */
                 function backToStart(){
-                    loadBackground('gameComponents/maps/'+carousel.currentItem()["name"]+'.png');
+                    loadBackground('gameComponents/maps/'+carousel.currentItem()["image"]);
                     hideControls(300,function(){showStartScreen();});
                 }
                 /**
@@ -83,7 +83,7 @@
                         if(success){
                             if(data){
                                 for (var i=0;i<data.length;i++){
-                                    addMap(data[i]["id"],data[i]["name"],data[i]["description"],data[i]["file"],data[i]["image"]);
+                                    addMap(data[i]["id"],data[i]["name"],data[i]["description"],data[i]["file"],data[i]["image"],data[i]["levelNo"]);
                                 }
                             }   
                         }else{
@@ -100,8 +100,9 @@
                  * @param {string} description Description of map
                  * @param {string} file        URL to map file
                  * @param {string} image       URL to image file
+                 * @param {number} levelNo     Level no. of map
                  */
-                function addMap(id,name,description,file,image){
+                function addMap(id,name,description,file,image,levelNo){
                     activeAJAX+=1;
                     $.ajax({
                         url: 'gameComponents/maps/'+file,
@@ -109,7 +110,7 @@
                         method: 'GET',
                         dataType: "json",
                         success:function(response){
-                            var map = {"id":id,"name":name,"description":description,"image":image};
+                            var map = {"id":id,"name":name,"description":description,"image":image, "levelNo":levelNo};
                             map["div"]=$("<img class='carouselImage' id='"+name+"' src='gameComponents/maps/"+image+"'/>")
                             map["mapData"]=response;
                             mapArray.push(map);
@@ -188,13 +189,17 @@
                 /**
                  * Sets the start map to the specified map
                  * @author Ignacy Debicki
-                 * @param {string} mapName Name of map to be shown
+                 * @param {string} mapName Name of map image to be shown
                  */
                 function setStartMap(mapName){
+                    console.log(mapArray);
+                    mapArray = mapArray.sort(function(a,b){
+                        return a.levelNo - b.levelNo;
+                    });
+                    console.log(mapArray);
                     for (i=0;i<mapArray.length;i++){
                         var map = mapArray[i];
-                        console.log(map["name"],mapName);
-                        if (map["name"]==mapName){
+                        if (map["image"]==mapName){
                             initiateCarousel(i);
                             break;
                         }
@@ -217,7 +222,7 @@
                 /**
                  * Parses the current background of the game area to determine the map
                  * @author Ignacy Debicki
-                 * @returns {string} Name of map in the background
+                 * @returns {string} Name of image of map in the background
                  */
                 function parseBackground(){
                     var backgroundPath = $("#gameDiv").css("background-image");
@@ -225,8 +230,7 @@
                     backgroundPath = backgroundPath.replace('url("','');
                     var pathArray = backgroundPath.split('/');
                     var backgroundName = pathArray[pathArray.length-1];
-                    var backgroundMapString = backgroundName.replace('.png','');
-                    return backgroundMapString;
+                    return backgroundName;
                 }
                 return{
                 }

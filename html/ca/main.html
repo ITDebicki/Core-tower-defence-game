@@ -317,26 +317,16 @@
                     if (direction !== "left" || direction !== "right"){
                         //determine quickest direction
                         if (currentIndex-index>rotatorArray.length/2){
-                            direction="left";
+                            direction="right";
                         }else{
-                            direction="right"
+                            direction="left"
                         }
                     }
                     var numSpins = 0;
-                    if(direction=="left"){
-                        numSpins = rotatorArray.length-Math.abs(currentIndex-index);
-                        if (index>currentIndex){
-                            numSpins = rotatorArray.length-(index-currentIndex);
-                        }else{
-                            numSpins = currentIndex-index;
-                        }
+                    if(direction=="right"){
+                        numSpins = (rotatorArray.length()-(currentIndex-index))%rotatorArray.length();
                     }else{
-
-                        if (index<currentIndex){
-                            numSpins = rotatorArray.length-(currentIndex-index);
-                        }else{
-                            numSpins = index-currentIndex;
-                        }
+                        numSpins = (rotatorArray.length()-(index-currentIndex))%rotatorArray.length()
                     }
 
                     for (i=0;i<numSpins;i++){
@@ -354,9 +344,9 @@
                 function rotateCarouselRight(){
                     if (that.animating == false){
                         that.animating=true
-                        var nextIndex = currentIndex - 1;
-                        if (nextIndex < 0){
-                            nextIndex = rotatorArray.length+nextIndex;
+                        var nextIndex = currentIndex + 1;
+                        if (nextIndex >= rotatorArray.length){
+                            nextIndex = 0;
                         }
                         var prevItem = rotatorArray[currentIndex];
                         var item = rotatorArray[nextIndex];
@@ -394,9 +384,9 @@
                 function rotateCarouselLeft(){
                     if (that.animating == false){
                         that.animating=true
-                        var nextIndex = currentIndex +1;
-                        if (nextIndex >= rotatorArray.length){
-                            nextIndex = 0;
+                        var nextIndex = currentIndex - 1;
+                        if (nextIndex < 0){
+                            nextIndex = rotatorArray.length+nextIndex;
                         }
                         console.log(currentIndex,nextIndex);
                         var prevItem = rotatorArray[currentIndex];

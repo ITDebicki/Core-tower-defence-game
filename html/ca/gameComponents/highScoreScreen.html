@@ -21,7 +21,7 @@
             $("#prevButton").click(leftButtonClick);
             $("#nextButton").click(rightButtonClick); 
             $("#backButton").click(function(){
-                loadBackground('gameComponents/maps/'+carousel.currentItem()["name"]+'.png');
+                loadBackground('gameComponents/maps/'+carousel.currentItem()["image"]);
                 removeElement("highScoreScreen");
             });
             $("#refreshLeaderboardButton").click(refreshHighScoreBoard);
@@ -54,6 +54,7 @@
                 showText();
             }
         }
+
         /**
          * Fetches and adds all available maps
          * @author Ignacy Debicki
@@ -63,7 +64,7 @@
                 if(success){
                     if(data){
                         for (var i=0;i<data.length;i++){
-                            var map = {"id":data[i]["id"],"name":data[i]["name"]};
+                            var map = {"id":data[i]["id"],"name":data[i]["name"],"levelNo":data[i]["levelNo"],"image":data[i]["image"]};
                             map["div"]=$("<img class='carouselImage' id='"+map.name+"' src='gameComponents/maps/"+data[i]["image"]+"'/>");
                             mapArray.push(map);
                                 
@@ -113,9 +114,12 @@
          * @param {string} mapName Name of map to be shown
          */
         function setStartMap(mapName){
+            mapArray = mapArray.sort(function(a,b){
+                return a.levelNo - b.levelNo;
+            })
             for (i=0;i<mapArray.length;i++){
                 var map = mapArray[i];
-                if (map["name"]==mapName){
+                if (map["image"]==mapName){
                     initiateCarousel(i);
                     break;
                 }
@@ -138,7 +142,7 @@
         /**
          * Parses the current background of the game area to determine the map
          * @author Ignacy Debicki
-         * @returns {string} Name of map in the background
+         * @returns {string} Name of image of map in the background
          */
         function parseBackground(){
             var backgroundPath = $("#gameDiv").css("background-image");
@@ -146,8 +150,7 @@
             backgroundPath = backgroundPath.replace('url("','');
             var pathArray = backgroundPath.split('/');
             var backgroundName = pathArray[pathArray.length-1];
-            var backgroundMapString = backgroundName.replace('.png','');
-            return backgroundMapString;
+            return backgroundName;
         }
         /**
          * Creates a new leaderboard element

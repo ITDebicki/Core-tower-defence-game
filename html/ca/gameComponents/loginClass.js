@@ -767,7 +767,7 @@ window.login=(function(){
      error information (if success==false)
      or
      Array of format:
-     {{"id"=>id,"name"=>name,"description"=>description,"file"=>file,"image"=>image}} (if success==true)
+     [{"id"=>id,"name"=>name,"description"=>description,"file"=>file,"image"=>image,"levelNo":levelNo}] (if success==true)
      */
     function getAllMaps(callback){
         $.ajax({

@@ -785,11 +785,11 @@ function get_user_high_score_for_map($user,$map,$from,$to){
  * Gets all maps and returns them in an array acording to their levelNo
  * @author Ignacy Debicki
  * @return array Array ordered by levelNo with values of format:
- ["id"=>$id,"name"=>$name,"description"=>$description,"file"=>$file,"image"=>$image]
+ ["id"=>$id,"name"=>$name,"description"=>$description,"file"=>$file,"image"=>$image,"levelNo" => $levelNo]
  */
 function get_map_list(){
     $conn = request_connection();
-    $stmt = $conn->prepare("SELECT idMap AS id, mapName AS name, mapDescription AS description, mapFile AS file, mapImage AS image FROM Map ORDER BY levelNo ASC");
+    $stmt = $conn->prepare("SELECT idMap AS id, mapName AS name, mapDescription AS description, mapFile AS file, mapImage AS image, levelNo FROM Map ORDER BY levelNo ASC");
     $stmt->execute();
     $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
     return $result;
