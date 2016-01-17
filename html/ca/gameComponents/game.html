@@ -545,10 +545,12 @@
                     startingResources =map["startingResources"];
                     setResources(map["startingResources"]);
                     mapID = map["id"];
-                    //draw the map so objects can interact with it
-                    drawMap(map);
-                    //calculate path for enemies
-                    vectorPathRoot = calculateVectorPaths(mapPath).root;
+                    //calculate path for enemies and draw map divs so objects can interact with it
+                    vectorPathRoot = calculateVectorPaths(mapPath,0,map["radius"]).root;
+                    //position base
+                    var baseDiv = $('<div class="baseTile tile">');
+                    $("#gameSpace").append(baseDiv);
+                    baseDiv.css({left: map["baseLocation"][0] - 35, top: map["baseLocation"][1] - 35, width: map["baseRadius"]*2,height: map["baseRadius"]*2});
                     //set waves
                     waves = map["waves"];
                     //make sure all correct enemies are loaded
@@ -572,12 +574,14 @@
                     
                 }
                 /**
-                 * Creates vectorPathSegments describing the path through the array of points
+                 * Creates vectorPathSegments and divs describing the path through the array of points
                  * @author Ignacy Debicki
-                 * @param   {Array}  points Array of points
+                 * @param {Array}  points     Array of points
+                 * @param {number} idOffset   Offset of vector id. (default 0)
+                 * @param {numer}  pathRadius The path radius
                  * @returns {object} The root object of the path and the last object of the path in format {'root':root,'last':lastSegments}
                  */
-                function calculateVectorPaths(points,idOffset){
+                function calculateVectorPaths(points,idOffset,pathRadius){
                     idOffset = typeof idOffset !== 'undefined' ? idOffset : 0;
                     var root = null;
                     var lastSegments = [];
@@ -586,10 +590,12 @@
                         var currentSegment = new VectorPathSegment();
                         var p1 = points[i].slice();
                         var p2 = points[i+1].slice();
+                        
                         if (typeof(p1[0])=="number"){
                             if (typeof(p2[0])!=="number"){
                                 p2 = p2[0].start;
                             }
+                            parseElement({"x":p1[0],"y":p1[1]},{"x":p2[0],"y":p2[1]},2*pathRadius,pathRadius);
                             var vector = calculateVector(p1,p2);
                             currentSegment.x=vector.x;
                             currentSegment.y=vector.y;
@@ -602,6 +608,7 @@
                             }
                         lastSegments=[currentSegment];
                         }else{
+                            
                             //handle split
                             var start  = p1[0].start.slice();
                             var endingSegments = [];
@@ -610,7 +617,7 @@
                                 var pointArray = [start.slice()];
                                 pointArray = pointArray.concat(p1[j].slice());
                                 pointArray.push(p2.slice());
-                                var pathSegments = calculateVectorPaths(pointArray.slice(),idOffset+j);
+                                var pathSegments = calculateVectorPaths(pointArray.slice(),idOffset+j,pathRadius);
                                 
                                 extendPath(lastSegments,pathSegments.root,pathProbability);
                                 endingSegments = endingSegments.concat(pathSegments.last.slice());
@@ -648,60 +655,7 @@
                     vector.y/=vector.m;
                     return vector;
                 }
-                /**
-                 * Draws the map path and base from the points using divs
-                 * @author Ignacy Debicki
-                 * @param {object} data Diction ary containing the path definition and the path radius
-                 */
-                function drawMap(data){
-                    pathRadius = data["radius"];
-                    mapPath = data["path"];
-                    var gameContainer = $("#gameSpace");
-                    //draw map path using divs
-                    parsePath(mapPath.slice(),pathRadius)
-                    //position base
-                    var baseDiv = $('<div class="baseTile tile">');
-                    gameContainer.append(baseDiv);
-                    baseDiv.css({left: data["baseLocation"][0] - 35, top: data["baseLocation"][1] - 35, width: data["baseRadius"]*2,height: data["baseRadius"]*2});
-                }
-                /**
-                 * Parses the path definition
-                 * @author Ignacy Debicki
-                 * @param {Array}  path       The path definition made of points and branches
-                 * @param {number} pathRadius Half the width of the path
-                 */
-                function parsePath(path,pathRadius){
-                    var pathComponentHeight = pathRadius * 2;
-                    for ( i=0;i<path.length-1;i++){
-                        if (typeof(path[i][0])!=="number"){
-                            //split
-                            var currentArray = path[i];
-                            var startPoint = currentArray[0]["start"];
-                            var endPoint = [];
-                            if (typeof(path[i+1][0])!=="number"){
-                                endPoint = [path[i+1][0]["start"][0],path[i+1][0]["start"][1]];
-                            }else{
-                                endPoint = [path[i+1][0],path[i+1][1]];
-                            }
-                            
-                            for (j=1;j<currentArray.length;j++){
-                                var pathArray = currentArray[j].slice();
-                                pathArray.unshift(startPoint);
-                                pathArray.push(endPoint);
-                                parsePath(pathArray.slice(),pathRadius);
-                            }
-                        }else{
-                            var point = {"x":path[i][0],"y":path[i][1]};
-                            var nextPoint = {};
-                            if (typeof(path[i+1][0])!=="number"){
-                                nextPoint = {"x":path[i+1][0]["start"][0],"y":path[i+1][0]["start"][1]}
-                            }else{
-                                nextPoint = {"x":path[i+1][0],"y":path[i+1][1]};
-                            }
-                            parseElement(point,nextPoint,pathComponentHeight,pathRadius);
-                        }
-                    }
-                }
+
                 /**
                  * Creates and appends the path element to the game area.
                  * @author Ignacy Debicki
@@ -735,8 +689,10 @@
                             pointOrder.to=point;
                         }
                     }
+                    console.log(pointOrder,pathComponentHeight,pathRadius);
                     //work out angle between the two points
                     var angleFromHorizontal = Math.atan((pointOrder.to.y-pointOrder.from.y)/(pointOrder.to.x-pointOrder.from.x));
+                    console.log(angleFromHorizontal,"AFH");
                     pos["x"] = pointOrder.from.x- pathRadius * Math.cos(angleFromHorizontal);
                     pos["y"] = pointOrder.from.y-pathRadius - pathRadius * Math.sin(angleFromHorizontal);
                     //use pythagoras to calculate length of div
@@ -764,6 +720,7 @@
                  * @param {number} pathRadius Radius of path (Circular ends)
                  */
                 function createPathElement(size,pos,angle,pathRadius){
+                    console.log(size,pos,angle);
                     var gameContainer = $("#gameSpace")
                     var pathComponent = $(`
                         <div id="`+i+`" class="mapPathTile tile">
@@ -1632,8 +1589,12 @@
                                     window.endGameScreen.initialise(finalScore,mapID,statistics,valid);
                     });
                 }
-                
-                function loadGame(gameData,callback){
+                /**
+                 * Loads a game from a game save file
+                 * @author Ignacy Debicki
+                 * @param {object}   gameData A game save file
+                 */
+                function loadGame(gameData){
                     baseHealth = gameData["baseHealth"];
                     score = gameData["currentScore"];
                     resources = gameData["currentResources"];
@@ -1694,11 +1655,9 @@
                         timeUntilWave = 30;
                         runTick = true;
                         clockMultiplier = 1;
-                        console.log(enemyQueue,"eq");
                         for (var i =0;i<=clockTime;i++){
                             delete enemyQueue[i];
                         }
-                        console.log(enemyQueue,"eq2");
                         clockTick();
                     }
                     
@@ -1720,7 +1679,11 @@
                             flashWarning("Stop trying to cheat!");
                         }   
                     },
-                    
+                    /**
+                     * Test function. Wins but game is not valid
+                     * @author Ignacy Debicki
+                     * @param {number} score Score to pass
+                     */
                     win:function(score){
                         stopWaveTimer=true;
                         stopTickFunction=true;
@@ -1745,13 +1708,28 @@
                     exitGame: function(){
                         exitGame();
                     },
+                    /**
+                     * Shows the end game screen
+                     * @author Ignacy Debicki
+                     * @param {number} endScore The final score
+                     */
                     showEndGameScreen: function(endScore){
                         if (!endScore){endScore=score;}
                         showEndGameScreen(endScore);
                     },
+                    /**
+                     * The mapID of the map curently being played
+                     * @author Ignacy Debicki
+                     * @returns {number} Id of map
+                     */
                     mapID: function(){
                         return mapID;
                     },
+                    /**
+                     * Exports a game to an object which can be saved
+                     * @author Ignacy Debicki
+                     * @returns {object} A game save object
+                     */
                     exportGame:function(){
                         var exportMap = {};
                         if (clockTime==0 && runTick == false){
@@ -1808,8 +1786,13 @@
                         console.log(exportMap);
                         return exportMap;
                     },
-                    loadGame: function(gameData,callback){
-                        loadGame(gameData,callback);
+                    /**
+                     * Loads a game from a save object
+                     * @author Ignacy Debicki
+                     * @param {object} gameData Save object
+                     */
+                    loadGame: function(gameData){
+                        loadGame(gameData);
                     }
                 }
             })();

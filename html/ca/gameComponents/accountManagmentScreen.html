@@ -176,7 +176,13 @@
                 function loadAvatar(){
                     window.login.userAvatar(window.startScreen.setAvatar);
                 }
-                
+                /**
+                 * Recieves the list of saves and deletes them
+                 * @author Ignacy Debicki
+                 * @param {boolean} success   If fetch was succesfull
+                 * @param {Array}   data      Array of save files or error message
+                 * @param {number}  errorCode error code
+                 */
                 function fetchSavesHandler(success,data,errorCode){
                     if (success){
                         for (var i=0;i<data.length;i++){

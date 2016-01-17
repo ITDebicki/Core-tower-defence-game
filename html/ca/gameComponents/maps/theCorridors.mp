@@ -1,0 +1,56 @@
+{"radius":35,
+"path":
+[
+   [700,0],
+   [
+      {"p1":0.33 ,"p2":0.67, "start":[700,297]},
+         [],
+         [[{"p1":0.5 ,"p2":0.5, "start":[700,466]},
+				[],
+				[[700,620],[90,620]]
+			 ],
+			 [90,466]
+			]
+   ],
+	[90,297],
+   [90,105]
+],
+"baseRadius":35,
+"baseLocation":[90,105],
+"startingBaseHealth":100,
+"maxBaseHealth":100,
+"startingResources":250,
+"waves":[
+{
+   "0":{
+      "exampleEnemy":5,
+      "delay":3
+     },
+   "20":{
+      "exampleEnemy":10,
+      "delay":2
+      },
+   "60":{
+      "exampleEnemy":20,
+      "delay":1
+   }
+},
+{
+   "0":{
+      "exampleEnemy":30,
+      "delay":3
+      },
+   "100":{
+      "exampleEnemy":20,
+      "delay":2
+      },
+   "180":{
+      "exampleEnemy":100,
+      "delay":1
+      }
+}],
+"events":
+{
+   "pre":{"ENABLE":["exampleTower"]}
+}
+}

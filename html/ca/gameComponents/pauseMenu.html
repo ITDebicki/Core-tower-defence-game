@@ -185,7 +185,10 @@
                         saveListLoadingScreen.hideLoadingScreen();
                     }
                 }
-                
+                /**
+                 * Saves the game to the currently selected slot
+                 * @author Ignacy Debicki
+                 */
                 function saveGamePressed(){
                     if ($(".saveSelected")[0]){
                         var selectedSave = $(".saveSelected");
@@ -204,14 +207,20 @@
                         alert("No save selected");
                     }
                 }
-                
-                function saveGameHadler(success,data,errorCode){
+                /**
+                 * Handler for saving the game
+                 * @author Ignacy Debicki
+                 * @param {boolean} success   If save ws succesfull
+                 * @param {string}  data      Error message
+                 * @param {number}  errorCode Error code
+                 */
+                function saveGameHadler(success,error,errorCode){
                     saveListLoadingScreen.hideLoadingScreen();
                     if (success == true){
                         saveList.quickClearList();
                         populateSaveTable();
                     }else{
-                        alert(data,errorCode);
+                        alert(error,errorCode);
                     }
                 }
             })();

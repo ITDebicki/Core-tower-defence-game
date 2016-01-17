@@ -172,7 +172,10 @@
                 alert(data,errorCode);
             }
         }
-        
+        /**
+         * Loads the selected save
+         * @author Ignacy Debicki
+         */
         function loadSave(){
             if ($(".saveSelected")[0]){
                 var selectedSave = $(".saveSelected");
@@ -182,7 +185,13 @@
                 alert("No save selected");
             }
         }
-        
+        /**
+         * Handler for loading the save data
+         * @author Ignacy Debicki
+         * @param {boolean} success   If fetch was succesfull
+         * @param {object}  data      The save object or error message
+         * @param {number}  errorCode Error code.
+         */
         function loadSaveHandler(success,data,errorCode){
             if (success){
                 gameData = data;
@@ -192,7 +201,13 @@
                 saveListLoadingScreen.hideLoadingScreen();
             }
         }
-        
+        /**
+         * Handler for loading maps
+         * @author Ignacy Debicki
+         * @param {boolean} success   If fetch was successfull
+         * @param {Array}   data      Array of map objects or error message
+         * @param {number}  errorCode Error code
+         */
         function mapLoadHandler(success,data,errorCode){
             if(success){
                 var selectedSave = $(".saveSelected");
@@ -210,13 +225,20 @@
                 saveListLoadingScreen.hideLoadingScreen();
             }
         }
-        
+        /**
+         * Handler for getting map data
+         * @author Ignacy Debicki
+         * @param {object} mapData The map data object
+         */
         function getMapDataHandler(mapData){
             mapToLoad["mapData"]=mapData;
             saveListLoadingScreen.hideLoadingScreen();
             loadElement('gameComponents/game.html','mainGame',startGameHandler);
         }
-        
+        /**
+         * Handler which starts the game
+         * @author Ignacy Debicki
+         */
         function startGameHandler(){
             removeElement("startGameScreen");
             window.game.setMap(mapToLoad,false);

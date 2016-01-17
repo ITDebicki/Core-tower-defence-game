@@ -37,7 +37,8 @@
                  */
                 function startGame(){
                     hideControls();
-                    loadBackground('gameComponents/maps/'+carousel.currentItem()["name"]+'.png');
+                    console.log(carousel.currentItem());
+                    loadBackground('gameComponents/maps/'+carousel.currentItem()["image"]);
                     loadElement('gameComponents/game.html','mainGame',startGameHandler);
                 }
                 /**
@@ -108,7 +109,7 @@
                         method: 'GET',
                         dataType: "json",
                         success:function(response){
-                            var map = {"id":id,"name":name,"description":description}
+                            var map = {"id":id,"name":name,"description":description,"image":image};
                             map["div"]=$("<img class='carouselImage' id='"+name+"' src='gameComponents/maps/"+image+"'/>")
                             map["mapData"]=response;
                             mapArray.push(map);

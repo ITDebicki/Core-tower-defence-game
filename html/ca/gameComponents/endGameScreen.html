@@ -170,7 +170,13 @@
                 alert(data,errorCode);
             }
         }
-        
+        /**
+         * Handler for fetching the user's highscore
+         * @author Ignacy Debicki
+         * @param {boolean} success   If fetch was succesfull
+         * @param {object}  data      Either user's highscore or error message
+         * @param {number}  errorCode Error code
+         */
         function fetchUserHighScoreHandler(success,data,errorCode){
             if (success == true){
                 if (data!==[]){
@@ -207,13 +213,21 @@
                 window.userProfile.loadUser(showingProfileForUser);
             });
         }
-        
+        /**
+         * Fetches the avatars for each person on the leaderboard
+         * @author Ignacy Debicki
+         */
         function fetchAvatars(){
             Object.keys(leaderBoardDictionary).forEach(function (user) {
                 window.login.fetchAvatar(user,avatarHandler);
             });
         }
-        
+        /**
+         * Handler for fetching avatars
+         * @author Ignacy Debicki
+         * @param   {string}   fileURL URL of file
+         * @param   {string}   user    Username of who's avatar it is
+         */
         function avatarHandler(fileURL,user){
             var userInfo = leaderBoardDictionary[user];
             userInfo["userAvatar"]=fileURL;
