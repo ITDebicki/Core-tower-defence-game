@@ -8,19 +8,23 @@
                  * Creates a new VectorPathSegment object
                  * @author Ignacy Debicki
                  * @constructor
-                 * @param {number} x         X (i) value of unit vector direction
-                 * @param {number} y         Y (j) value of unit vector direction
-                 * @param {number} magnitude Length of vector
-                 * @param {Array}  links     Array of vectors which directly follow on from current vector.
-                 *                           Has form of [{'segment' : nextVectorPathSegment, 'p' : probabilityForVectorSelection}]
-                 * @param {number} id        Identifier of the vector
+                 * @param {number} x           X (i) value of unit vector direction
+                 * @param {number} y           Y (j) value of unit vector direction
+                 * @param {number} magnitude   Length of vector
+                 * @param {Array}  links       Array of vectors which directly follow on from current vector.
+                 *                             Has form of [{'segment' : nextVectorPathSegment, 'p' : probabilityForVectorSelection}]
+                 * @param {number} id          Identifier of the vector
+                 * @param {number} weight      The weight of the vector
+                 * @param {number} maxDistance The maximum distance an enemy may have traveled when reaching the start of the sector
                  */
-                function VectorPathSegment(x,y,magnitude,links,id){
+                function VectorPathSegment(x,y,magnitude,links,id,weight,prevLinks,maxDistance){
                     this.x = typeof x !== 'undefined' ? x : null;
                     this.y = typeof y !== 'undefined' ? y : null;
                     this.m = typeof magnitude !== 'undefined' ? magnitude : null;
                     this.links = typeof links !== 'undefined' ? links : [];
                     this.id = typeof id !== 'undefined' ? id : null;
+                    this.weight = typeof weight !== 'undefined' ? weight : null;
+                    this.maxDistance = typeof maxDistance !== 'undefined' ? maxDistance : null;
                 }
                     
                 VectorPathSegment.prototype = {
@@ -91,6 +95,25 @@
                         }else{
                             return false;
                         }
+                    },
+                    /**
+                     * Calculates the weight of this segment and all the segments below this segment in the tree
+                     * @author Ignacy Debicki
+                     * @returns {number} The segments weight + its magnitude
+                     */
+                    setWeight: function(){
+                        var distanceArray = [];
+                        for (var i =0; i<this.links.length;i++){
+                            distanceArray.push(this.links[i].segment.setWeight());
+                        }
+                        if (distanceArray.length>0){
+                            this.weight = Math.max(...distanceArray);
+                        }else{
+                            this.weight = 0;
+                        }
+                        
+                        console.log(this.id,this.weight,this.m,distanceArray,Math.max(...distanceArray));
+                        return this.weight + this.m;
                     }
                 };
                 /**
@@ -324,7 +347,7 @@
                     return (dx * dx + dy * dy <= (cr * cr));
                 }
                 /**
-                 * Ranks an arrau of enemy objects by the distance they have travelled
+                 * Ranks an array of enemy objects by the distance they have travelled
                  * @author Ignacy Debicki
                  * @param   {Array} enemies Array of enemy objects
                  * @returns {Array} Array of sorted by distance (Descending) enemies.
@@ -332,27 +355,10 @@
                 function rankByDistance(enemies){
                     var distanceArray = [];
                     var enemyArray = [];
-                    for (i=0;i<enemies.length;i++){
-                        var enemy = enemies[i];
-                        var distanceTravelled = $(enemy).data("ticks")*$(enemy).data("speed");
-                        if (distanceArray.length>0){
-                            for (j=0;j<distanceArray.length;j++){
-                                if (distanceArray[j]<distanceTravelled){
-                                    distanceArray.splice(j,0,distanceTravelled);
-                                    enemyArray.splice(j,0,enemy);
-                                    break;
-                                }else if (j==distanceArray.length-1){
-                                    distanceArray.push(distanceTravelled);
-                                    enemyArray.push(enemy);
-                                    break;
-                                }
-                            }
-                        }else{
-                            distanceArray.push(distanceTravelled);
-                            enemyArray.push(enemy);
-                        }
-
-                    }
+                    enemyArray = enemies.sort(function(a,b){
+                        return (($(a).data("currentVector").weight+$(a).data("magnitudeRemaining"))-($(b).data("currentVector").weight+$(b).data("magnitudeRemaining")))/Math.abs((($(a).data("currentVector").weight+$(a).data("magnitudeRemaining"))-($(b).data("currentVector").weight+$(b).data("magnitudeRemaining"))));
+                    });
+                    console.log(enemyArray);
                     return enemyArray;
                 }
 
@@ -547,7 +553,9 @@
                     mapID = map["id"];
                     mapPath = map["path"];
                     //calculate path for enemies and draw map divs so objects can interact with it
-                    vectorPathRoot = calculateVectorPaths(mapPath,0,map["radius"]).root;
+                    var vectorPath = calculateVectorPaths(mapPath,0,map["radius"]);
+                    vectorPathRoot = vectorPath.root;
+                    vectorPathRoot.setWeight();
                     //position base
                     var baseDiv = $('<div class="baseTile tile">');
                     $("#gameSpace").append(baseDiv);
@@ -577,13 +585,14 @@
                 /**
                  * Creates vectorPathSegments and divs describing the path through the array of points
                  * @author Ignacy Debicki
-                 * @param {Array}  points     Array of points
-                 * @param {number} idOffset   Offset of vector id. (default 0)
-                 * @param {numer}  pathRadius The path radius
+                 * @param {Array}  points         Array of points
+                 * @param {number} idOffset       Offset of vector id. (default 0)
+                 * @param {numer}  pathRadius     The path radius
                  * @returns {object} The root object of the path and the last object of the path in format {'root':root,'last':lastSegments}
                  */
                 function calculateVectorPaths(points,idOffset,pathRadius){
                     idOffset = typeof idOffset !== 'undefined' ? idOffset : 0;
+                    distanceOffset = typeof distanceOffset !== 'undefined' ? distanceOffset : 0;
                     var root = null;
                     var lastSegments = [];
                     for (var i=0;i<points.length-1;i++){
@@ -641,6 +650,7 @@
                         s.addLink(root,prob);
                     }
                 }
+               
                 /**
                  * Calculates the vector between two points
                  * @author Ignacy Debicki
@@ -739,6 +749,7 @@
                                         height: size.height,
                                         transform:"rotate("+angle+"rad)",
                                         borderRadius: pathRadius});
+                    console.log(pathComponent);
                 }
                 /**
                  * Parses events dictionary and loads in all necessary resources
