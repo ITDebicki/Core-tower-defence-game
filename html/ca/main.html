@@ -216,7 +216,7 @@
                  * @param {object} data  Dictionary containing values to be passed into the newElementConstructor
                  * @param {number} index Index where to insert element (0 is first)
                  */
-                addElementAtIndex(data,index){
+                addElementAtIndex: function(data,index){
                     var element = this.constructor(data);
                     if (this.onElementPress){
                         element.click(this.onElementPress);
