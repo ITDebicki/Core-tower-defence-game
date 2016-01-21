@@ -353,13 +353,9 @@
                  * @returns {Array} Array of sorted by distance (Descending) enemies.
                  */
                 function rankByDistance(enemies){
-                    var distanceArray = [];
-                    var enemyArray = [];
-                    enemyArray = enemies.sort(function(a,b){
+                    return enemies.sort(function(a,b){
                         return (($(a).data("currentVector").weight+$(a).data("magnitudeRemaining"))-($(b).data("currentVector").weight+$(b).data("magnitudeRemaining")))/Math.abs((($(a).data("currentVector").weight+$(a).data("magnitudeRemaining"))-($(b).data("currentVector").weight+$(b).data("magnitudeRemaining"))));
-                    });
-                    console.log(enemyArray);
-                    return enemyArray;
+                    });;
                 }
 
                 //init global vars
