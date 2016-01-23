@@ -3,6 +3,55 @@
         <link rel="stylesheet" type="text/css" href="gameComponents/game.css">
         <script>
             
+            function getRotationDegrees(obj) {
+                var matrix = obj.css("-webkit-transform") ||
+                obj.css("-moz-transform")    ||
+                obj.css("-ms-transform")     ||
+                obj.css("-o-transform")      ||
+                obj.css("transform");
+                if(matrix !== 'none') {
+                    var values = matrix.split('(')[1].split(')')[0].split(',');
+                    var a = values[0];
+                    var b = values[1];
+                    var angle = Math.round(Math.atan2(b, a) * (180/Math.PI));
+                } else { var angle = 0; }
+                return angle%360;
+            }
+            
+            function getShortestRotation(s,e){
+                if (Math.abs(s-e) > 180){
+                    return s+(360-Math.abs(s-e))*(s/Math.abs(s));
+                }else{
+                    return e
+                }
+            }
+            /**
+             * CSS3 Jquery animated rotation
+             * @author yckart http://stackoverflow.com/questions/15191058/css-rotation-cross-browser-with-jquery-animate
+             * @param   {number}   angle    Angle to rotate throuhg in degrees
+             * @param   {number}   duration Length of animation
+             * @param   {string}   easing   Type of easing: linear or swing
+             * @param   {function} complete Completion handler
+             */
+            $.fn.animateRotate = function(angle,duration, easing, complete) {
+                var args = $.speed(duration, easing, complete);
+                var step = args.step;
+                return this.each(function(i, e) {
+                    var startDeg = getRotationDegrees($(e));
+                    if (startDeg !== getShortestRotation(startDeg,angle)){
+                        console.log(startDeg,angle);
+                        args.complete = $.proxy(args.complete, e);
+                        args.step = function(now) {
+                        $.style(e, 'transform', 'rotate(' + now + 'deg)');
+                            if (step) return step.apply(e, arguments);
+                        };
+                    
+                
+                    $({deg: startDeg}).animate({deg: getShortestRotation(startDeg,angle)}, args);
+                    }
+                });
+            };
+            
             window.game=(function(){
                 /**
                  * Creates a new VectorPathSegment object
@@ -552,6 +601,7 @@
                     var vectorPath = calculateVectorPaths(mapPath,0,map["radius"]);
                     vectorPathRoot = vectorPath.root;
                     vectorPathRoot.setWeight();
+                    console.log(vectorPathRoot);
                     //position base
                     var baseDiv = $('<div class="baseTile tile">');
                     $("#gameSpace").append(baseDiv);
@@ -1072,7 +1122,9 @@
                         $(this).data("magnitudeRemaining",returnData.magnitudeRemaining);
                         $(this).data("currentX",returnData.x);
                         $(this).data("currentY",returnData.y);
-
+                        var rotation = Math.round((Math.atan(returnData.vector.x/-returnData.vector.y))*(180/Math.PI));
+                        if (returnData.vector.y>=0){ rotation += 180;}
+                        $(this).animateRotate(rotation,baseClock/(clockMultiplier),"linear");
                         $(this).velocity({
                             left:returnData.x,
                             top: returnData.y,
@@ -1205,6 +1257,8 @@
                             async: false,
                             success: function(data) {}
                         })['responseJSON'];
+                        var rotation = Math.round((Math.atan(vectorPathRoot.x/-vectorPathRoot.y))*(180/Math.PI));
+                        if (vectorPathRoot.y>=0){ rotation += 180;}
                         var enemyImg = $(`<img src='gameComponents/enemies/`+data["icon"]+`' 
                                             class='enemy ` + enemyName + `' 
                                             style='
@@ -1212,7 +1266,8 @@
                                                 width:`+data["width"]+`px;
                                                 height:`+data["height"]+`px;
                                                 left:`+(mapPath[0][0]-(data["width"]/2))+`px;
-                                                top:`+(mapPath[0][1]-(data["height"]/2))+`px;'
+                                                top:`+(mapPath[0][1]-(data["height"]/2))+`px;
+                                                transform:rotate(`+rotation+`deg);'
                                             data-health='`+data["health"]+`' 
                                             data-damage='`+data["damage"]+`' 
                                             data-death='`+data["death"]+`' 
@@ -1469,6 +1524,7 @@
                 function showTowerOverlay(){
                     $("#sideBarTowerControl").velocity("slideDown",100);
                 }
+                    
                 /**
                  * Fires a projectile rom the tower towards the target
                  * @author Ignacy Debicki
@@ -1488,10 +1544,16 @@
                                           "y":target.data("currentY")+target.outerHeight(false)/2};
                     var startPosition = {"x":tower.children(".tower").offset().left-$("#gameSpace").offset().left+tower.children(".tower").outerWidth(false)/2,
                                          "y":tower.children(".tower").offset().top-$("#gameSpace").offset().top+tower.children(".tower").outerHeight(false)/2};
+                    var rotation = Math.round((Math.atan((targetPosition.x-startPosition.x)/-(targetPosition.y-startPosition.y)))*(180/Math.PI));
+                    if ((targetPosition.y-startPosition.y)>=0){ rotation += 180;}
+                    //rotate tower
+                    tower.animateRotate(rotation,baseClock/(clockMultiplier*4),"linear");
+                    console.log("Rotation:",rotation);
                     //spawn projectile
                     $("#gameSpace").append(projectileDiv);
-                    projectileDiv.css("left",startPosition.x)
-                                    .css("top",startPosition.y);
+                    projectileDiv.animateRotate(rotation,baseClock/(clockMultiplier*4),"linear");
+                    projectileDiv.css({left: startPosition.x,
+                                        top: startPosition.y});
                     projectileDiv.velocity({
                         top:targetPosition.y,
                         left:targetPosition.x
