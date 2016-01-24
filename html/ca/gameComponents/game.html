@@ -2,7 +2,12 @@
     <head>
         <link rel="stylesheet" type="text/css" href="gameComponents/game.css">
         <script>
-            
+            /**
+             * Calculates the rotation of an object from a transformatino matrix
+             * @author Ignacy Debicki
+             * @param   {object} obj Object to get rotation of
+             * @returns {number} Rotation in degrees
+             */
             function getRotationDegrees(obj) {
                 var matrix = obj.css("-webkit-transform") ||
                 obj.css("-moz-transform")    ||
@@ -17,7 +22,13 @@
                 } else { var angle = 0; }
                 return angle%360;
             }
-            
+            /**
+             * Calculates the shortest route to rotate
+             * @author Ignacy Debicki
+             * @param   {number} s Start rotation
+             * @param   {number} e End of rotation
+             * @returns {number} Angle to rotate to
+             */
             function getShortestRotation(s,e){
                 if (Math.abs(s-e) > 180){
                     return s+(360-Math.abs(s-e))*(s/Math.abs(s));
