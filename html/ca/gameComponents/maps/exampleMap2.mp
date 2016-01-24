@@ -47,6 +47,6 @@
 }],
 "events":
 {
-   "pre":{"ENABLE":["exampleTower"]}
+   "pre":{"ENABLE":["exampleTower","turret"]}
 }
 }

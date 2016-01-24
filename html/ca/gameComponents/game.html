@@ -883,11 +883,13 @@
                  */
                 function upgradeTower(){
                     $(".isSelected").each(function(i,e){
-                        if ($(this).data("upgradeLevel")<2){
+                        var currentSelection = $(".isSelected")[0];
+                        var towerLevel = $(currentSelection).data("upgradeLevel");
+                        var towerClass = $(currentSelection).data("towerClass");
+                        console.log(towerLevel,towerDB[towerClass].length-1)
+                        if (towerLevel<towerDB[towerClass].length-1){
                             if(buyUpgrade()==true){
-                                var currentSelection = $(".isSelected")[0];
-                                var towerLevel = $(currentSelection).data("upgradeLevel");
-                                var towerClass = $(currentSelection).data("towerClass");
+                                
                                 var upgradeTowerData = towerDB[towerClass][towerLevel+1];
                                 var currentRange = $(currentSelection).data("range");
                                 var newRange = upgradeTowerData["range"];
@@ -959,12 +961,14 @@
                  */
                 function updateActiveTowerInfo(){
                     $(".isSelected").each(function(i,e){
-                        $("#activeTowerImage").attr("src",$(this).children("img").attr("src"));
+                        $("#activeTowerImage").attr("src",$(this).children(".tower").attr("src"));
                         $("#activeTowerAttack").html($(this).data("damage"));
                         $("#activeTowerRange").html($(this).data("range"));
                         $("#activeTowerCost").html(Math.floor($(this).data("totalPrice")*0.75));
                         $("#activeTowerReloadSpeed").html($(this).data("reloadSpeed"));
-                        if ($(this).data("upgradeLevel")==2){
+                        var towerLevel = $(this).data("upgradeLevel");
+                        var towerClass = $(this).data("towerClass");
+                        if (towerLevel>=towerDB[towerClass].length-1){
                             $("#upgradeTower").hide();
                         }else{
                             $("#upgradeTower").show();
@@ -1147,9 +1151,11 @@
                         reloadState+=1
                         //if reloaded, fire
                         if((reloadState % $(this).data("reloadSpeed")) == 0){
-                            var target = findTarget($(this));
-                            if (target!==null && target!==undefined && target!==[]){
-                                fireTower($(this),$(target));
+                            var targets = findTargets($(this));
+                            if (targets!==null && targets!==undefined && targets!==[]){
+                                for (var i =0;i<targets.length;i++){
+                                    fireTower($(this),$(targets[i]));
+                                }
                             }
                             reloadState=0;
                         }
@@ -1329,7 +1335,7 @@
                                               <ul class='towerInfo'>
                                                 <li>
                                                     <img class='sideBarStatImage' src='gameComponents/images/reload.png'>
-                                                    <span class='sideBarStatText'>`+(10-baseTower['reloadSpeed'])+`</span>
+                                                    <span class='sideBarStatText'>`+(baseTower['reloadSpeed'])+`</span>
                                                 </li>
                                                 <li>
                                                     <img class='sideBarStatImage' src='gameComponents/images/resources.png'>
@@ -1375,9 +1381,10 @@
                                              data-tower-class='`+towerName+`' 
                                              data-score-val='`+towerLevelData["score"]+`'>
                                              <div class='targetDisk `+towerName+i+`'></div>
+                                            <img class='towerBase' src='gameComponents/towers/towerBase.png' style='width:`+data["width"]+`px; height:`+data["height"]+`px;left:`+(towerLevelData["range"]-data["width"]/2)+`px;top:`+(towerLevelData["range"]-data["height"]/2)+`px; position: absolute;'>
                                              <img class= 'tower `+towerName+i+`'
                                                 src='gameComponents/towers/`+towerLevelData["icon"]+`' 
-                                                style='width:`+data["width"]+`px; height:`+data["height"]+`px;left:`+(towerLevelData["range"]-data["width"]/2)+`px;top:`+(towerLevelData["range"]-data["height"]/2)+`px;'>
+                                                style='width:`+data["width"]+`px; height:`+data["height"]+`px;left:`+(towerLevelData["range"]-data["width"]/2)+`px;top:`+(towerLevelData["range"]-data["height"]/2)+`px; position: absolute;'>
                                             </div>`);
                             towerLevelData["divBase"]=towerDiv;
                             towerDB[towerName][i]=towerLevelData;
@@ -1477,7 +1484,7 @@
                         currentDrag.children(".tower").click(selectTower);
                         //set tower as tile
                         score-=currentDrag.data("scoreVal");
-                        currentDrag.children(".tower").addClass("tile");
+                        currentDrag.children(".towerBase").addClass("tile");
                         currentDrag=null;
                         incrementStatistic("towersBuilt");
                         
@@ -1487,9 +1494,9 @@
                  * Finds a target within range for tower to fire at
                  * @author Ignacy Debicki
                  * @param   {object} tower Tower to find target for (passed in as $(tower))
-                 * @returns {object} Enemy to fire at, or null if no enemy fouund within range
+                 * @returns {Array} Array of enemies to fire at
                  */
-                function findTarget(tower){
+                function findTargets(tower){
                     var targetingDisk = tower.children(".targetDisk");
                     var enemiesColliding = [];
                     $(".enemy").each(function(i,e){
@@ -1501,9 +1508,9 @@
                         //rank enemies by distance travelled
                         enemiesColliding = rankByDistance(enemiesColliding);
                         //shoot at first one
-                        return enemiesColliding[0];
+                        return enemiesColliding.slice(0,tower.data("noProjectilesFired"));
                     }else{
-                        return null;
+                        return [];
                     }
                 }
                 /**
@@ -1547,7 +1554,7 @@
                     var rotation = Math.round((Math.atan((targetPosition.x-startPosition.x)/-(targetPosition.y-startPosition.y)))*(180/Math.PI));
                     if ((targetPosition.y-startPosition.y)>=0){ rotation += 180;}
                     //rotate tower
-                    tower.animateRotate(rotation,baseClock/(clockMultiplier*4),"linear");
+                    tower.children(".tower").animateRotate(rotation,baseClock/(clockMultiplier*4),"linear");
                     console.log("Rotation:",rotation);
                     //spawn projectile
                     $("#gameSpace").append(projectileDiv);
@@ -1704,7 +1711,7 @@
                         }
                         enemyDiv.data("currentVector",currentVector);
                         $("#gameSpace").append(enemyDiv);
-                        enemyDiv.css({top:enemyData["position"]["y"], left:enemyData["position"]["x"]});
+                        enemyDiv.css({top:enemyData["position"]["y"], left:enemyData["position"]["x"], transform:"rotate( "+enemyData["rotation"]+"deg)"});
                     }
                     
                     //animate tray in
@@ -1851,6 +1858,7 @@
                             enemyObject["effects"] = [];
                             enemyObject["magnitudeRemaining"] = $(this).data("magnitudeRemaining");
                             enemyObject["currentVector"]  = $(this).data("currentVector").getId();
+                            enemyObject["rotation"] = getRotationDegrees($(this));
                             exportMap["enemies"].push(enemyObject);
                         });
                         console.log(exportMap);

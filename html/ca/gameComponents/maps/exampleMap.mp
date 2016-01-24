@@ -27,6 +27,10 @@
       "exampleEnemy":10,
       "delay":2
       },
+	"40":{
+		"lightFighter":15,
+		"delay":5
+		},
    "60":{
       "exampleEnemy":20,
       "delay":1
@@ -48,6 +52,6 @@
 }],
 "events":
 {
-   "pre":{"ENABLE":["exampleTower"]}
+   "pre":{"ENABLE":["exampleTower","turret"]}
 }
 }
