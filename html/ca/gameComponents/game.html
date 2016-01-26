@@ -493,7 +493,9 @@
                         // escape key pressed - if moving any tower, stop moving and refund
                         $(".isDragging").each(function(i,e){
                             //refund resources
-                            setResources(resources+$(this).data("price"));
+                            if ($(this).data("price") > 0){
+                                setResources(resources+$(this).data("price"));
+                            }
                             //remove handlers
                             $('#gameSpace').unbind("");
                             //remove tower
@@ -1502,7 +1504,7 @@
                     }
                 }
                 /**
-                 * Finds a target within range for tower to fire at
+                 * Finds targets within range for tower to fire at
                  * @author Ignacy Debicki
                  * @param   {object} tower Tower to find target for (passed in as $(tower))
                  * @returns {Array} Array of enemies to fire at
@@ -1512,13 +1514,15 @@
                     var enemiesColliding = [];
                     $(".enemy").each(function(i,e){
                         if (crCollision(targetingDisk,$(this))==true){
-                            enemiesColliding.push(this);
+                            if ( !$(this).data("damageToDeal")|| $(this).data("health")-$(this).data("damageToDeal")>0){
+                                enemiesColliding.push(this);
+                            }
                         }
                     });
                     if (enemiesColliding.length>0){
                         //rank enemies by distance travelled
                         enemiesColliding = rankByDistance(enemiesColliding);
-                        //shoot at first one
+                        //return array
                         return enemiesColliding.slice(0,tower.data("noProjectilesFired"));
                     }else{
                         return [];
@@ -1556,6 +1560,7 @@
                     incrementStatistic("projectilesFired");
                     //set damage of tower
                     projectileDiv.data("damage",tower.data("damage"));
+                    target.data("damageToDeal",tower.data("damage"));
                     projectileDiv.data("target",target);
                     //calculate flight path of projectile
                     var targetPosition = {"x":target.data("currentX")+target.outerWidth(false)/2,
@@ -1592,6 +1597,8 @@
                             enemyKilled(target);
                         }else{
                             target.data("health",targetHealth);
+                            var damageToDeal =target.data("damageToDeal")
+                            target.data("damageToDeal",damageToDeal-damage);
                         }
                     })
                 }

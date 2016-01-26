@@ -23,18 +23,23 @@
       "exampleEnemy":5,
       "delay":3
      },
+	"16":{
+		"lightFighter":10,
+		"delay": 10
+	  },
    "20":{
       "exampleEnemy":10,
       "delay":2
       },
 	"40":{
 		"lightFighter":15,
-		"delay":5
+		"delay":2
 		},
-   "60":{
-      "exampleEnemy":20,
-      "delay":1
-   }
+	"60":{
+		"exampleEnemy":20,
+		"delay":1
+	}
+
 },
 {
    "0":{
@@ -46,10 +51,29 @@
       "delay":2
       },
    "180":{
-      "exampleEnemy":100,
+      "exampleEnemy":40,
       "delay":1
       }
-}],
+},
+{
+	"0":{
+		"exampleEnemy":10,
+		"delay":2
+	},
+	"1":{
+		"lightFighter":20,
+		"delay":1
+	},
+	"2":{
+		"cruiser":5,
+		"delay":4
+	},
+	"10":{
+		"mothership":1,
+		"delay":1
+	}
+}
+],
 "events":
 {
    "pre":{"ENABLE":["exampleTower","turret"]}
