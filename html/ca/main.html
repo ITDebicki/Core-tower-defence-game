@@ -99,8 +99,6 @@
                     });
                     blockPageLoading = false;
                 }
-                
-                // $("id").length - could add to queue for specific instances
             }
             /**
              * Removes the element from the document
@@ -108,6 +106,9 @@
              * @param {string} id Id of element to remove
              */
             function removeElement(id){
+                if (id =="mainGame"){
+                    window.game.purge();
+                }
                 $("#" + id).remove();
             }
             /**

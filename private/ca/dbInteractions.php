@@ -256,7 +256,7 @@ function mark_as_read($msgIDs){
 function create_notification($user,$type,$title,$message){
     $conn = request_connection();
     $stmt = $conn->prepare('INSERT INTO Notification (user,type,title,message) VALUES(:user,:type,:title,:message)');
-    $stmt->execute(array(':user' => $_SESSION["user"],':type' => $type,':title' => $title,':message' => $message));
+    $stmt->execute(array(':user' => $user,':type' => $type,':title' => $title,':message' => $message));
     $affectedRows = $stmt->rowCount();
     if ($affectedRows >= 1){
         return true;
@@ -354,7 +354,9 @@ function create_friend_request($userTo){
     $stmt->execute(array(':userFrom' => $_SESSION["user"],':userTo' => $userTo));
     $affectedRows = $stmt->rowCount();
     if ($affectedRows >= 1){
-        return true;
+        $msg = $_SESSION["user"] . " has sent you a friend request. Go to manage friends to view the request";
+        $title = $_SESSION["user"] . " has sent you a friend request!";
+        return  create_notification($userTo,"friendRequest",$title,$msg);
     }else{
        throw new Exception("Failed to write to database",501); 
     }
