@@ -28,7 +28,7 @@
                  * @author Ignacy Debicki
                  */
                 function backToStart(){
-                    loadBackground('gameComponents/maps/'+carousel.currentItem()["image"]);
+                    loadBackground('gameComponents/maps/'+carousel.currentItem()["image"],carousel.currentItem()["offset"]);
                     hideControls(300,function(){showStartScreen();});
                 }
                 /**
@@ -38,7 +38,7 @@
                 function startGame(){
                     hideControls();
                     console.log(carousel.currentItem());
-                    loadBackground('gameComponents/maps/'+carousel.currentItem()["image"]);
+                    loadBackground('gameComponents/maps/'+carousel.currentItem()["image"],carousel.currentItem()["offset"]);
                     loadElement('gameComponents/game.html','mainGame',startGameHandler);
                 }
                 /**
@@ -110,8 +110,9 @@
                         method: 'GET',
                         dataType: "json",
                         success:function(response){
-                            var map = {"id":id,"name":name,"description":description,"image":image, "levelNo":levelNo};
-                            map["div"]=$("<img class='carouselImage' id='"+name+"' src='gameComponents/maps/"+image+"'/>")
+                            var map = {"id":id,"name":name,"description":description,"image":image, "levelNo":levelNo, "offset":response["offset"]};
+                            console.log("offset:",response["offset"]);
+                            map["div"]=$("<img class='carouselImage' id='"+name+"' src='gameComponents/maps/"+image+"' style='top: -"+response["offset"]+";'/>");
                             map["mapData"]=response;
                             mapArray.push(map);
                             activeAJAX-=1;

@@ -1,0 +1,91 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="gameComponents/tutorialScreen.css">
+<script>
+    var carousel = new Carousel();
+    var loadingScreenOverlay = null;
+    
+    window.tutorial = (function(){
+        $("document").ready(function(){
+            loadingScreenOverlay = new loadingScreen("#tutorialCarousel");
+            hideControls(1);
+            $("#prevButton").click(leftButtonClick);
+            $("#nextButton").click(rightButtonClick);
+            $("#closeButton").click(function(){
+                showStartScreen();
+            });
+            setTimeout(function(){
+                initiateCarousel(0);
+            },800);
+        });
+    })();
+    /**
+     * Shows the carousel controls
+     * @author Ignacy Debicki
+     */
+    function showControls(){
+        $("#closeButton").velocity("transition.slideUpBigIn",1000);
+        $("#prevButton").velocity("transition.slideLeftBigIn",1000);
+        $("#nextButton").velocity("transition.slideRightBigIn",1000);
+    }
+    /**
+     * Hides the carousel controls
+     * @author Ignacy Debicki
+     * @param {number}   duration Length of animation to hide the controls in milliseconds
+     * @param {function} callback Fucntion to be performed upon completion of hiding the carousel controls.
+     */
+    function hideControls(duration,callback){
+        if (callback == null || callback == undefined){
+            callback = function(){}
+        }
+        if (duration == null || duration == undefined){
+            duration = 300;
+        }
+        $("#closeButton").velocity("transition.slideDownBigOut",duration);
+        $("#prevButton").velocity("transition.slideLeftBigOut",duration);
+        $("#nextButton").velocity("transition.slideRightBigOut",{
+            duration:duration,
+            complete:callback   
+        });
+
+    }
+    /**
+     * Rotates the carousel to the left and displays the new map information
+     * @author Ignacy Debicki
+     */
+    function leftButtonClick(){
+        carousel.rotateLeft();
+    }
+    /**
+     * Rotates the carousel to the right and displays the new map information
+     * @author Ignacy Debicki
+     */
+    function rightButtonClick(){
+        carousel.rotateRight();
+    }
+    /**
+     * Initiates the carousel from the map array and moves the carousel to the specififed index
+     * @author Ignacy Debicki
+     * @param {number} index Index to start at
+     */
+    function initiateCarousel(index){
+        var tutorialArray = [];
+        for (var i = 1;i<=7;i++){
+            var imgDiv = $("<img class='carouselImage' id='tutorial_"+i+"' src='gameComponents/tutorial/tutorial_"+i+".png'/>");
+            tutorialArray.push({"img":imgDiv});
+        }
+        carousel.initCarousel("#tutorialCarousel",tutorialArray,index,"img");
+        showControls();
+        loadingScreenOverlay.hideLoadingScreen();
+        loadingScreenOverlay=null;
+    }
+</script>
+</head>
+<body>
+    <div id="tutorialCarousel">
+        <button class="carouselButton" id="prevButton">&lt;&lt;</button>
+        <button class="carouselButton" id="nextButton">&gt;&gt;</button>
+        <button class="button" id="closeButton">Close tutorial</button>
+    </div>
+</body>
+</html>

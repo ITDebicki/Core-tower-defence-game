@@ -1,4 +1,5 @@
 {"radius":35,
+"offset":0,
 "path":
 [
    [700,0],
@@ -51,6 +52,6 @@
 }],
 "events":
 {
-   "pre":{"ENABLE":["exampleTower","turret"]}
+   "pre":{"ENABLE":["exampleTower","turret","concept"]}
 }
 }

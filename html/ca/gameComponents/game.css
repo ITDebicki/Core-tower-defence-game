@@ -44,7 +44,7 @@
 }
 
 .mapPathTile{
-    opacity: 0.2;
+    opacity: 0;
     background-color: lightgray;
     position: absolute;
     -webkit-transform-origin: left center;
@@ -86,14 +86,6 @@
     background: darkgreen;
     color: #222222;
     font-weight: bold;
-}
-
-#healthStats {
-    border-color: darkred;
-    border-style: solid;
-    border-width: 2px;
-    border-radius: 10px 10px 10px 10px;
-    padding: 5px 5px 5px 5px;
 }
 
 #HealthText {

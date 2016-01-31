@@ -200,7 +200,7 @@
                             if (confirm("Are you sure you want to overwrite this save?")){
                                 saveListLoadingScreen = new loadingScreen("#savesListContainer");
                                 console.log(selectedSave.data("id"));
-                                window.login.updateSave(selectedSave.data("id"),gameExport,"",saveGameHadler);
+                                window.login.updateSave(selectedSave.data("id"),gameExport,"",window.game.mapID(),saveGameHadler);
                             }
                         }
                     }else{

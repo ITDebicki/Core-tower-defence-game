@@ -2,21 +2,19 @@
 "offset":0,
 "path":
 [
-   [93,0],
-   [93,193],
-   [557,193],
-   [557,45],
-   [793,45],
-   [793,338],
-   [420,338],
-   [420,456],
-   [765,456],
-   [765,600]
+   [379,-117],
+  [
+      {"p1":0.4 ,"p2":0.3, "p3":0.3, "start":[379,-74]},
+         [[770,-74],[770,295]],
+			[],
+         [[103,-74],[103,625]]
+   ],
+   [379,402]
 ],
 "baseRadius":35,
-"baseLocation":[765,619],
-"startingBaseHealth":60,
-"maxBaseHealth":60,
+"baseLocation":[379,402],
+"startingBaseHealth":100,
+"maxBaseHealth":100,
 "startingResources":250,
 "waves":[
 {
@@ -80,3 +78,4 @@
    "pre":{"ENABLE":["exampleTower","turret","concept"]}
 }
 }
+

@@ -215,7 +215,6 @@
                 for (var i = 0;i<data.length;i++){
                     if (data[i]["id"] == mapID){
                         mapToLoad = data[i];
-                        loadBackground('gameComponents/maps/'+data[i]["name"]+'.png');
                         window.login.getMapData(mapToLoad["file"],getMapDataHandler);
                         break;
                     }
@@ -232,6 +231,7 @@
          */
         function getMapDataHandler(mapData){
             mapToLoad["mapData"]=mapData;
+            loadBackground('gameComponents/maps/'+mapToLoad["image"],mapData["offset"]);
             saveListLoadingScreen.hideLoadingScreen();
             loadElement('gameComponents/game.html','mainGame',startGameHandler);
         }

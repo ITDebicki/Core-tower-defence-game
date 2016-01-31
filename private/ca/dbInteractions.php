@@ -854,10 +854,11 @@ function get_saves(){
  * @author Ignacy Debicki
  * @param  integer $saveID    Id of save to update
  * @param  object  $newData   New save data
+ * @param  integer $newMap    New map id
  * @param  string  $thumbnail Filename of new thumbnail
  * @return boolean If update was succesfull
  */
-function update_save($saveID,$newData,$thumbnail){
+function update_save($saveID,$newData,$newMap,$thumbnail){
     $conn = request_connection();
     $stmt = $conn->prepare('SELECT fileLocation,thumbnail FROM Save WHERE user = :user AND idSave = :id');
     $stmt->execute(array(":user" => $_SESSION["user"], ":id" => $saveID));
@@ -868,15 +869,15 @@ function update_save($saveID,$newData,$thumbnail){
         throw new Exception("Failed to write file",608);
     }else{
         //Not curently using thumbnail
-        /**remove_thumbnail_file($oldThumbnailFile);
-        $stmt = $conn->prepare('UPDATE Save SET thumbnail = :thumbnail WHERE user = :user AND idSave = :id');
-        $stmt->execute(array(":user" => $_SESSION["user"], ":id" => $saveID, ":thumbnail" => $thumbnail));
+        //remove_thumbnail_file($oldThumbnailFile);
+        $stmt = $conn->prepare('UPDATE Save SET map = :map WHERE user = :user AND idSave = :id');
+        $stmt->execute(array(":user" => $_SESSION["user"], ":id" => $saveID, ":map" => $newMap));
         $affectedRows = $stmt->rowCount();
         if ($affectedRows>0){
             return true;
         }else{
             throw new Exception("Failed to write to database",501);
-        }*/
+        }
         return true;
         
     }

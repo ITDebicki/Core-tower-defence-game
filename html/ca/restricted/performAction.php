@@ -124,7 +124,7 @@ try{
             $result = get_saves();
             break;
         case "updateSave":
-            $result = update_save($jsonData["save"],$jsonData["saveData"],$jsonData["thumbnail"]);
+            $result = update_save($jsonData["save"],$jsonData["saveData"],$jsonData["map"],$jsonData["thumbnail"]);
             break;
         case "createSave":
             $result = create_save($jsonData["saveData"],$jsonData["name"],$jsonData["thumbnail"],$jsonData["map"]);

@@ -501,6 +501,8 @@
                             }
                             //remove handlers
                             $('#gameSpace').unbind("");
+                            //reassign necessary functions
+                            $("#gameSpace").mousedown(removeTowerSelection);
                             //remove tower
                             $(this).remove();
                         });

@@ -60,6 +60,7 @@
 .mainPageLoginPanel input{
     margin-top: 10px;
     margin-bottom: 10px;
+    width:125px;
 }
 div.startScreenMainButtons{
     position: relative;
@@ -68,7 +69,7 @@ div.startScreenMainButtons{
     align-content: center;
     width: 160px;
     height: 210px;
-    top: 140px;
+    top: 270px;
     left: calc(50% - 80px);
     margin: 0 auto;
 }
@@ -99,11 +100,11 @@ div.startScreenMainButtons button:last{
 }
 
 
-#mainTitle{
-    left: calc(50% - 100px);
-    top: 50px;
+#mainLogo{
+    position: absolute;
+    left: calc(50% - 190px);
+    top: 10px;
     text-align: center;
-    color: red;
 }
 
 #accountLoginButtons {
@@ -275,4 +276,10 @@ line-height: 10px
 
 #scoresTableContainer {
     display:none;
+}
+
+#bottomRightArtwork {
+    width:100%;
+    height:100%;
+    position:absolute;
 }

@@ -942,17 +942,18 @@ window.login=(function(){
      * @param {number}   saveId    Identifier of save to update
      * @param {object}   saveData  Save object to write
      * @param {string}   thumbnail Name of thumnail to assign
+     * @param {number}   map       Id of map save was created on
      * @param {function} callback  Function to call upon completion. Will be passed parameters: success,data,errorCode
      *                             Data will be Either the error message (if success==false) or true.
      */
-    function updateSave(saveId,saveData,thumbnail,callback){
-        console.log('{"saveData":'+JSON.stringify(saveData)+', "save":'+saveId+', "thumbnail":"'+thumbnail+'"}');
+    function updateSave(saveId,saveData,thumbnail,map,callback){
+        console.log('{"saveData":'+JSON.stringify(saveData)+', "save":'+saveId+',"map":'+map+' ,"thumbnail":"'+thumbnail+'"}');
         $.ajax({
             url: 'restricted/performAction.php',
             type: 'POST',
             method: 'POST',
             dataType: "json",
-            data: { "action": "updateSave", "json":'{"saveData":'+JSON.stringify(saveData)+', "save":'+saveId+', "thumbnail":"'+thumbnail+'"}'},
+            data: { "action": "updateSave", "json":'{"saveData":'+JSON.stringify(saveData)+', "save":'+saveId+', "map":'+map+' ,"thumbnail":"'+thumbnail+'"}'},
             success: function(response){ 
                 if (response["success"]==true){
                     callback(true,response["data"]);
@@ -1141,8 +1142,8 @@ window.login=(function(){
         createSave: function(saveData,name,thumbnail,map,callback){
             createSave(saveData,name,thumbnail,map,callback);
         },
-        updateSave: function(saveId,saveData,thumbnail,callback){
-            updateSave(saveId,saveData,thumbnail,callback);
+        updateSave: function(saveId,saveData,thumbnail,map,callback){
+            updateSave(saveId,saveData,thumbnail,map,callback);
         },
         updateName: function(saveId, name,callback){
             updateName(saveId,name,callback);

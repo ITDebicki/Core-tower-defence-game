@@ -35,42 +35,13 @@
     border-top-left-radius: 10px;
 }
 
-#infoDiv {
+#tutorialCarousel {
     position: absolute;
-    display: inline-block;
-    vertical-align: middle;
-    align-content: center;
-    width: 325px;
-    bottom: 10px;
-    left: calc(50% - 165px);
-    margin: 0 auto;
-    text-align: center;
-    z-index: 20;
-}
-
-#textDiv {
-    display: inline-block;
-    padding:5 5 5 5px;
-    background-color: lightgray;
-    border-radius: 10px;
-    opacity: 0.6;
-    width: auto;
-    margin: auto 0;
-    margin-bottom: 5px;
-    max-width: 325px;
-}
-
-#mapTitle {
-    font-size: 15pt;
-    font-weight: bold;
-}
-
-#mapDescription {
-    font-size: 12pt;
-}
-
-#mapCarousel {
-    position: relative;
     width: 100%;
     height: 100%;
+}
+#closeButton {
+    position: absolute;
+    bottom: 5px;
+    left: 5px;
 }

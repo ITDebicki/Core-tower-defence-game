@@ -50,10 +50,14 @@
 			/**
 			 * Sets the background for the game
 			 * @author Ignacy Debicki
-			 * @param {string} image URL to image file
+			 * @param {string} image  URL to image file
+             * @param {number} offset Offset of the top of the image
 			 */
-			function loadBackground(image) {
+			function loadBackground(image,offset) {
+                if (!offset){ offset = 0;}
+                offset = 0-offset;
                 $("#gameDiv").css("background-image","url(" + image + ")");
+                $("#gameDiv").css("background-position","0px "+offset+"px");
 			}
             /**
              * Removes all content from game screen and resets the start screen
@@ -62,7 +66,7 @@
             function clearScreenToStartScreen(){
                 //clear screen
                 $("#gameDiv").velocity("slideUp",500,function(){
-                    showStartScreen()
+                    showStartScreen();
                     $(this).slideDown(100);
                 }); 
             }

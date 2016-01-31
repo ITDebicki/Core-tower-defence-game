@@ -12,7 +12,7 @@
                     //set handlers
                     $("#startButton").click(startPressed);
                     $("#loadGameButton").click(loadPressed);
-                    $("#optionsButton").click(optionsPressed);
+                    $("#tutorialButton").click(tutorialPressed);
                     $("#goCreateAccountButton").click(createAccountButtonClicked);
                     $("#createAccountButton").click(createAccount);
                     $("#back").click(backPressed);
@@ -217,11 +217,15 @@
                     
                 }
                 /**
-                 * Handler for pressing the options button
+                 * Handler for pressing the tutorial button
                  * @author Ignacy Debicki
                  */
-                function optionsPressed(){
-                    alert("options pressed");
+                function tutorialPressed(){
+                    raiseOverlay(600,function(){
+                        removeElement("startGameScreen");
+                        loadElement("gameComponents/tutorialScreen.html","tutorialScreen");
+                    });
+                    
                 }
                 /**
                  * Validates details and attempts to create new user account
@@ -479,11 +483,12 @@
     <body>
         <div id="lowerDiv">
             <div id="mainOverlay"></div>
-            <h1 id="mainTitle">Tower defence</h1>
+            <img id="bottomRightArtwork" src="images/bottomRightArtwork.png"/>
+            <img id="mainLogo" src = "images/logo.png"/>
             <div class="startScreenMainButtons">
                 <button id="startButton">Start game</button>
                 <button id="loadGameButton">Load game</button>
-                <button id="optionsButton">Options</button>
+                <button id="tutorialButton">Tutorial</button>
             </div>
             <div id="flipContainer">
                 <div id="flipper">
@@ -535,14 +540,6 @@
                         <button id="refreshNotifications">Refresh</button>
                     <div id="notificationsListContainer">
                     </div>
-                </div>
-            </div>
-            <div id="scoresTableContainer">
-                <div id="scoresMapSelector">
-                </div>
-                <div id="leaderboardSelector">
-                </div>
-                <div id="scoresList">
                 </div>
             </div>
         </div>
