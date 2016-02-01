@@ -84,6 +84,6 @@
 ],
 "events":
 {
-   "pre":{"ENABLE":["exampleTower","turret","concept"]}
+   "pre":{"ENABLE":["repeater","turret","concept","annihilator","rifle"]}
 }
 }
