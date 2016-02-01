@@ -21,7 +21,7 @@
 "waves":[
 {
    "0":{
-      "exampleEnemy":5,
+      "tankBasic":5,
       "delay":3
      },
 	"16":{
@@ -29,7 +29,7 @@
 		"delay": 10
 	  },
    "20":{
-      "exampleEnemy":10,
+      "tankBasic":10,
       "delay":2
       },
 	"40":{
@@ -37,14 +37,13 @@
 		"delay":2
 		},
 	"60":{
-		"exampleEnemy":20,
+		"tankBasic":20,
 		"delay":1
 	}
-
 },
 {
    "0":{
-      "exampleEnemy":30,
+      "tankBasic":30,
       "delay":3
       },
    "100":{
@@ -52,13 +51,21 @@
       "delay":2
       },
    "180":{
-      "exampleEnemy":40,
+      "tankBasic":40,
       "delay":1
-      }
+      },
+	"230":{
+		"swarmShip":2,
+		"delay":2
+	},
+	"235":{
+		"scoutDroid":40,
+		"delay":1
+	}
 },
 {
 	"0":{
-		"exampleEnemy":10,
+		"tankBasic":10,
 		"delay":2
 	},
 	"1":{

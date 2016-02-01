@@ -1,2 +1,1 @@
-{"health":2,"damage":1,"speed":35,"death":{},"icon":"lightFighter.png","width":40,"height":40,"resources":5,"score":2}
-
+{"health":2,"damage":3,"speed":40,"death":{},"icon":"lightFighter.png","width":40,"height":40,"resources":2,"score":2}
