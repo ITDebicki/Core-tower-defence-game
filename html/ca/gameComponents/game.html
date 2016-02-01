@@ -1519,6 +1519,14 @@
                         //rank enemies by distance travelled
                         enemiesColliding = rankByDistance(enemiesColliding);
                         //return array
+                        var i =0;
+                        while(enemiesColliding.length<tower.data("noProjectilesFired")){
+                            enemiesColliding.push(enemiesColliding[i]);
+                            i++;
+                            if (i>=enemiesColliding.length){
+                                i=0;
+                            }
+                        }
                         return enemiesColliding.slice(0,tower.data("noProjectilesFired"));
                     }else{
                         return [];
