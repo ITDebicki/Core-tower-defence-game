@@ -869,9 +869,9 @@
                                     for (var i = 0;i<tick[key];i++){
                                         var tickTrigger = parseInt(tickKey) + delay * i
                                         if (tickTrigger in gameObjectVars.enemyQueue){
-                                            gameObjectVars.enemyQueue[tickTrigger].push(loadEnemy(key));
+                                            gameObjectVars.enemyQueue[tickTrigger].push({"enemy":loadEnemy(key)});
                                         }else{
-                                            gameObjectVars.enemyQueue[tickTrigger]=[loadEnemy(key)];
+                                            gameObjectVars.enemyQueue[tickTrigger]=[{"enemy":loadEnemy(key)}];
                                         }
                                     }
                                 }
@@ -1285,8 +1285,7 @@
                                                 top:`+(gameObjectVars.mapPath[0][1]-(data["height"]/2))+`px;
                                                 transform:rotate(`+rotation+`deg);'
                                             data-health='`+data["health"]+`' 
-                                            data-damage='`+data["damage"]+`' 
-                                            data-death='`+data["death"]+`' 
+                                            data-damage='`+data["damage"]+`'
                                             data-speed='`+data["speed"]+`' 
                                             data-magnitude-remaining='`+gameObjectVars.vectorPathRoot.m+`' 
                                             data-current-x='`+(gameObjectVars.mapPath[0][0]-(data["width"]/2))+`' 
@@ -1294,6 +1293,7 @@
                                             data-resources='`+data["resources"]+`' 
                                             data-score='`+data["score"]+`'
                                             data-ticks='0'>`);
+                        enemyImg.data("death",data["death"])
                         data["divBase"]=enemyImg;
                         gameObjectVars.enemyDB[enemyName]=data;
                         return enemyImg;
@@ -1310,9 +1310,20 @@
                     if (gameObjectVars.enemyQueue[gameObjectVars.clockTime]){
                         for (var enemyDiv in gameObjectVars.enemyQueue[gameObjectVars.clockTime]){
                             if (gameObjectVars.enemyQueue[gameObjectVars.clockTime].hasOwnProperty(enemyDiv)){
-                                var enemy = gameObjectVars.enemyQueue[gameObjectVars.clockTime][enemyDiv].clone()
+                                var enemy = gameObjectVars.enemyQueue[gameObjectVars.clockTime][enemyDiv]["enemy"].clone(true)
+                                var position = gameObjectVars.enemyQueue[gameObjectVars.clockTime][enemyDiv]["position"];
                                 enemy.data("currentVector",gameObjectVars.vectorPathRoot);
                                 $("#gameSpace").append(enemy);
+                                if (position){
+                                    var vector = gameObjectVars.enemyQueue[gameObjectVars.clockTime][enemyDiv]["vector"];
+                                    var magnitudeRemaining = gameObjectVars.enemyQueue[gameObjectVars.clockTime][enemyDiv]["magnitudeRemaining"];
+                                    enemy.css("left",position.left)
+                                        .css("top",position.top)
+                                        .data("magnitudeRemaining",magnitudeRemaining)
+                                        .data("currentVector",vector)
+                                        .data("currentX",position.left-enemy.width()/2)
+                                        .data("currentY",position.top-enemy.height()/2);
+                                }
                             }
                         }
                         delete gameObjectVars.enemyQueue[gameObjectVars.clockTime];
@@ -1614,8 +1625,40 @@
                     incrementStatistic("enemiesKilled");
                     setResources(gameObjectVars.resources+enemy.data("resources"));
                     gameObjectVars.score+=enemy.data("score");
+                    var deathEvent = enemy.data("death");
+                    if (deathEvent!=="" && deathEvent!==null && deathEvent!==undefined){
+                        for (var event in deathEvent){
+                            if (deathEvent.hasOwnProperty(event)){
+                                console.log(event,"e",enemy);
+                                switch(event){
+                                    case "SPAWN":
+                                        var spawnLocation = {"left":enemy.data("currentX")+enemy.width()/2, "top":enemy.data("currentY")+enemy.height()/2};
+                                        console.log("location",spawnLocation);
+                                        for (var enemyToSpawn in deathEvent[event]){
+                                            if (deathEvent[event].hasOwnProperty(enemyToSpawn)){
+                                                var noToSpawn = deathEvent[event][enemyToSpawn];
+                                                console.log(enemyToSpawn,noToSpawn);
+                                                for (var i =0;i<noToSpawn;i++){
+                                                    var tickTrigger = gameObjectVars.clockTime + 1 + i;
+                                                    console.log(tickTrigger,"ticks");
+                                                    var dic = {"enemy":loadEnemy(enemyToSpawn), "position":spawnLocation,"vector":enemy.data("currentVector"),"magnitudeRemaining":enemy.data("magnitudeRemaining")};
+                                                    if (tickTrigger in gameObjectVars.enemyQueue){   
+                                                        gameObjectVars.enemyQueue[tickTrigger].push(dic);
+                                                    }else{
+                                                        gameObjectVars.enemyQueue[tickTrigger]=[dic];
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        console.log(gameObjectVars.enemyQueue,"eq",gameObjectVars.clockTime);
+                                        break;
+                                }
+                            }
+                        }
+                    }
                     enemy.remove();
                 }
+                
                 /**
                  * Loads the projectile resource into the projectile resource dictionary
                  * @author Ignacy Debicki

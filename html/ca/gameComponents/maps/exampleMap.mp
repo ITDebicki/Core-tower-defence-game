@@ -24,6 +24,10 @@
       "tankBasic":5,
       "delay":3
      },
+	"14":{
+		"swarmShip":1,
+		"delay":1
+	},
 	"16":{
 		"lightFighter":10,
 		"delay": 10
