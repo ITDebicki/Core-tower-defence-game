@@ -551,8 +551,9 @@
                  */
                 function startWaveCounter(){
                     prepareWave();
-                    $("#waveControls").velocity("slideDown",100);
+                    $("#waveControls").velocity("slideDown",100,function(){setShopHeight();});
                     waveCountDown();
+                    setShopHeight();
                 }
                 /**
                  * Updates countdown timer
@@ -576,7 +577,8 @@
                         //time expired start wave
                         startWave(gameObjectVars.waveNo);
                         //hide countdown
-                        $("#waveControls").velocity("slideUp",100);
+                        $("#waveControls").velocity("slideUp",100,function(){setShopHeight();});
+                        setShopHeight();
                     }
                 }
                 /**
@@ -1014,7 +1016,22 @@
                  */
                 function removeTowerSelection(){
                     $(".isSelected").removeClass("isSelected");
-                    $("#sideBarTowerControl").velocity("slideUp",100);
+                    $("#sideBarTowerControl").velocity("slideUp",100,function(){setShopHeight();});
+                    setShopHeight();
+                }
+                
+                function setShopHeight(){
+                    var maxAvailableHeight = $("#controlTray").innerHeight() - $("#timeControls").outerHeight(true) - 70;
+                    console.log(maxAvailableHeight,"start");
+                    $("#controlTray").children(".sideBarDiv:not(#sideBarTowerSlots):visible").each(function(){
+                        console.log($(this).height(),this);
+                        if ($(this).height()>0){
+                            maxAvailableHeight-=parseFloat($(this).outerHeight(true));
+                        }
+                        
+                    });
+                    console.log($("#sideBarTowerSlots").css("max-height"),maxAvailableHeight)
+                    $("#sideBarTowerSlots").css("max-height",maxAvailableHeight);
                 }
                 /**
                  * Sets the new max health of the base
@@ -1559,7 +1576,8 @@
                  * @author Ignacy Debicki
                  */
                 function showTowerOverlay(){
-                    $("#sideBarTowerControl").velocity("slideDown",100);
+                    $("#sideBarTowerControl").velocity("slideDown",100,function(){setShopHeight();});
+                    setShopHeight();
                 }
                     
                 /**
@@ -1702,6 +1720,7 @@
                     clearTimeout(gameObjectVars.warningMessageTimeout);
                     $("#warning").show();
                     $("#warningText").html(message);
+                    setShopHeight();
                 }
                 /**
                  * Hides the warning from the sidebar menu
@@ -1710,6 +1729,7 @@
                 function hideWarning(){
                     $("#warning").hide();
                     $("#warningText").empty();
+                    setShopHeight();
                 }
                 /**
                  * Calculates the final score
