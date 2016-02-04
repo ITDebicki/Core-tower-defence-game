@@ -93,15 +93,27 @@
                     var newDiv = $('<div id="' + id +'"></div>');
                     screen.append(newDiv);
                     var ls = new loadingScreen("#"+id);
-                    
-                    $.get(element, function(data) {
-                        $("#" + id).append(data);
+                    var cacheStoreObj = window.gameCache.fetchFromCache("main,screenElement,"+id);
+                    if (cacheStoreObj === undefined){
+                        $.get(element, function(data) {
+                            window.gameCache.addToCache("main,screenElement,"+id,data);
+                            newDiv.append(data);  
+                            ls.hideLoadingScreen();
+                            if (callback){
+                                callback();
+                            }
+                            blockPageLoading = false;
+                        });
+                    }else{
+                        newDiv.append(cacheStoreObj);
                         ls.hideLoadingScreen();
                         if (callback){
                             callback();
                         }
-                    });
-                    blockPageLoading = false;
+                        blockPageLoading = false;
+                    }
+                    
+                    
                 }
             }
             /**
@@ -112,6 +124,7 @@
             function removeElement(id){
                 if (id =="mainGame"){
                     window.game.purge();
+                    window.game = null;
                 }
                 $("#" + id).remove();
             }
@@ -143,6 +156,81 @@
                 console.log(textStatus);
                 console.log(errorThrown);
             }
+            
+            window.gameCache = (function(){
+                var cacheObject = this;
+                cacheObject.cache = {};
+                
+                return {
+                    /**
+                     * Adds an object to the cache
+                     * @author Ignacy Debicki
+                     * @param {string} path  Comma seperated path where to store object
+                     * @param {object} value Object to store
+                     */
+                    addToCache:function(path,value){
+                        if (path.length>1){
+                            var keys = path.split(",");
+                            var obj = cacheObject.cache;
+                            for (var i = 0; i<keys.length-1;i++){
+                                if (keys[i] in obj){
+                                    obj = obj[keys[i]];
+                                }else{
+                                    obj[keys[i]] = {};
+                                    obj = obj[keys[i]];
+                                }  
+                            }
+                            obj[keys[keys.length-1]] = value;
+                        }
+                    },
+                    /**
+                     * Removes an object from the cache
+                     * @author Ignacy Debicki
+                     * @param {string} path Path of object to remove
+                     */
+                    removeFromCache:function(path){
+                        if (path.length>1){
+                            var keys = path.split(",");
+                            var obj = cacheObject.cache;
+                            for (var i = 0; i<keys.length-1;i++){
+                                if (keys[i] in obj){
+                                    obj = obj[keys[i]];
+                                }else{
+                                    break;
+                                }  
+                            }
+                            obj[keys[keys.length-1]]=undefined;
+                        }
+                    },
+                    /**
+                     * Fetches an object from the cache
+                     * @author Ignacy Debicki
+                     * @param   {string} path Path of object to fetch
+                     * @returns {object} The item requested
+                     */
+                    fetchFromCache:function(path){
+                        if (path.length>1){
+                            var keys = path.split(",");
+                            var obj = cacheObject.cache;
+                            for (var i = 0; i<keys.length-1;i++){
+                                if (keys[i] in obj){
+                                    obj = obj[keys[i]];
+                                }else{
+                                    break;
+                                }  
+                            }
+                            return obj[keys[keys.length-1]];
+                        }
+                    },
+                    /**
+                     * Purges the cache of all objects
+                     * @author Ignacy Debicki
+                     */
+                    purgeCache: function(){
+                        cacheObject.cache = {};
+                    }
+                }
+            })();
             /**
              * Adds a loading screen to an element
              * @author Ignacy Debicki

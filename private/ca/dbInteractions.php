@@ -957,5 +957,79 @@ function delete_save($saveID){
         throw new Exception("Failed to write to database",501);
     }
 }
-
+/**
+ * Gets the experience of a user
+ * @author Ignacy Debicki
+ * @return integer Experience of the user
+ */
+function get_experience(){
+    $conn = request_connection();
+    $stmt = $conn->prepare('SELECT experience FROM User WHERE username = :user');
+    $stmt->execute(array(":user" => $_SESSION["user"]));
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    return $result[0]["experience"];
+}
+/**
+ * Adds experience to the user
+ * @author Ignacy Debicki
+ * @param  integer $xp The amount of experience to add
+ * @return boolean If update was succesfull
+ */
+function add_experience($xp){
+    $conn = request_connection();
+    $xp = get_experience() + $xp;
+    
+    $stmt = $conn->prepare('UPDATE User SET experience = :xp WHERE username = :user');
+    $stmt->execute(array(":user" => $_SESSION["user"], ":xp" => $xp));
+    $affectedRows = $stmt->rowCount();
+    if ($affectedRows>0){
+        return true;
+    }else{
+        throw new Exception("Failed to write to database",501);
+    }
+}
+/**
+ * Gets the multiplier for experience for the user
+ * @author Ignacy Debicki
+ * @return float Experience multiplier
+ */
+function get_XP_multiplier(){
+    $conn = request_connection();
+    $stmt = $conn->prepare("SELECT DISTINCT DATE_FORMAT(timestamp, '%d-%m-%Y') AS date FROM LastLogin WHERE user = :user AND timestamp > DATE_SUB(NOW(), INTERVAL 11 day) ORDER BY timestamp DESC");
+    $stmt->execute(array(":user" => $_SESSION["user"]));
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $consecutive = 0;
+    $potentialBonus = false;
+    $adjustTime = false;
+    for ($i = 0;$i<count($result);$i++){
+        $offset = $i;
+        if ($adjustTime==true){
+            $offset--;
+        }
+        $date = new DateTime($result[$i]["date"]);
+        
+        
+        $dateDiff = $date -> diff(new DateTime(date("Y-m-d", time() - 60 * 60 * 24 * $offset + 1)));
+        if (intval($dateDiff->format("%a"))!==0){
+            if ($i == 0){
+                $adjustTime = true;
+            }else{
+                break;
+            }
+        }else{
+            if ($i==0){
+                $potentialBonus==true;
+            }
+            $consecutive++;
+        }
+    }
+    $multiplier = 1 + 0.1 * $consecutive;
+    if ($multiplier > 2){
+        if ($potentialBonus){
+            add_experience(50);
+        }
+        $multiplier = 2;
+    }
+    return $multiplier;
+}
 ?>

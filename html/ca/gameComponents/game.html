@@ -4,6 +4,10 @@
         <script>
             
             
+            if (!(window.game == null || window.game == undefined)){
+                window.game.purge();
+                window.game = null;
+            }
             window.game= new gameObject();
                 
                 
@@ -26,36 +30,59 @@
                         var b = values[1];
                         var angle = Math.round(Math.atan2(b, a) * (180/Math.PI));
                     } else { var angle = 0; }
-                    return angle%360;
+                    angle = angle%360;
+                    if (angle>180){
+                        angle = angle-360;
+                    }else if(angle<=-180){
+                        angle = 360+angle;
+                    }
+                    return Math.round(angle*10)/10;
                 }
                 /**
-                 * Calculates the shortest route to rotate
+                 * Calculates the  route to rotate
                  * @author Ignacy Debicki
                  * @param   {number} s Start rotation
                  * @param   {number} e End of rotation
                  * @returns {number} Angle to rotate to
                  */
                 function getShortestRotation(s,e){
-                    if (Math.abs(s-e) > 180){
-                        return s+(360-Math.abs(s-e))*(s/Math.abs(s));
+                    if ((e<s && (e > s - 180 || e > s + 180)) || (e>s && ( s + 180 < e))){
+                        //rotate left
+                        if ( s < 0 && e > 0){
+                            return e - 360;
+                        }else{
+                            return e;
+                        }
                     }else{
-                        return e
+                        //rotate right
+                        if (s > 0 && e < 0){
+                            return 360 + e
+                        }else{
+                           return e 
+                        }
+                         
                     }
                 }
                 /**
                  * CSS3 Jquery animated rotation
                  * @author yckart http://stackoverflow.com/questions/15191058/css-rotation-cross-browser-with-jquery-animate
-                 * @param   {number}   angle    Angle to rotate throuhg in degrees
+                 * @param   {number}   angle    Angle to rotate to in degrees
                  * @param   {number}   duration Length of animation
                  * @param   {string}   easing   Type of easing: linear or swing
                  * @param   {function} complete Completion handler
                  */
                 $.fn.animateRotate = function(angle,duration, easing, complete) {
+                    angle = angle%360;
+                    if (angle>180){
+                        angle = angle-360;
+                    }else if(angle<=-180){
+                        angle = 360+angle;
+                    }
                     var args = $.speed(duration, easing, complete);
                     var step = args.step;
                     return this.each(function(i, e) {
                         var startDeg = getRotationDegrees($(e));
-                        if (startDeg !== getShortestRotation(startDeg,angle)){
+                        if (startDeg !== getShortestRotation(startDeg,angle) || startDeg !== angle){
                             args.complete = $.proxy(args.complete, e);
                             args.step = function(now) {
                             $.style(e, 'transform', 'rotate(' + now + 'deg)');
@@ -459,6 +486,9 @@
                 this.animationArray = [];
                 this.mapID = null;
                 this.statistics = {};
+                this.experience = 0;
+                this.experienceMultiplier = 1;
+                this.experienceGained = 0;
                 
                 $("document").ready(function(){
                     //set self to hidden
@@ -470,6 +500,24 @@
                     hideUpgradeStats();
                     hideWarning();
                     initiateStatistics();
+                    if (window.login.isLoggedIn()){
+                        window.login.getExperience(function(success,data,errorCode){
+                            if (success){
+                                gameObjectVars.experience = parseInt(data);
+                                updateLockedTowers();
+                            }else{
+                                alert(data,errorCode);
+                            }
+                        });
+                        window.login.getXPMultiplier(function(success,data,errorCode){
+                            if(success){
+                                gameObjectVars.experienceMultiplier = parseInt(data);
+                            }else{
+                                alert(data,errorCode);
+                            }
+                        });  
+                    }
+                    
 
                     //set handlers
                     $(".timeControl").click(changePlaybackTime);
@@ -508,6 +556,20 @@
                         });
                     }
                 });
+                
+                function updateLockedTowers(){
+                    $(".sideBarTowerDiv.locked").each(function(){
+                        if ($(this).data("experience")<=Math.round(gameObjectVars.experience + gameObjectVars.experienceGained)){
+                            //unlock
+                            $(this).removeClass("locked");
+                            $(this).children(".sideBarTowerCover").remove();
+                            $(this).children(".towerSideBarImage").click(buyTower);
+                        }else{
+                            console.log($(this).children(".experienceValue").children(".sideBarTowerCover").children(".experienceValue"));
+                            $(this).children(".sideBarTowerCover").children(".experienceValue").html($(this).data("experience")-Math.round(gameObjectVars.experience+ gameObjectVars.experienceGained));
+                        }
+                    });
+                }
                 /**
                  * initiates all statistics to their initial values
                  * @author Ignacy Debicki
@@ -588,7 +650,6 @@
                  * @param {object} arg   Argument(s) for event 
                  */
                 function executeEvent(event,arg){
-                    console.log(event,arg);
                     switch(event){
                         case "ENABLE":
                             //is array of towers
@@ -600,7 +661,7 @@
                             }
                             break;
                         default:
-                            console.log("invalid event");
+                            console.error("invalid event");
                     }
                 }
                 /**
@@ -1022,15 +1083,12 @@
                 
                 function setShopHeight(){
                     var maxAvailableHeight = $("#controlTray").innerHeight() - $("#timeControls").outerHeight(true) - 70;
-                    console.log(maxAvailableHeight,"start");
                     $("#controlTray").children(".sideBarDiv:not(#sideBarTowerSlots):visible").each(function(){
-                        console.log($(this).height(),this);
                         if ($(this).height()>0){
                             maxAvailableHeight-=parseFloat($(this).outerHeight(true));
                         }
                         
                     });
-                    console.log($("#sideBarTowerSlots").css("max-height"),maxAvailableHeight)
                     $("#sideBarTowerSlots").css("max-height",maxAvailableHeight);
                 }
                 /**
@@ -1216,6 +1274,8 @@
                         if (gameObjectVars.stopTickFunction==false){
                             //check if end of wave
                             if (endOfWave()&&gameObjectVars.runTick==true){
+                                gameObjectVars.experienceGained+=20*gameObjectVars.experienceMultiplier;
+                                updateLockedTowers();
                                 //increment wave no
                                 gameObjectVars.waveNo++;
                                 if (gameObjectVars.waveNo>=gameObjectVars.waves.length){
@@ -1278,20 +1338,26 @@
                 /**
                  * Loads enemy resource into the enemy dictionary
                  * @author Ignacy Debicki
-                 * @param   {string} enemyName NAme of enemy to be loaded
+                 * @param   {string} enemyName Name of enemy to be loaded
                  * @returns {object} The enemies div template
                  */
                 function loadEnemy(enemyName){
                     if ((enemyName in gameObjectVars.enemyDB)==false){
-                        var data = $.ajax({
-                            type: "GET",
-                            url: "gameComponents/enemies/"+enemyName+".ed",
-                            dataType: 'json',
-                            async: false,
-                            success: function(data) {}
-                        })['responseJSON'];
+                        var data = window.gameCache.fetchFromCache("game,enemies,"+enemyName);
+                        if (data === undefined){
+                            data = $.ajax({
+                                type: "GET",
+                                url: "gameComponents/enemies/"+enemyName+".ed",
+                                dataType: 'json',
+                                async: false,
+                                success: function(data) {}
+                            });
+                            window.gameCache.addToCache("game,enemies,"+enemyName,data);
+                        }
+                        data = data["responseJSON"];
                         var rotation = Math.round((Math.atan(gameObjectVars.vectorPathRoot.x/-gameObjectVars.vectorPathRoot.y))*(180/Math.PI));
                         if (gameObjectVars.vectorPathRoot.y>=0){ rotation += 180;}
+                        
                         var enemyImg = $(`<img src='gameComponents/enemies/`+data["icon"]+`' 
                                             class='enemy ` + enemyName + `' 
                                             style='
@@ -1353,13 +1419,16 @@
                  * @param {string} towerName Name of tower to be loaded in
                  */
                 function loadSideBarTower(towerName){
+                    
                     var towerData = loadTower(towerName);
                     var baseTower = towerData["level"][0]
                     var towerDiv = baseTower["divBase"];
                     var towerSideBarImage = $("<img id='"+towerName+"' class='towerSideBarImage' src='gameComponents/towers/"+ baseTower["icon"] +"' >");
                     towerSideBarImage.data("divBase",towerDiv);
                     towerSideBarImage.data("cost",baseTower['cost']);
-                    towerSideBarImage.click(buyTower);
+                    
+                    
+                    
                     var towerDescription = $(`<ul class='towerInfo'>
                                                 <li>
                                                     <img class='sideBarStatImage' src='gameComponents/images/attack.png'>
@@ -1381,6 +1450,18 @@
                                                 </li>
                                                </ul>`);
                     var towerSideBarDiv = $("<div class='sideBarTowerDiv'>");
+                    towerSideBarDiv.data("experience",towerData["experience"]);
+                    if (window.login.isLoggedIn()){
+                        if (gameObjectVars.experience>=towerData["experience"]){
+                            towerSideBarImage.click(buyTower);
+                        }else{
+                            var cover = $(`<div class='sideBarTowerCover'>Need <span class="experienceValue">`+(towerData["experience"]-gameObjectVars.experience)+`</span> XP</div>`);
+                            towerSideBarDiv.append(cover);
+                            towerSideBarDiv.addClass("locked");
+                        }
+                    }else{
+                        towerSideBarImage.click(buyTower);
+                    }
                     towerSideBarDiv.append(towerSideBarImage)
                                     .append(towerDescription);
 
@@ -1394,16 +1475,21 @@
                  */
                 function loadTower(towerName){
                     if ((towerName in gameObjectVars.towerDB)==false){
-                        var data = $.ajax({
-                            type: "GET",
-                            url: "gameComponents/towers/"+towerName+".td",
-                            dataType: 'json',
-                            async: false,
-                            success: function(data) {}
-                        })['responseJSON'];
+                        var data = window.gameCache.fetchFromCache("game,towers,"+towerName);
+                        if (data ===undefined){
+                            data = $.ajax({
+                                type: "GET",
+                                url: "gameComponents/towers/"+towerName+".td",
+                                dataType: 'json',
+                                async: false,
+                                success: function(data) {}
+                            })['responseJSON'];
+                            window.gameCache.addToCache("game,towers,"+towerName,data);
+                        } 
                         gameObjectVars.towerDB[towerName]=[];
                         for (i=0;i<data["level"].length;i++){
                             var towerLevelData = data["level"][i];
+                            towerLevelData.experience = data["experience"];
                             var towerDiv = $(`<div class='`+towerName+i+` towerContainer' style='width:`+(towerLevelData["range"]*2)+`px; height:`+(towerLevelData["range"]*2)+`px;'
                                              data-width='`+data["width"]+`' 
                                              data-height='`+data["height"]+`' 
@@ -1641,24 +1727,22 @@
                  */
                 function enemyKilled(enemy){
                     incrementStatistic("enemiesKilled");
+                    gameObjectVars.experienceGained+=gameObjectVars.experienceMultiplier;
+                    updateLockedTowers();
                     setResources(gameObjectVars.resources+enemy.data("resources"));
                     gameObjectVars.score+=enemy.data("score");
                     var deathEvent = enemy.data("death");
                     if (deathEvent!=="" && deathEvent!==null && deathEvent!==undefined){
                         for (var event in deathEvent){
                             if (deathEvent.hasOwnProperty(event)){
-                                console.log(event,"e",enemy);
                                 switch(event){
                                     case "SPAWN":
                                         var spawnLocation = {"left":enemy.data("currentX")+enemy.width()/2, "top":enemy.data("currentY")+enemy.height()/2};
-                                        console.log("location",spawnLocation);
                                         for (var enemyToSpawn in deathEvent[event]){
                                             if (deathEvent[event].hasOwnProperty(enemyToSpawn)){
                                                 var noToSpawn = deathEvent[event][enemyToSpawn];
-                                                console.log(enemyToSpawn,noToSpawn);
                                                 for (var i =0;i<noToSpawn;i++){
                                                     var tickTrigger = gameObjectVars.clockTime + 1 + i;
-                                                    console.log(tickTrigger,"ticks");
                                                     var dic = {"enemy":loadEnemy(enemyToSpawn), "position":spawnLocation,"vector":enemy.data("currentVector"),"magnitudeRemaining":enemy.data("magnitudeRemaining")};
                                                     if (tickTrigger in gameObjectVars.enemyQueue){   
                                                         gameObjectVars.enemyQueue[tickTrigger].push(dic);
@@ -1668,7 +1752,6 @@
                                                 }
                                             }
                                         }
-                                        console.log(gameObjectVars.enemyQueue,"eq",gameObjectVars.clockTime);
                                         break;
                                 }
                             }
@@ -1685,13 +1768,17 @@
                  */
                 function loadProjectile(projectileName){
                     if ((projectileName in gameObjectVars.projectileDB)==false){
-                        var data = $.ajax({
-                            type: "GET",
-                            url: "gameComponents/projectiles/"+projectileName+".pd",
-                            dataType: 'json',
-                            async: false,
-                            success: function(data) {}
-                        })['responseJSON'];
+                        var data = window.gameCache.fetchFromCache("game,projectiles,"+projectileName);
+                        if (data===undefined){
+                            data = $.ajax({
+                                type: "GET",
+                                url: "gameComponents/projectiles/"+projectileName+".pd",
+                                dataType: 'json',
+                                async: false,
+                                success: function(data) {}
+                            })['responseJSON'];
+                            window.gameCache.addToCache("game,projectiles,"+projectileName,data);
+                        } 
                         var projectileDiv = $("<img class='projectile "+projectileName+"' style='height:"+data["height"]+"px; width:"+data["width"]+"px;' data-speed='"+data["speed"]+"' src='gameComponents/projectiles/"+data["icon"]+"'>");
                         data["divBase"]=projectileDiv;
                         gameObjectVars.projectileDB[projectileName]=data;
@@ -1744,6 +1831,10 @@
                  * @author Ignacy Debicki
                  */
                 function showEndGameScreen(finalScore){
+                    if (window.login.isLoggedIn()){
+                        window.login.addExperience(Math.round(gameObjectVars.experienceGained));
+                    }
+                    
                     gameObjectVars.stopWaveTimer=true;
                     gameObjectVars.stopTickFunction=true;
                     loadElement("gameComponents/endGameScreen.html","endGameScreen",function(){
@@ -1958,8 +2049,8 @@
                      * @author Ignacy Debicki
                      */
                     purge: function(){
-                        gameObjectVars = null;
-                        window.game = null;
+                        gameObjectVars = undefined;
+                        window.game = undefined;
                         $(document).unbind("");
                     }
                 }

@@ -195,7 +195,13 @@
         function loadSaveHandler(success,data,errorCode){
             if (success){
                 gameData = data;
-                window.login.getAllMaps(mapLoadHandler);
+                var allMaps = window.gameCache.fetchFromCache("availableMaps");
+                if (allMaps === undefined){
+                    window.login.getAllMaps(mapLoadHandler);
+                }else{
+                    mapLoadHandler(true,allMaps);
+                }
+                
             }else{
                 alert(data,errorCode);
                 saveListLoadingScreen.hideLoadingScreen();
@@ -210,12 +216,37 @@
          */
         function mapLoadHandler(success,data,errorCode){
             if(success){
+                window.gameCache.addToCache("availableMaps",data);
                 var selectedSave = $(".saveSelected");
                 var mapID = selectedSave.data("map");
+                
                 for (var i = 0;i<data.length;i++){
                     if (data[i]["id"] == mapID){
                         mapToLoad = data[i];
-                        window.login.getMapData(mapToLoad["file"],getMapDataHandler);
+                        var mapData = window.gameCache.fetchFromCache("mapData"+mapID);
+                        if (mapData === undefined){
+                            $.ajax({
+                                url: 'gameComponents/maps/'+mapToLoad["file"],
+                                type: 'GET',
+                                method: 'GET',
+                                dataType: "json",
+                                success:function(response){
+                                    window.gameCache.addToCache("mapData"+mapToLoad["id"],response);
+                                    console.log(mapData,mapToLoad);
+                                    mapToLoad["mapData"]=response;
+                                    loadBackground('gameComponents/maps/'+mapToLoad["image"],response["offset"]);
+                                    saveListLoadingScreen.hideLoadingScreen();
+                                    loadElement('gameComponents/game.html','mainGame',startGameHandler);
+                                },
+                                error:logError
+                            });
+                        }else{
+                            console.log(mapData);
+                            mapToLoad["mapData"]=mapData;
+                            loadBackground('gameComponents/maps/'+mapToLoad["image"],mapData["offset"]);
+                            saveListLoadingScreen.hideLoadingScreen();
+                            loadElement('gameComponents/game.html','mainGame',startGameHandler);
+                        }
                         break;
                     }
                 }
@@ -223,17 +254,6 @@
                 alert(data,errorCode);
                 saveListLoadingScreen.hideLoadingScreen();
             }
-        }
-        /**
-         * Handler for getting map data
-         * @author Ignacy Debicki
-         * @param {object} mapData The map data object
-         */
-        function getMapDataHandler(mapData){
-            mapToLoad["mapData"]=mapData;
-            loadBackground('gameComponents/maps/'+mapToLoad["image"],mapData["offset"]);
-            saveListLoadingScreen.hideLoadingScreen();
-            loadElement('gameComponents/game.html','mainGame',startGameHandler);
         }
         /**
          * Handler which starts the game

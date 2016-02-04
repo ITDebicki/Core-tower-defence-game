@@ -124,6 +124,11 @@
     margin-bottom:10px;
 }
 
+.sideBarTowerDiv.locked {
+    border-radius: 10px;
+    background-color: grey;
+}
+
 .targetDisk{
     background-color:red;
     opacity:0;
@@ -321,4 +326,9 @@
 
 ::-webkit-scrollbar-track { 
         background-color: inherit; 
+}
+
+.sideBarTowerCover{
+    vertical-align: middle;
+    text-align: center;
 }

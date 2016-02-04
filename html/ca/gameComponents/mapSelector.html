@@ -21,7 +21,7 @@
                     $("#prevButton").click(leftButtonClick);
                     $("#nextButton").click(rightButtonClick);
                     $("#backButton").click(backToStart);
-                    $("#startButton").click(startGame);
+                    $("#startButton").click(function(){setTimeout(startGame(),500)});
                 });
                 /**
                  * Returns to startGameScreen
@@ -79,18 +79,27 @@
                  * @author Ignacy Debicki
                  */
                 function fetchAvailableMaps(){
-                    window.login.getAllMaps(function(success,data,errorCode){
-                        if(success){
-                            if(data){
-                                for (var i=0;i<data.length;i++){
-                                    addMap(data[i]["id"],data[i]["name"],data[i]["description"],data[i]["file"],data[i]["image"],data[i]["levelNo"]);
-                                }
-                            }   
-                        }else{
-                            console.log("error",data,errorCode);
-                            alert(data,errorCode);
+                    var data = window.gameCache.fetchFromCache("availableMaps")
+                    if (data === undefined){
+                        window.login.getAllMaps(function(success,data,errorCode){
+                            if(success){
+                                if(data){
+                                    window.gameCache.addToCache("availableMaps",data);
+                                    for (var i=0;i<data.length;i++){
+                                        addMap(data[i]["id"],data[i]["name"],data[i]["description"],data[i]["file"],data[i]["image"],data[i]["levelNo"]);
+                                    }
+                                }   
+                            }else{
+                                console.log("error",data,errorCode);
+                                alert(data,errorCode);
+                            }
+                        });
+                    }else{
+                        for (var i=0;i<data.length;i++){
+                            addMap(data[i]["id"],data[i]["name"],data[i]["description"],data[i]["file"],data[i]["image"],data[i]["levelNo"]);
                         }
-                    });
+                    }
+                    
                 }
                 /**
                  * Adds the map to the map array and sets the start map if no more maps are being loaded
@@ -104,25 +113,37 @@
                  */
                 function addMap(id,name,description,file,image,levelNo){
                     activeAJAX+=1;
-                    $.ajax({
-                        url: 'gameComponents/maps/'+file,
-                        type: 'GET',
-                        method: 'GET',
-                        dataType: "json",
-                        success:function(response){
-                            var map = {"id":id,"name":name,"description":description,"image":image, "levelNo":levelNo, "offset":response["offset"]};
-                            console.log("offset:",response["offset"]);
-                            map["div"]=$("<img class='carouselImage' id='"+name+"' src='gameComponents/maps/"+image+"' style='top: -"+response["offset"]+";'/>");
-                            map["mapData"]=response;
-                            mapArray.push(map);
-                            activeAJAX-=1;
-                            console.log(activeAJAX);
-                            if (activeAJAX==0){
-                                setStartMap(parseBackground());
-                            }
-                        },
-                        error:logError
-                    });
+                    var response = window.gameCache.fetchFromCache("mapData,"+id);
+                    if (response ===undefined){
+                        $.ajax({
+                            url: 'gameComponents/maps/'+file,
+                            type: 'GET',
+                            method: 'GET',
+                            dataType: "json",
+                            success:function(response){
+                                window.gameCache.addToCache("mapData,"+id,response);
+                                var map = {"id":id,"name":name,"description":description,"image":image, "levelNo":levelNo, "offset":response["offset"]};
+                                map["div"]=$("<img class='carouselImage' id='"+name+"' src='gameComponents/maps/"+image+"' style='top: -"+response["offset"]+";'/>");
+                                map["mapData"]=response;
+                                mapArray.push(map);
+                                activeAJAX-=1;
+                                if (activeAJAX==0){
+                                    setStartMap(parseBackground());
+                                }
+                            },
+                            error:logError
+                        });
+                    }else{
+                        var map = {"id":id,"name":name,"description":description,"image":image, "levelNo":levelNo, "offset":response["offset"]};
+                        map["div"]=$("<img class='carouselImage' id='"+name+"' src='gameComponents/maps/"+image+"' style='top: -"+response["offset"]+";'/>");
+                        map["mapData"]=response;
+                        mapArray.push(map);
+                        activeAJAX-=1;
+                        if (activeAJAX==0){
+                            setStartMap(parseBackground());
+                        }
+                    }
+                    
                     
                 }
                 /**
@@ -212,7 +233,7 @@
                  * @param {number} index Index to start at
                  */
                 function initiateCarousel(index){
-                    carousel.initCarousel("#mapCarousel",mapArray,index,"div");
+                    setTimeout(function(){carousel.initCarousel("#mapCarousel",mapArray,index,"div")},250);
                     $("#gameDiv").css("background-image","none");
                     setText(mapArray[index]["name"],mapArray[index]["description"]);
                     showText();

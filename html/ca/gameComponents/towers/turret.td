@@ -1,3 +1,3 @@
-{"width":80,"height":80,
+{"width":80,"height":80,"experience":600,
 "level":[
 {"reloadSpeed":10,"projectiles":2,"projectileName":"laser","icon":"turret.png","range":300,"damage":20,"cost":100,"score":8}]}

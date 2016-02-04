@@ -135,6 +135,15 @@ try{
         case "deleteSave":
             $reuslt = delete_save($jsonData["save"]);
             break;
+        case "getExperience":
+            $result = get_experience();
+            break;
+        case "addExperience":
+            $result = add_experience($jsonData["experience"]);
+            break;
+        case "getXPMultiplier":
+            $result = get_XP_multiplier();
+            break;
         default:
             throw new Exception("POST parameter 'action' not correct",100);
     }

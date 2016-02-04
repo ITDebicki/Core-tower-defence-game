@@ -1013,6 +1013,78 @@ window.login=(function(){
             error:logError
         });
     }
+    
+    /**
+     * Gets the expereince of the current user
+     * @author Ignacy Debicki
+     * @param {function} callback Function to call upon completion. Will be passed parameters: success,data,errorCode
+     *                            Data will be Either the error message (if success==false) or the expereience.
+     */
+    function getExperience(callback){
+        $.ajax({
+            url: 'restricted/performAction.php',
+            type: 'POST',
+            method: 'POST',
+            dataType: "json",
+            data: { "action": "getExperience", "json":'{}'},
+            success: function(response){ 
+                if (response["success"]==true){
+                    callback(true,response["data"]);
+                }else{
+                    callback(false,response["error"],response["errorCode"]); 
+                }
+            },
+            error:logError
+        });
+    }
+    /**
+     * Adds experience to the player
+     * @author Ignacy Debicki
+     * @param {number}   xp       Amount of expereince to add
+     * @param {function} callback Function to call upon completion. Will be passed parameters: success,data,errorCode
+     *                            Data will be Either the error message (if success==false) or true.
+     */
+    function addExperience(xp,callback){
+        $.ajax({
+            url: 'restricted/performAction.php',
+            type: 'POST',
+            method: 'POST',
+            dataType: "json",
+            data: { "action": "addExperience", "json":'{"experience":'+xp+'}'},
+            success: function(response){ 
+                if (response["success"]==true){
+                    callback(true,response["data"]);
+                }else{
+                    callback(false,response["error"],response["errorCode"]); 
+                }
+            },
+            error:logError
+        });
+    }
+    /**
+     * Gets the user's XP multiplier
+     * @author Ignacy Debicki
+     * @param {function} callback Function to call upon completion. Will be passed parameters: success,data,errorCode
+     *                            Data will be Either the error message (if success==false) or the expereince multiplier.
+     */
+    function getXPMultiplier(callback){
+        $.ajax({
+            url: 'restricted/performAction.php',
+            type: 'POST',
+            method: 'POST',
+            dataType: "json",
+            data: { "action": "getXPMultiplier", "json":'{}'},
+            success: function(response){ 
+                if (response["success"]==true){
+                    callback(true,response["data"]);
+                }else{
+                    callback(false,response["error"],response["errorCode"]); 
+                }
+            },
+            error:logError
+        });
+    }
+    
     return{
         login:function(user,pass,callback){
             login(user,pass,callback);
@@ -1150,7 +1222,15 @@ window.login=(function(){
         },
         deleteSave: function(saveId,callback){
             deleteSave(saveId,callback);
+        },
+        getExperience: function(callback){
+            getExperience(callback);
+        },
+        addExperience: function(xp,callback){
+            addExperience(xp,callback);
+        },
+        getXPMultiplier: function(callback){
+            getXPMultiplier(callback);
         }
-        
     }
 })();
