@@ -1,1 +1,1 @@
-{"health":200,"damage":80,"speed":10,"death":{"SPAWN":{"attackFighter":5}},"icon":"mothership.png","width":66,"height":175,"resources":100,"score":10}
+{"health":200,"damage":80,"speed":10,"death":{"SPAWN":{"attackShip":5}},"icon":"mothership.png","width":66,"height":175,"resources":100,"score":10}

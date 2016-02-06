@@ -165,7 +165,7 @@
                     /**
                      * Adds an object to the cache
                      * @author Ignacy Debicki
-                     * @param {string} path  Comma seperated path where to store object
+                     * @param {string} path  Comma separated path where to store object
                      * @param {object} value Object to store
                      */
                     addToCache:function(path,value){
@@ -186,7 +186,7 @@
                     /**
                      * Removes an object from the cache
                      * @author Ignacy Debicki
-                     * @param {string} path Path of object to remove
+                     * @param {string} path Comma separated path which object to delete
                      */
                     removeFromCache:function(path){
                         if (path.length>1){
@@ -205,7 +205,7 @@
                     /**
                      * Fetches an object from the cache
                      * @author Ignacy Debicki
-                     * @param   {string} path Path of object to fetch
+                     * @param   {string} path Comma separated path of object to fetch
                      * @returns {object} The item requested
                      */
                     fetchFromCache:function(path){
@@ -278,7 +278,7 @@
              * @author Ignacy Debicki
              * @param {object}   mainElement           The div element into which the list should be put
              * @param {function} newElementConstructor Function to be called which will return a reference to an element of a list to be inserted. Accepts data argument
-             * @param {function} onElementPress        Fucntion to be called when a list element is pressed
+             * @param {function} onElementPress        Function to be called when a list element is pressed
              * @param {function} onScroll              Function to be called when list is scrolled
              */
             function ScrollList(mainElement,newElementConstructor,onElementPress,onScroll){
@@ -367,7 +367,11 @@
             };
             
             
-            
+            /**
+             * Creates a new carousel object
+             * @author Ignacy Debicki
+             * @returns {Carousel} New carousel object
+             */
             function Carousel(){
                 
                 var baseElement = null;
@@ -381,12 +385,12 @@
                  * Initiates the carousel
                  * @author Ignacy Debicki
                  * @param {object} elem  Element to initiate the carousel on
-                 * @param {Array}  array Array of items to insert into the carousel
+                 * @param {Array}  items Array of items to insert into the carousel
                  * @param {number} index Starting index of the carousel
                  * @param {string} key   The key of the image in the item element
                  */
-                this.initCarousel = function(elem,array,index,key){
-                    rotatorArray = array;
+                this.initCarousel = function(elem,items,index,key){
+                    rotatorArray = items;
                     currentIndex = index;
                     imgKey = key;
                     baseElementWidth = parseFloat($(elem).css("width"));
@@ -562,12 +566,12 @@
                  * @author Ignacy Debicki
                  * @param   {number}  index     Index to rotate to
                  * @param   {string}  direction Optional. Direction to rotate. Accepts "right" or "left". Default: shortest path
-                 * @returns {boolean} Returns false if action cannot be currently performed. Else returns the item it has rotated to
+                 * @returns {object} Returns null if action cannot be currently performed. Else returns the item it has rotated to
                  */
                 
                 this.rotateToIndex = function(index,direction){
                     if (this.animating){
-                        return false;
+                        return null;
                     }else{
                         rotateToIndex(index,direction);
                         return rotatorArray[currentIndex];
@@ -579,11 +583,11 @@
                  * @author Ignacy Debicki
                  * @param   {object}  item      Item object to rotate to
                  * @param   {string}  direction Optional. Direction to rotate. Accepts "right" or "left". Default: shortest path
-                 * @returns {boolean} Returns false if action cannot be currently performed
+                 * @returns {object} Returns null if action cannot be currently performed
                  */
                 this.rotateToItem = function(item,direction){
                     if (this.animating){
-                        return false;
+                        return null;
                     }else{
                         var itemIndex = rotatorArray.indexOf(item);
                         rotateToIndex(itemIndex,direction);
@@ -593,12 +597,12 @@
                 /**
                  * Rotates the carousel right
                  * @author Ignacy Debicki
-                 * @returns {boolean} Returns false if action cannot be currently performed. Else returns the item it has rotated to
+                 * @returns {object} Returns null if action cannot be currently performed. Else returns the item it has rotated to
                  */
                 this.rotateRight = function(){
                     if (this.animating){
-                        return false;
-                    }else{
+                        return null;
+                    }else
                         rotateCarouselRight();
                         return rotatorArray[currentIndex];
                     }
@@ -607,11 +611,11 @@
                 /**
                  * Rotates the carousel left
                  * @author Ignacy Debicki
-                 * @returns {boolean} Returns false if action cannot be currently performed. Else returns the item it has rotated to
+                 * @returns {object} Returns null if action cannot be currently performed. Else returns the item it has rotated to
                  */
                 this.rotateLeft = function(){
                     if (this.animating){
-                        return false;
+                        return null;
                     }else{
                         rotateCarouselLeft();
                         return rotatorArray[currentIndex];

@@ -16,38 +16,105 @@
 "baseLocation":[400,620],
 "startingBaseHealth":100,
 "maxBaseHealth":100,
-"startingResources":250,
+"startingResources":150,
 "waves":[
 {
-   "0":{
-      "tankBasic":5,
-      "delay":3
-     },
-   "20":{
-      "tankBasic":10,
-      "delay":2
-      },
-   "60":{
-      "tankBasic":20,
-      "delay":1
-   }
+	"0":{
+		"lightFighter":5,
+		"delay":3
+	},
+	"12":{
+		"scoutDroid":5,
+		"delay":2
+	},
+	"25":{
+		"tankBasic":3,
+		"delay":3
+	}
 },
 {
-   "0":{
-      "tankBasic":30,
-      "delay":3
-      },
-   "100":{
-      "tankBasic":20,
-      "delay":2
-      },
-   "180":{
-      "tankBasic":100,
-      "delay":1
-      }
+	"0":{
+		"scoutDroid":10,
+		"delay":2
+	},
+	"23":{
+		"tankBasic":3,
+		"delay":2
+	},
+	"24":{
+		"lightFighter":2,
+		"delay":1
+	},
+	"30":{
+		"transporter":2,
+		"delay":5
+	}
+},
+{
+	"0":{
+		"tankBasic":10,
+		"delay":1
+	},
+	"7":{
+		"scoutDroid":15,
+		"delay":2
+	},
+	"15":{
+		"attackFighter":5,
+		"delay":5
+	},
+	"17":{
+		"heavyFighter":5,
+		"delay":5
+	},
+	"50":{
+		"attackShip":2,
+		"delay":5
+	}
+},
+{
+	"0":{
+		"attackFighter":3,
+		"delay":2
+	},
+	"8":{
+		"scoutDroid":10,
+		"lightFighter":7,
+		"delay":1
+	},
+	"20":{
+		"attackShip":3,
+		"delay":3
+	},
+	"28":{
+		"tankBasic":5,
+		"delay":1
+	},
+	"35":{
+		"swarmShip":3,
+		"delay":2
+	}
+},
+{
+	"0":{
+		"swarmShip":3,
+		"delay":2
+	},
+	"5":{
+		"lightFighter":5,
+		"delay":1
+	},
+	"12":{
+		"cruiser":5,
+		"delay":6
+	},
+	"45":{
+		"mothership":1,
+		"delay":1
+	}
 }],
 "events":
 {
-   "pre":{"ENABLE":["repeater","turret","concept"]}
+   "pre":{"ENABLE":["repeater", "concept", "rifle", "turret", "annihilator"]}
 }
 }

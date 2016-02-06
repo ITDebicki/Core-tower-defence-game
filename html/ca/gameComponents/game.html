@@ -559,14 +559,14 @@
                 
                 function updateLockedTowers(){
                     $(".sideBarTowerDiv.locked").each(function(){
-                        if ($(this).data("experience")<=Math.round(gameObjectVars.experience + gameObjectVars.experienceGained)){
+                        if ($(this).data("experience")<=Math.round(parseInt(gameObjectVars.experience) + parseInt(gameObjectVars.experienceGained))){
                             //unlock
                             $(this).removeClass("locked");
                             $(this).children(".sideBarTowerCover").remove();
                             $(this).children(".towerSideBarImage").click(buyTower);
                         }else{
                             console.log($(this).children(".experienceValue").children(".sideBarTowerCover").children(".experienceValue"));
-                            $(this).children(".sideBarTowerCover").children(".experienceValue").html($(this).data("experience")-Math.round(gameObjectVars.experience+ gameObjectVars.experienceGained));
+                            $(this).children(".sideBarTowerCover").children(".experienceValue").html($(this).data("experience")-Math.round(parseInt(gameObjectVars.experience) + parseInt(gameObjectVars.experienceGained)));
                         }
                     });
                 }
@@ -988,8 +988,6 @@
                                 if (towerLevel<1){
                                     showUpgradeStats();
                                 }
-                                
-
                             }else{
                                 flashWarning("Not enough resources to buy upgrade");
                             }
@@ -1078,7 +1076,6 @@
                 function removeTowerSelection(){
                     $(".isSelected").removeClass("isSelected");
                     $("#sideBarTowerControl").velocity("slideUp",100,function(){setShopHeight();});
-                    setShopHeight();
                 }
                 
                 function setShopHeight(){
@@ -1274,12 +1271,12 @@
                         if (gameObjectVars.stopTickFunction==false){
                             //check if end of wave
                             if (endOfWave()&&gameObjectVars.runTick==true){
-                                gameObjectVars.experienceGained+=20*gameObjectVars.experienceMultiplier;
+                                gameObjectVars.experienceGained+=20*parseFloat(gameObjectVars.experienceMultiplier);
                                 updateLockedTowers();
                                 //increment wave no
                                 gameObjectVars.waveNo++;
                                 if (gameObjectVars.waveNo>=gameObjectVars.waves.length){
-                                    //alert("You have won!");
+                                    //win
                                     showEndGameScreen(getFinalScore());
                                     gameObjectVars.stopTickFunction=true;
                                     gameObjectVars.runTick=false;
@@ -1727,7 +1724,7 @@
                  */
                 function enemyKilled(enemy){
                     incrementStatistic("enemiesKilled");
-                    gameObjectVars.experienceGained+=gameObjectVars.experienceMultiplier;
+                    gameObjectVars.experienceGained+=parseFloat(gameObjectVars.experienceMultiplier);
                     updateLockedTowers();
                     setResources(gameObjectVars.resources+enemy.data("resources"));
                     gameObjectVars.score+=enemy.data("score");
@@ -1832,7 +1829,7 @@
                  */
                 function showEndGameScreen(finalScore){
                     if (window.login.isLoggedIn()){
-                        window.login.addExperience(Math.round(gameObjectVars.experienceGained));
+                        window.login.addExperience(Math.round(parseInt(gameObjectVars.experienceGained)));
                     }
                     
                     gameObjectVars.stopWaveTimer=true;

@@ -1053,9 +1053,13 @@ window.login=(function(){
             data: { "action": "addExperience", "json":'{"experience":'+xp+'}'},
             success: function(response){ 
                 if (response["success"]==true){
-                    callback(true,response["data"]);
+                    if (callback){
+                        callback(true,response["data"]);
+                    }        
                 }else{
-                    callback(false,response["error"],response["errorCode"]); 
+                    if (callback){
+                        callback(false,response["error"],response["errorCode"]); 
+                    }
                 }
             },
             error:logError

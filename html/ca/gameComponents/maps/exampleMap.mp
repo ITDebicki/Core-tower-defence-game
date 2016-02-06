@@ -17,77 +17,113 @@
 "baseLocation":[765,619],
 "startingBaseHealth":60,
 "maxBaseHealth":60,
-"startingResources":250,
+"startingResources":350,
 "waves":[
 {
-   "0":{
-      "tankBasic":5,
-      "delay":3
-     },
-	"14":{
-		"swarmShip":1,
-		"delay":1
+	"0":{
+		"scoutDroid":5,
+		"delay":3
 	},
-	"16":{
-		"lightFighter":10,
-		"delay": 10
-	  },
-   "20":{
-      "tankBasic":10,
-      "delay":2
-      },
-	"40":{
-		"lightFighter":15,
-		"delay":2
-		},
-	"60":{
-		"tankBasic":20,
-		"delay":1
+	"20":{
+		"lightFighter":2,
+		"delay":3
+	},
+	"30":{
+		"tankBasic":4,
+		"delay":3
 	}
 },
 {
-   "0":{
-      "tankBasic":30,
-      "delay":3
-      },
-   "100":{
-      "exampleEnemy":20,
-      "delay":2
-      },
-   "180":{
-      "tankBasic":40,
-      "delay":1
-      },
-	"230":{
-		"swarmShip":2,
+	"0":{
+		"tankBasic":5,
+		"delay":3
+	},
+	"1":{
+		"scoutDroid":10,
 		"delay":2
 	},
-	"235":{
-		"scoutDroid":40,
+	"20":{
+		"lightFighter":3,
 		"delay":1
+	},
+	"25":{
+		"attackFighter":2,
+		"delay":3
+	},
+	"27":{
+		"heavyFighter":2,
+		"delay":2
 	}
 },
 {
 	"0":{
 		"tankBasic":10,
-		"delay":2
-	},
-	"1":{
-		"lightFighter":20,
 		"delay":1
 	},
-	"2":{
-		"cruiser":5,
-		"delay":4
+	"5":{
+		"scoutDroid":20,
+		"delay":1
 	},
-	"10":{
-		"mothership":1,
+	"25":{
+		"transporter":4,
+		"delay":3
+	},
+	"30":{
+		"lightFighter":3,
 		"delay":1
 	}
-}
-],
+},
+{
+	"0":{
+		"lightFighter":10,
+		"scoutDroid":20,
+		"delay":1
+	},
+	"15":{
+		"attackShip":3,
+		"delay":1
+	},
+	"16":{
+		"heavyFighter":5,
+		"delay":1
+	},
+	"18":{
+		"attackFighter":5,
+		"delay":1
+	},
+	"35":{
+		"swarmShip":5,
+		"delay":1
+	}
+},
+{
+	"0":{
+		"tankBasic":20,
+		"delay":1
+	},
+	"5":{
+		"scoutDroid":30,
+		"delay":1
+	},
+	"20":{
+		"cruiser":2,
+		"delay":5
+	},
+	"27":{
+		"swarmShip":5,
+		"delay":2
+	},
+	"40":{
+		"mothership":1,
+		"delay":1
+	},
+	"41":{
+		"scoutDroid":50,
+		"delay":1
+	}
+}],
 "events":
 {
-   "pre":{"ENABLE":["repeater","turret","concept","annihilator","rifle"]}
+   "pre":{"ENABLE":["repeater", "concept", "rifle", "turret", "annihilator"]}
 }
 }
