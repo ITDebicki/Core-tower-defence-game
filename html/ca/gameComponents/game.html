@@ -287,7 +287,6 @@
                  * @returns {boolean} If collision occured
                  */
                 function circleSqCollision(circle,square){
-                    
                     for (var i = 0; i<4;i++){
                         var A = square[i];
                         var i2 = i;
@@ -304,7 +303,7 @@
                 /**
                  * Tests for collision of line with circle
                  * @author Ignacy Debicki
-                 * @param   {object}  circle     Circle element. Should be passed in as $(circle)
+                 * @param   {object}  circle     Circle element. Should be passed in as object {"x":x,"y":y,"r":r}
                  * @param   {Array}   linePoints Array of points that make up the line (A,B)
                  * @returns {boolean} IF collision occured
                  */
@@ -1361,8 +1360,7 @@
                         data = data["responseJSON"];
                         var rotation = Math.round((Math.atan(gameObjectVars.vectorPathRoot.x/-gameObjectVars.vectorPathRoot.y))*(180/Math.PI));
                         if (gameObjectVars.vectorPathRoot.y>=0){ rotation += 180;}
-                        
-                        var enemyImg = $(`<img src='gameComponents/enemies/`+data["icon"]+`' 
+                        var enemyImg = $(`<div
                                             class='enemy ` + enemyName + `' 
                                             style='
                                                 position: absolute;
@@ -1370,7 +1368,8 @@
                                                 height:`+data["height"]+`px;
                                                 left:`+(gameObjectVars.mapPath[0][0]-(data["width"]/2))+`px;
                                                 top:`+(gameObjectVars.mapPath[0][1]-(data["height"]/2))+`px;
-                                                transform:rotate(`+rotation+`deg);'
+                                                transform:rotate(`+rotation+`deg);
+                                                background-size:contain;'
                                             data-health='`+data["health"]+`' 
                                             data-damage='`+data["damage"]+`'
                                             data-speed='`+data["speed"]+`' 
@@ -1384,6 +1383,7 @@
                             <div class="marker" id = "ne" style="right:0; top:0;"></div>
                             <div class="marker" id = "se" style="right:0; bottom:0;"></div>
                             <div class="marker" id = "sw" style="left:0; bottom:0;"></div>`);
+                        enemyImg.css("background-image","url(gameComponents/enemies/"+data["icon"]+")");
                         enemyImg.append(markers);
                         enemyImg.data("death",data["death"])
                         data["divBase"]=enemyImg;
@@ -1629,10 +1629,21 @@
                  * @returns {Array} Array of enemies to fire at
                  */
                 function findTargets(tower){
-                    var targetingDisk = tower.children(".targetDisk");
+                    var targetingDisk = {"x":tower.offset().left+tower.outerWidth(false)/2,"y":tower.offset().top+tower.outerHeight(false)/2,"r":tower.outerWidth(false)/2};
                     var enemiesColliding = [];
                     $(".enemy").each(function(i,e){
-                        if (crCollision(targetingDisk,$(this))==true){
+                        var enemyPoints = [];
+                        console.log($(this).children("#nw.marker").offset(),$(this).children("#ne.marker").offset(),$(this).children("#sw.marker").offset(),$(this).children("#se.marker").offset());
+                        enemyPoints.push({'x':$(this).children("#nw.marker").offset().left,
+                                        'y':$(this).children("#nw.marker").offset().top});
+                        enemyPoints.push({'x':$(this).children("#ne.marker").offset().left,
+                                       'y':$(this).children("#ne.marker").offset().top});
+                        enemyPoints.push({'x':$(this).children("#se.marker").offset().left,
+                                       'y':$(this).children("#se.marker").offset().top});
+                        enemyPoints.push({'x':$(this).children("#sw.marker").offset().left,
+                                       'y':$(this).children("#sw.marker").offset().top});
+                        console.log(targetingDisk,enemyPoints);
+                        if (circleSqCollision(targetingDisk,enemyPoints)==true){
                             if ( !$(this).data("damageToDeal")|| $(this).data("health")-$(this).data("damageToDeal")>0){
                                 enemiesColliding.push(this);
                             }
