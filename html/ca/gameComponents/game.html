@@ -1146,7 +1146,6 @@
                         $(this).remove();
                     });
                     $("#controlTray").show('slide',{direction:'right'},500,function(){
-                        removeElement("mainGame");
                         showStartScreen();
                     });
                 }
@@ -1381,6 +1380,11 @@
                                             data-resources='`+data["resources"]+`' 
                                             data-score='`+data["score"]+`'
                                             data-ticks='0'>`);
+                        var markers = $(`<div class="marker" id = "nw" style="left:0; top:0;"></div>
+                            <div class="marker" id = "ne" style="right:0; top:0;"></div>
+                            <div class="marker" id = "se" style="right:0; bottom:0;"></div>
+                            <div class="marker" id = "sw" style="left:0; bottom:0;"></div>`);
+                        enemyImg.append(markers);
                         enemyImg.data("death",data["death"])
                         data["divBase"]=enemyImg;
                         gameObjectVars.enemyDB[enemyName]=data;

@@ -76,8 +76,9 @@
              */
             function showStartScreen(){
                 var screen = $("#gameDiv");
-                if ($("#mainGame")){
-                    removeElement("mainGame");
+                if ($("#mainGame").length > 0){
+                    window.game.purge();
+                    window.game = undefined;
                 }
                 screen.empty();
                 loadElement("gameComponents/startGameScreen.html","startGameScreen");
@@ -125,9 +126,9 @@
              * @param {string} id Id of element to remove
              */
             function removeElement(id){
-                if (id =="mainGame"){
+                if (id == "mainGame"){
                     window.game.purge();
-                    window.game = null;
+                    window.game = undefined;
                 }
                 $("#" + id).remove();
             }
@@ -175,7 +176,7 @@
                         var keys = path.split(",");
                         if (keys.length>0){
                             var obj = cacheObject.cache;
-                            for (var i = 0; i<keys.length;i++){
+                            for (var i = 0; i<keys.length-1;i++){
                                 if (keys[i] in obj){
                                     obj = obj[keys[i]];
                                 }else{
@@ -183,7 +184,8 @@
                                     obj = obj[keys[i]];
                                 }  
                             }
-                            obj = value;
+                            
+                            obj[keys[keys.length-1]] = value;
                         }
                     },
                     /**
@@ -610,7 +612,7 @@
                 this.rotateRight = function(){
                     if (this.animating){
                         return null;
-                    }else
+                    }else{
                         rotateCarouselRight();
                         return rotatorArray[currentIndex];
                     }
