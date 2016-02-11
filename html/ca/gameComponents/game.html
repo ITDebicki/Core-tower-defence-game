@@ -6,11 +6,15 @@
             
             if (!(window.game == null || window.game == undefined)){
                 window.game.purge();
-                window.game = null;
+                window.game = undefined;
             }
             window.game= new gameObject();
                 
-                
+            /**
+             * Creates an new game object
+             * @author Ignacy Debicki
+             * @returns {Game} A new game object
+             */
             function gameObject(){ 
                 /**
                  * Calculates the rotation of an object from a transformatino matrix
@@ -105,7 +109,7 @@
                  *                             Has form of [{'segment' : nextVectorPathSegment, 'p' : probabilityForVectorSelection}]
                  * @param {number} id          Identifier of the vector
                  * @param {number} weight      The weight of the vector
-                 * @param {number} maxDistance The maximum distance an enemy may have traveled when reaching the start of the sector
+                 * @param {number} maxDistance The maximum distance an enemy may have traveled when reaching the start of the segment
                  */
                 function VectorPathSegment(x,y,magnitude,links,id,weight,prevLinks,maxDistance){
                     this.x = typeof x !== 'undefined' ? x : null;
@@ -121,7 +125,7 @@
                     /**
                      * Randomly chooses and returns the next segment from this segments segment links. Returns null if no next segment exists.
                      * @author Ignacy Debicki
-                     * @returns {object} Reference to next vectorPathSegment or null if no next vectorPathSegment exists.
+                     * @returns {object} Reference to next VectorPathSegment or null if no next VectorPathSegment exists.
                      */
                     next: function(){
                         if (this.links.length==1){
@@ -141,35 +145,35 @@
                         }
                     },
                     /**
-                     * Adds a new link to the vectorPathSegment
+                     * Adds a new link to the VectorPathSegment
                      * @author Ignacy Debicki
-                     * @param {object} segment     vectorPathSegment to create a new link to
+                     * @param {VectorPathSegment} segment     VectorPathSegment to create a new link to
                      * @param {number} probability Probability this segment will be returned as the next segment (range: 0->1);
                      */
                     addLink: function(segment,probability){
                         this.links.push({'segment':segment,'p':probability});
                     },
                     /**
-                     * Gets the ID of a segment
+                     * Gets the ID of the VectorPathSegment 
                      * @author Ignacy Debicki
-                     * @returns {number} Id of the segment
+                     * @returns {number} Id of the VectorPathSegment 
                      */
                     getId: function(){
                         return this.id;
                     },
                     /**
-                     * Sets the ID of a segment
+                     * Sets the ID of the VectorPathSegment 
                      * @author Ignacy Debicki
-                     * @param {number} newID The new id to be set
+                     * @param {number} newID The new id
                      */
                     setId: function(newID){
                         this.id = newID;
                     },
                     /**
-                     * Finds a segment of a specific ID
+                     * Finds a VectorPathSegment of a specific ID in all items in its linked list
                      * @author Ignacy Debicki
                      * @param   {id} id Id of segment to find
-                     * @returns {object} Returns either false if the segment was not found, or a VectorPathSegment if found
+                     * @returns {object} Returns either null if the segment was not found, or a VectorPathSegment if found
                      */
                     findSegmentOfID: function(id){
                         if(this.id==id){
@@ -177,17 +181,17 @@
                         }else if (this.links.length > 0){
                             for (var i = 0; i < this.links.length; i++){
                                 var segment = this.links[i].segment.findSegmentOfID(id);
-                                if (segment!==false){
+                                if (segment!==null){
                                     return segment;
                                 }
                             }
-                            return false;
+                            return null;
                         }else{
-                            return false;
+                            return null;
                         }
                     },
                     /**
-                     * Calculates the weight of this segment and all the segments below this segment in the tree
+                     * Calculates the weight of this segment and all the segments in its linked list
                      * @author Ignacy Debicki
                      * @returns {number} The segments weight + its magnitude
                      */
@@ -284,9 +288,13 @@
                  */
                 function circleSqCollision(circle,square){
                     
-                    for (var i = 0; i<3;i++){
+                    for (var i = 0; i<4;i++){
                         var A = square[i];
-                        var B = square[i+1];
+                        var i2 = i;
+                        if (i2==3){
+                            i2 = 0;
+                        }
+                        var B = square[i2];
                         if (crLineCollision(circle,[A,B])==true){
                             return true
                         }
@@ -302,8 +310,8 @@
                  */
                 function crLineCollision(circle,linePoints){
                     
-                    if (Math.sqrt(Math.pow(linePoints[0].x-circle.x,2)+Math.pow(linePoints[0].y-circle.y,2))<circle.r ||
-                        Math.sqrt(Math.pow(linePoints[1].x-circle.x,2)+Math.pow(linePoints[1].y-circle.y,2))<circle.r
+                    if (Math.sqrt(Math.pow(linePoints[0].x-circle.x,2)+Math.pow(linePoints[0].y-circle.y,2))<=circle.r ||
+                        Math.sqrt(Math.pow(linePoints[1].x-circle.x,2)+Math.pow(linePoints[1].y-circle.y,2))<=circle.r
                        ){
                         return true;
                     }
@@ -444,7 +452,7 @@
                 function rankByDistance(enemies){
                     return enemies.sort(function(a,b){
                         return (($(a).data("currentVector").weight+$(a).data("magnitudeRemaining"))-($(b).data("currentVector").weight+$(b).data("magnitudeRemaining")))/Math.abs((($(a).data("currentVector").weight+$(a).data("magnitudeRemaining"))-($(b).data("currentVector").weight+$(b).data("magnitudeRemaining"))));
-                    });;
+                    });
                 }
                 
                 var gameObjectVars = this;
@@ -1958,11 +1966,9 @@
                     /**
                      * Shows the end game screen
                      * @author Ignacy Debicki
-                     * @param {number} endScore The final score
                      */
-                    showEndGameScreen: function(endScore){
-                        if (!endScore){endScore=gameObjectVars.score;}
-                        showEndGameScreen(endScore);
+                    showEndGameScreen: function(){
+                        showEndGameScreen(gameObjectVars.score);
                     },
                     /**
                      * The mapID of the map curently being played
@@ -1973,7 +1979,7 @@
                         return gameObjectVars.mapID;
                     },
                     /**
-                     * Exports a game to an object which can be saved
+                     * A
                      * @author Ignacy Debicki
                      * @returns {object} A game save object
                      */
@@ -2042,7 +2048,7 @@
                         loadGame(gameData);
                     },
                     /**
-                     * Cleans out session variables
+                     * Deletes the game object
                      * @author Ignacy Debicki
                      */
                     purge: function(){

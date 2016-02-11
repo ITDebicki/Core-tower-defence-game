@@ -76,6 +76,9 @@
              */
             function showStartScreen(){
                 var screen = $("#gameDiv");
+                if ($("#mainGame")){
+                    removeElement("mainGame");
+                }
                 screen.empty();
                 loadElement("gameComponents/startGameScreen.html","startGameScreen");
             }
@@ -169,10 +172,10 @@
                      * @param {object} value Object to store
                      */
                     addToCache:function(path,value){
-                        if (path.length>1){
-                            var keys = path.split(",");
+                        var keys = path.split(",");
+                        if (keys.length>0){
                             var obj = cacheObject.cache;
-                            for (var i = 0; i<keys.length-1;i++){
+                            for (var i = 0; i<keys.length;i++){
                                 if (keys[i] in obj){
                                     obj = obj[keys[i]];
                                 }else{
@@ -180,7 +183,7 @@
                                     obj = obj[keys[i]];
                                 }  
                             }
-                            obj[keys[keys.length-1]] = value;
+                            obj = value;
                         }
                     },
                     /**
@@ -189,17 +192,17 @@
                      * @param {string} path Comma separated path which object to delete
                      */
                     removeFromCache:function(path){
-                        if (path.length>1){
-                            var keys = path.split(",");
+                        var keys = path.split(",");
+                        if (keys.length>0){
                             var obj = cacheObject.cache;
-                            for (var i = 0; i<keys.length-1;i++){
+                            for (var i = 0; i<keys.length;i++){
                                 if (keys[i] in obj){
                                     obj = obj[keys[i]];
                                 }else{
                                     break;
                                 }  
                             }
-                            obj[keys[keys.length-1]]=undefined;
+                            obj=undefined;
                         }
                     },
                     /**
@@ -209,17 +212,19 @@
                      * @returns {object} The item requested
                      */
                     fetchFromCache:function(path){
-                        if (path.length>1){
-                            var keys = path.split(",");
+                        
+                        var keys = path.split(",");
+                        if (keys.length>0){
                             var obj = cacheObject.cache;
-                            for (var i = 0; i<keys.length-1;i++){
+                            for (var i = 0; i<keys.length;i++){
                                 if (keys[i] in obj){
                                     obj = obj[keys[i]];
                                 }else{
+                                    return undefined;
                                     break;
                                 }  
                             }
-                            return obj[keys[keys.length-1]];
+                            return obj;
                         }
                     },
                     /**
@@ -234,6 +239,7 @@
             /**
              * Adds a loading screen to an element
              * @author Ignacy Debicki
+             * @constructor
              * @param {string} element CSS identifier of element
              */
             function loadingScreen(element){
@@ -276,6 +282,7 @@
             /**
              * Generates a new ScrollList element
              * @author Ignacy Debicki
+             * @constructor
              * @param {object}   mainElement           The div element into which the list should be put
              * @param {function} newElementConstructor Function to be called which will return a reference to an element of a list to be inserted. Accepts data argument
              * @param {function} onElementPress        Function to be called when a list element is pressed
@@ -369,6 +376,7 @@
             
             /**
              * Creates a new carousel object
+             * @constructor
              * @author Ignacy Debicki
              * @returns {Carousel} New carousel object
              */
@@ -427,10 +435,10 @@
                     }
 
                     for (i=0;i<numSpins;i++){
-                        if(direction=="left"){ 
-                            rotateCarouselLeft(); 
+                        if(direction=="right"){ 
+                            rotateCarouselRight(); 
                         }else{
-                            rotateCarouselRight();
+                            rotateCarouselLeft();
                         }
                     }
                 }

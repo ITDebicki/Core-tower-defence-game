@@ -16,7 +16,7 @@ window.login=(function(){
         */
     }
     /**
-     * Fetches the avatar for the suer
+     * Fetches the avatar for the user
      * @author Ignacy Debicki
      * @param {string}   user     Username of user to fetch avatar for
      * @param {function} callback Function called upon completion. Will be passed [fileURL,user]
@@ -733,7 +733,7 @@ window.login=(function(){
      * Gets all of the highscores and all time rank for each map for a specific user
      * @author Ignacy Debicki
      * @param {string}   user     Username of user for whom to get highscores
-     * @param {function} callback Fucntion caled after completion.
+     * @param {function} callback Function caled after completion.
      Requires parameters [success,data,errorCode].
      Data will be either:
      error information (if success==false)
@@ -790,7 +790,7 @@ window.login=(function(){
      * Fetches and returns the map data file
      * @author Ignacy Debicki
      * @param {string}   file     Name of map file to fetch
-     * @param {function} callback Fucntion to pass result to. Will be the map data.
+     * @param {function} callback Function to pass result to. Will be the map data.
      */
     function getMapData(file,callback){
         $.ajax({
@@ -834,7 +834,7 @@ window.login=(function(){
     }
     
     /**
-     * Gets the user's highscore for a specific rank
+     * Gets the user's highscore for a specific map
      * @author Ignacy Debicki
      * @param {number} map      Map id
      * @param {string} user     Username
@@ -885,7 +885,7 @@ window.login=(function(){
         });
     }
     /**
-     * Gets the save data
+     * s
      * @author Ignacy Debicki
      * @param {number}   saveId   Identifier of save for which to get data
      * @param {function} callback Function to call upon completion. Will be passed parameters: success,data,errorCode
@@ -941,7 +941,7 @@ window.login=(function(){
      * @author Ignacy Debicki
      * @param {number}   saveId    Identifier of save to update
      * @param {object}   saveData  Save object to write
-     * @param {string}   thumbnail Name of thumnail to assign
+     * @param {string}   thumbnail Name of thumbnail to assign
      * @param {number}   map       Id of map save was created on
      * @param {function} callback  Function to call upon completion. Will be passed parameters: success,data,errorCode
      *                             Data will be Either the error message (if success==false) or true.
@@ -1040,7 +1040,7 @@ window.login=(function(){
     /**
      * Adds experience to the player
      * @author Ignacy Debicki
-     * @param {number}   xp       Amount of expereince to add
+     * @param {number}   xp       Amount of experience  to add
      * @param {function} callback Function to call upon completion. Will be passed parameters: success,data,errorCode
      *                            Data will be Either the error message (if success==false) or true.
      */
@@ -1093,12 +1093,23 @@ window.login=(function(){
         login:function(user,pass,callback){
             login(user,pass,callback);
         },
+        /**
+         * Checks if the session cookie is logged in
+         * @author Ignacy Debicki
+         * @param {function} callback Function to be executed upon completion will be passed [success,errorMessage,errorCode]
+
+         */
         checkCookie: function(callback){
             login("","",callback);
         },
         userAvatar: function(callback){
             fetchAvatar("",callback);
         },
+        /**
+         * Returns the username of the currently logged in user
+         * @author Ignacy Debicki
+         * @returns {string} Username of logged in user
+         */
         username: function(){
             return username;
         },
@@ -1108,6 +1119,11 @@ window.login=(function(){
         createAccount: function(user,pass,passR,email,callback){
             createAccount(user,pass,passR,email,callback);
         },
+        /**
+         * Checks if the user is logged in
+         * @author Ignacy Debicki
+         * @returns {boolean} If the user is logged in
+         */
         isLoggedIn: function(){
             return isLoggedIn;
         },
@@ -1129,14 +1145,19 @@ window.login=(function(){
         fetchAvatar: function(user,callback){
             fetchAvatar(user,callback);
         },
+        /**
+         * Gets the friends list for the current user
+         * @author Ignacy Debicki
+         * @param   {function} callback Function to be executed upon completion. Will be passed [success,responseData (if success==false, error mesage will be passed here),errorCode]
+         */
         getUserFriends: function(callback){
-            return getFriends("",callback);
+            getFriends("",callback);
         },
         getFriends: function(user,callback){
             if(!user){
                 user=""
             }
-            return getFriends(user,callback);
+            getFriends(user,callback);
         },
         acceptFriendRequest: function(userFrom,callback){
             acceptFriendRequest(userFrom,callback);
