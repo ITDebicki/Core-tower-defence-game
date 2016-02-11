@@ -885,7 +885,7 @@ window.login=(function(){
         });
     }
     /**
-     * s
+     * Gets the save data
      * @author Ignacy Debicki
      * @param {number}   saveId   Identifier of save for which to get data
      * @param {function} callback Function to call upon completion. Will be passed parameters: success,data,errorCode
