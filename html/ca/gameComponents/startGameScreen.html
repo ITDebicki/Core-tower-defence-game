@@ -98,6 +98,8 @@
                     if (validateUser(username) && validatePassword(password)){
                         window.login.login(username,password,loginHandler);
                     }else{
+                        loginLoadingScreen.hideLoadingScreen();
+                        loginLoadingScreen=null;
                         alert("Invalid username or password");  
                         unlockLoginButtons();
                     }
@@ -242,6 +244,8 @@
                         window.login.createAccount(username,password,passwordR,email,createAccountHandler);
                     }else{
                         unlockLoginButtons();
+                        loginLoadingScreen.hideLoadingScreen();
+                        loginLoadingScreen=null;
                     }
                     
                 }
