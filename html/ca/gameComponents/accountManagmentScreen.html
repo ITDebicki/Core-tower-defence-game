@@ -61,12 +61,10 @@
                         loadElement("gameComponents/friendsManagementScreen.html","friendsScreen");
                     })
                     
-                    $("#avatarSelector").on("dragover",function(e){
-                        e = e || event;
-                        e.preventDefault();
-                    },false);
+                    
                     //display and hide change avatar on mouse over of avatar
                     $("#avatarSelector").mouseover(function(evt){
+                        evt.preventDefault();
                         $("#avatarUploadText").addClass("hover"); 
                     });
                     $("#avatarSelector").mouseout(function(evt){
@@ -74,6 +72,7 @@
                     });
                     //display and hide change avatar on grabbing a file
                     $("#wrapper").on("dragover",function(evt){
+                        evt.preventDefault();
                         $("#avatarUploadText").addClass("hover"); 
                     });
                     $("#wrapper").on("dragleave",function(evt){
