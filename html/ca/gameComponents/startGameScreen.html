@@ -362,7 +362,7 @@
 
                     $("#notificationsListContainer").append(notification);
                     var totalHeight = titleDiv.outerHeight(true) + messageDiv.outerHeight(true) + dateDiv.outerHeight(true);
-                    notification.height(totalHeight);
+                    notification.height(totalHeight+10);
                     notification.click(notificationPressed);
                 }
                 /**

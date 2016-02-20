@@ -63,9 +63,7 @@ function delete_account(){
     //firstly remove avatar file
     try{
         remove_avatar();
-    }catch (Exception $e){
-        continue;
-    }
+    }catch (Exception $e){}
 
     //delete account
     $conn = request_connection();
@@ -870,7 +868,7 @@ function update_save($saveID,$newData,$newMap,$thumbnail){
     }else{
         //Not curently using thumbnail
         //remove_thumbnail_file($oldThumbnailFile);
-        $stmt = $conn->prepare('UPDATE Save SET map = :map WHERE user = :user AND idSave = :id');
+        $stmt = $conn->prepare('UPDATE Save SET map = :map, lastUpdate = NOW() WHERE user = :user AND idSave = :id');
         $stmt->execute(array(":user" => $_SESSION["user"], ":id" => $saveID, ":map" => $newMap));
         $affectedRows = $stmt->rowCount();
         if ($affectedRows>0){

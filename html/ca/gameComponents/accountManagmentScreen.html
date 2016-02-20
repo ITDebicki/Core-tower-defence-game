@@ -5,6 +5,7 @@
             window.accountManagementFunctions=(function(){
                 var formdata = false;
                 var uploadLoadingScreen = null;
+                var largeLoadingScreen = null;
                 $("document").ready(function(){
                     lockButtons("#loggedInContainerButtons");
                     //firstly don't show the div
@@ -51,7 +52,8 @@
 
                     });
                     $("#deleteAllSavesButton").click(function(){
-                        if(confirm("Are you sure you want to delete all ypur saves?")){
+                        if(confirm("Are you sure you want to delete all your saves?")){
+                            largeLoadingScreen = new loadingScreen("#wrapper");
                             window.login.getSaves(fetchSavesHandler);
                         }
                     })
@@ -90,7 +92,7 @@
                     //delete account
                     $("#deleteAccountButton").click(function(evt){
                         if(confirm("Once you delete your account all your saves and highscores will be deleted. Are you sure you want to proceed?")){
-                            uploadLoadingScreen = new loadingScreen("#avatarImageContainer");
+                            largeLoadingScreen = new loadingScreen("#wrapper");
                             window.login.deleteAccount(deleteAccountHandler); 
                         }
                     });
@@ -150,8 +152,8 @@
                  * @param {number}  errorCode Error code
                  */
                 function deleteAccountHandler(success,error,errorCode){
-                    uploadLoadingScreen.hideLoadingScreen();
-                    uploadLoadingScreen=null;
+                    largeLoadingScreen.hideLoadingScreen();
+                    largeLoadingScreen=null;
                     if (success==true){
                         clearScreenToStartScreen();
                     }else{
@@ -190,6 +192,8 @@
                     }else{
                         alert(data,errorCode);
                     }
+                    largeLoadingScreen.hideLoadingScreen();
+                    largeLoadingScreen=null;
                 }
                 
                 return {};

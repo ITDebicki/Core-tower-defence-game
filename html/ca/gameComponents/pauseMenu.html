@@ -123,8 +123,20 @@
                         .append(dateDiv);
                     container.data("id",saveId);
                     container.data("map",map);
+                    
+                    if (newElement){
+                        setTimeout(function(){
+                        var nodeIndex = saveName.index();
+                        var range = document.createRange();
+                        range.selectNodeContents(saveName.get(0));
+                        var selection = window.getSelection()
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                    },150);
+                    }
                     return container;
                 }
+                
                 
                 /**
                  * Selects the pressed element
@@ -133,7 +145,6 @@
                  */
                 function selectElement(e){
                     $(".saveSelected").each(function(){
-                        console.log($(this));
                         $(this).removeClass("saveSelected");
                     })
                     $(this).addClass("saveSelected");
