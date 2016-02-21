@@ -79,7 +79,7 @@ try{
             $result = unblock_user($user);
             break;
         case "deleteFriend":
-            delete_friend($user);
+            $result = delete_friend($user);
             break;
         case "getBlockedUsers":
             $result = get_blocked_users();

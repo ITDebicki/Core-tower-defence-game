@@ -19,16 +19,16 @@ try{
     $uPasswordR = null;
     $uEmail = null;
     
-    try{
-        $uType = $_POST["type"];
-        $uUser = $_POST["user"];
-        $uPassword = $_POST["password"];
-        if ($uType == "create"){
-            $uPasswordR = $_POST["passwordR"];
-            $uEmail = $_POST["email"];
-        }
-    }catch(Exception $e){
-        throw new Exception("Not all POST arguments supplied",100,$e);
+    if (!isset($_POST["type"],$_POST["user"],$_POST["password"])||($_POST["type"]=="create"&&!isset($_POST["passwordR"],$_POST["email"]))){
+        throw new Exception("Not all POST arguments supplied",100);
+    }
+    
+    $uType = $_POST["type"];
+    $uUser = $_POST["user"];
+    $uPassword = $_POST["password"];
+    if ($uType == "create"){
+        $uPasswordR = $_POST["passwordR"];
+        $uEmail = $_POST["email"];
     }
     if ($uType == "create"){
         //create account
@@ -40,6 +40,8 @@ try{
             }else if ($success==false){
                 echo '{"success":false, "error":"Failed to write to database (unknown error)", "errorCode":501}';
             }
+        }else{
+            throw new Exception("Passwords do not match",303);
         }
     }else{
         //login
