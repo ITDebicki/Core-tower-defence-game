@@ -6,14 +6,15 @@
  * 
  * 100 - Not all POST arguments supplied
  * 101 - Not all GET arguments supplied
- * 102 - Failed to initiate connection
- * 103 - Failed to close connection
+ * 102 - Failed to initiate db connection
+ * 103 - Failed to close db connection
  * 
  * 200 - Username or email already used
  * 
  * 300 - Bad username format
  * 301 - Bad password format
  * 302 - Bad email format
+ * 303 - Passwords do not match
  * 
  * 400 - invalid json
  * 401 - missing json values
@@ -35,16 +36,16 @@
  * 608 - Failed to write file
  * 
  * 700 - Friends already
- * 701 - Reciever has blocked sender
+ * 701 - Receiver has blocked sender
  * 702 - Request already sent by current sender
- * 703 - Request already sent by current reciever
- * 704 - sender has blocked reciever
+ * 703 - Request already sent by current receiver
+ * 704 - sender has blocked receiver
  * 705 - User already blocked
  * @author Ignacy Debicki
  * @param Exception $e Exception to report
  */
 function error_handler($e){
-    $displayError = array("success" => false, "error" => $e->getMessage(), "errorCode" => $e->getCode(),"post" => $_POST);
+    $displayError = array("success" => false, "error" => $e->getMessage(), "errorCode" => $e->getCode(),"debug" => $_POST);
     echo json_encode($displayError);
     //var_dump($e);
 }

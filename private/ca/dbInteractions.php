@@ -39,12 +39,16 @@ function create_account($jsonData){
     }else{
         throw new Exception("Invalid email",302);
     }
-    //send request
-    $conn = request_connection();
-    $stmt = $conn->prepare('INSERT INTO User (username, hash, email) VALUES(:username,:hash,:email)');
-    $success = $stmt->execute(array(':username' => $user, ':hash' => $hash, ':email' => $email));
-    if (!$success){
-         throw new Exception("Username or email already used",200);  
+    try{
+        //send request
+        $conn = request_connection();
+        $stmt = $conn->prepare('INSERT INTO User (username, hash, email) VALUES(:username,:hash,:email)');
+        $success = $stmt->execute(array(':username' => $user, ':hash' => $hash, ':email' => $email));
+        if (!$success){
+             throw new Exception("Username or email already used",200);  
+        }
+    }catch(PDOException $e){
+        throw new Exception("Username or email already used",200);  
     }
     $affectedRows = $stmt->rowCount();
 
@@ -128,7 +132,6 @@ function log_login($user){
     $stmt->execute(array(':username' => $user));
     $affectedRows = $stmt->rowCount();
 
-
     if ($affectedRows > 0){
         return true;
     }else{
@@ -137,7 +140,7 @@ function log_login($user){
     
 }
 /**
- * Gets the avatar file name for th euser
+ * Gets the avatar file name for the user
  * @author Ignacy Debicki
  * @param  string $user Username of user
  * @return string Name of avatar file
@@ -321,13 +324,13 @@ function create_friend_request($userTo){
                     break;
                 case null:
                 case undefined:
-                    throw new Exception("Request already sent by current recciever",702);
+                    throw new Exception("Request already sent by current receiver",702);
                     break;
                 case false;
-                    throw new Exception("Reciever has blocked sender",701);
+                    throw new Exception("Receiver has blocked sender",701);
                     break;
                 default:
-                    throw new Exception("Request already sent by current reciever",703);
+                    throw new Exception("Request already sent by current receiver",703);
                     break;
             }
         }else{
@@ -340,7 +343,7 @@ function create_friend_request($userTo){
                    throw new Exception("Request already sent by current sender",702);
                    break;
                 case false;
-                    throw new Exception("Current sender has blocked reciever",704);
+                    throw new Exception("Current sender has blocked receiver",704);
                     break;
                 default:
                     throw new Exception("Request already sent by current sender",702);
@@ -394,7 +397,7 @@ function accept_friend_request($userFrom){
     }
 }
 /**
- * Refuses a freind request from a user
+ * Refuses a friend request from a user
  * @author Ignacy Debicki
  * @param  string  $userFrom User the request is from
  * @return boolean IF refusal was succesfull
@@ -635,13 +638,12 @@ function add_score($map,$score){
         $stmt->execute(array(':user' => $_SESSION["user"],':map' => $map,':score' => $score));
         $affectedRows = $stmt->rowCount();
         if ($affectedRows >= 1){
-            $_POST["ad4"]=[$_SESSION["user"],$map,array("from"=>0,"to"=>0)];
             return user_rank($_SESSION["user"],$map,array("from"=>0,"to"=>0));
         }else{
            throw new Exception("Failed to write to database",501); 
         }
     }else{
-        return false;
+        return 0;
     }
     
 }
