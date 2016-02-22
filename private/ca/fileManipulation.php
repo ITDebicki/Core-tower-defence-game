@@ -34,7 +34,7 @@
      */
     function check_file_size($file){
        $filesize = filesize($file['tmp_name'][0]);
-        //allowed file size <= 1 MiB
+        //allowed file size <= 2 MiB
         if ($filesize > 1024**2){
            throw new Exception("File larger than 1 MiB",603);
         }

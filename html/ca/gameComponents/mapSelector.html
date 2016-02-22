@@ -32,12 +32,11 @@
                     hideControls(300,function(){showStartScreen();});
                 }
                 /**
-                 * Starts the gmae with the currently selected map
+                 * Starts the game with the currently selected map
                  * @author Ignacy Debicki
                  */
                 function startGame(){
                     hideControls();
-                    console.log(carousel.currentItem());
                     loadBackground('gameComponents/maps/'+carousel.currentItem()["image"],carousel.currentItem()["offset"]);
                     loadElement('gameComponents/game.html','mainGame',startGameHandler);
                 }
@@ -90,7 +89,6 @@
                                     }
                                 }   
                             }else{
-                                console.log("error",data,errorCode);
                                 alert(data,errorCode);
                             }
                         });
@@ -214,11 +212,10 @@
                  * @param {string} mapName Name of map image to be shown
                  */
                 function setStartMap(mapName){
-                    console.log(mapArray);
                     mapArray = mapArray.sort(function(a,b){
                         return a.levelNo - b.levelNo;
                     });
-                    console.log(mapArray);
+
                     for (i=0;i<mapArray.length;i++){
                         var map = mapArray[i];
                         if (map["image"]==mapName){

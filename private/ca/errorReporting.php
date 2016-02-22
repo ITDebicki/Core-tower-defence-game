@@ -47,6 +47,5 @@
 function error_handler($e){
     $displayError = array("success" => false, "error" => $e->getMessage(), "errorCode" => $e->getCode(),"debug" => $_POST);
     echo json_encode($displayError);
-    //var_dump($e);
 }
 ?>

@@ -274,10 +274,6 @@ line-height: 10px
     position: absolute;
 }
 
-#scoresTableContainer {
-    display:none;
-}
-
 #bottomRightArtwork {
     width:100%;
     height:100%;

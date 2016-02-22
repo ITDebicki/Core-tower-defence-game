@@ -362,6 +362,7 @@
 
                     $("#notificationsListContainer").append(notification);
                     var totalHeight = titleDiv.outerHeight(true) + messageDiv.outerHeight(true) + dateDiv.outerHeight(true);
+                    //Extra height to accommodate for scroll bar on the side
                     notification.height(totalHeight+10);
                     notification.click(notificationPressed);
                 }
