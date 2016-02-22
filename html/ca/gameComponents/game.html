@@ -572,7 +572,6 @@
                             $(this).children(".sideBarTowerCover").remove();
                             $(this).children(".towerSideBarImage").click(buyTower);
                         }else{
-                            console.log($(this).children(".experienceValue").children(".sideBarTowerCover").children(".experienceValue"));
                             $(this).children(".sideBarTowerCover").children(".experienceValue").html($(this).data("experience")-Math.round(parseInt(gameObjectVars.experience) + parseInt(gameObjectVars.experienceGained)));
                         }
                     });
@@ -1005,7 +1004,7 @@
                 /**
                  * Upgrades the currently selected tower
                  * @author Ignacy Debicki
-                 * @returns {boolean} [[Description]]
+                 * @returns {boolean} IIf buying update was successful
                  */
                 function buyUpgrade(){
                     var currentSelection = $(".isSelected")[0];
@@ -1110,12 +1109,16 @@
                  * @param {number} health health to set value to, must be less than maxHealth
                  */
                 function changeHealth(health){
-                    gameObjectVars.baseHealth=health;
-                    $("#healthValue").html(gameObjectVars.baseHealth);
-                    $("#healthBar").progressbar("value",gameObjectVars.baseHealth);
-                    if (gameObjectVars.baseHealth<=0){
-                        gameObjectVars.stopTickFunction=true;
-                        showEndGameScreen(getFinalScore());
+                    if (health<0){health=0;}
+                    if (gameObjectVars.baseHealth>0){
+                        gameObjectVars.baseHealth=health;
+                        $("#healthValue").html(gameObjectVars.baseHealth);
+                        $("#healthBar").progressbar("value",gameObjectVars.baseHealth);
+                        if (gameObjectVars.baseHealth<=0){
+                            gameObjectVars.baseHealth=0;
+                            gameObjectVars.stopTickFunction=true;
+                            showEndGameScreen(getFinalScore());
+                        }
                     }
                 }
                 /**
@@ -1633,7 +1636,6 @@
                     var enemiesColliding = [];
                     $(".enemy").each(function(i,e){
                         var enemyPoints = [];
-                        console.log($(this).children("#nw.marker").offset(),$(this).children("#ne.marker").offset(),$(this).children("#sw.marker").offset(),$(this).children("#se.marker").offset());
                         enemyPoints.push({'x':$(this).children("#nw.marker").offset().left,
                                         'y':$(this).children("#nw.marker").offset().top});
                         enemyPoints.push({'x':$(this).children("#ne.marker").offset().left,
@@ -1642,7 +1644,6 @@
                                        'y':$(this).children("#se.marker").offset().top});
                         enemyPoints.push({'x':$(this).children("#sw.marker").offset().left,
                                        'y':$(this).children("#sw.marker").offset().top});
-                        console.log(targetingDisk,enemyPoints);
                         if (circleSqCollision(targetingDisk,enemyPoints)==true){
                             if ( !$(this).data("damageToDeal")|| $(this).data("health")-$(this).data("damageToDeal")>0){
                                 enemiesColliding.push(this);

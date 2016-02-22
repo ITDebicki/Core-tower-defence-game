@@ -4,7 +4,6 @@
         <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
-        <!--<script src="html2canvas/html2canvas.js"></script>-->
         <script src="velocity/velocity.min.js"></script>
         <script src="velocity/velocity.ui.min.js"></script>
         <script src="gameComponents/loginClass.js"></script>
@@ -92,32 +91,35 @@
              */
             function loadElement(element,id,callback){
                 if (blockPageLoading == false){
-                    blockPageLoading = true;
-                    var screen = $("#gameDiv");
-                    var newDiv = $('<div id="' + id +'"></div>');
-                    screen.append(newDiv);
-                    var ls = new loadingScreen("#"+id);
-                    var cacheStoreObj = window.gameCache.fetchFromCache("main,screenElement,"+id);
-                    if (cacheStoreObj === undefined){
-                        $.get(element, function(data) {
-                            window.gameCache.addToCache("main,screenElement,"+id,data);
-                            newDiv.append(data);  
+                    if (!$( "#"+id ).length){
+                        blockPageLoading = true;
+                        var screen = $("#gameDiv");
+                        var newDiv = $('<div id="' + id +'"></div>');
+                        screen.append(newDiv);
+                        var ls = new loadingScreen("#"+id);
+                        var cacheStoreObj = window.gameCache.fetchFromCache("main,screenElement,"+id);
+                        if (cacheStoreObj === undefined){
+                            $.get(element, function(data) {
+                                window.gameCache.addToCache("main,screenElement,"+id,data);
+                                newDiv.append(data);  
+                                ls.hideLoadingScreen();
+                                if (callback){
+                                    callback();
+                                }
+                                blockPageLoading = false;
+                            });
+                        }else{
+                            newDiv.append(cacheStoreObj);
                             ls.hideLoadingScreen();
                             if (callback){
                                 callback();
                             }
                             blockPageLoading = false;
-                        });
-                    }else{
-                        newDiv.append(cacheStoreObj);
-                        ls.hideLoadingScreen();
-                        if (callback){
-                            callback();
                         }
-                        blockPageLoading = false;
+
+                    }else{
+                        console.error("page loading blocked due to duplicate elements");
                     }
-                    
-                    
                 }
             }
             /**
@@ -645,26 +647,6 @@
 		</script>
 	</head>
 	<body>
-		<!-- title bar with navigation
-        <div id='headerMain'>
-		  <h1>Title</h1>
-		</div>
-		<div id='navigationBar'>
-			<nav>
-				<ul>
-					<li><a href="">Home</a></li>
-					<li><a href="">Stuff</a></li>
-					<li><a href="">More stuff</a></li>
-					<li><a href="">Contact us</a></li>
-					
-				</ul>
-				<div id="socialIcons">
-					<img id="twitterImg" src=images/test.png height = 20px />
-				</div>
-			</nav>
-
-		</div>
-        -->
         <div id="coverDiv"></div>
         <div id="coverDiv2"></div>
         <div id="coverDiv3"></div>
