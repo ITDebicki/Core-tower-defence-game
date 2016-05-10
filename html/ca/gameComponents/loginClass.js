@@ -22,20 +22,14 @@ window.login=(function(){
      * @param {function} callback Function called upon completion. Will be passed [fileURL,user]
      */
     function fetchAvatar(user,callback){
+        var usernameToCheck=user;
         if (user==""){
-            if(userAvatarCache[username]){
-                if(userAvatarCache[username].hasOwnProperty("file")){
-                    if (userAvatarCache[username].expiry>Date.now() && userAvatarCache[username].file){
-                        callback(userAvatarCache[username].file,username);
-                        return;
-                    }
-                }
-            }
+            usernameToCheck = username;
         }
-        if(userAvatarCache[user]){
-            if(userAvatarCache[user].hasOwnProperty("file")){
-                    if (userAvatarCache[user].expiry>Date.now() && userAvatarCache[user].file){
-                        callback(userAvatarCache[user].file,user);
+        if(userAvatarCache[usernameToCheck]){
+            if(userAvatarCache[usernameToCheck].hasOwnProperty("file")){
+                    if (userAvatarCache[usernameToCheck].expiry>Date.now() && userAvatarCache[usernameToCheck].file){
+                        callback(userAvatarCache[usernameToCheck].file,usernameToCheck);
                         return;
                     }
             }
@@ -286,7 +280,7 @@ window.login=(function(){
             success:function(response){
                 if(response["success"]==true){
                     //need to set new userAvatar
-                    userAvatar=null;
+                    userAvatarCache[username]=null;
                 }
                 callback(response["success"],response["error"],response["errorCode"]);
             },
@@ -308,8 +302,9 @@ window.login=(function(){
             success:function(response){
                 if (response["success"]==true){
                     isLoggedIn=false;
+                    userAvatarCache[username]=null;
                     username=null;
-                    userAvatar=null;
+                    
                 }
                 callback(response["success"],response["error"],response["errorCode"]);
             },

@@ -70,17 +70,22 @@ div.startScreenMainButtons{
     width: 160px;
     height: 210px;
     top: 270px;
-    left: calc(50% - 80px);
+    left: calc(50% - 125px);
     margin: 0 auto;
 }
 div.startScreenMainButtons button{
-    width: 160px;
-    height: 40px;
-    color:black;
+    width: 250px;
+    height: 62.5px;
+    color:lightgray;
+    background-size: cover;
+    background-image: url(images/rectangularButtonTemplate.jpg);
+    background-blend-mode: hard-light;
     text-align: center;
-    font-size: 1em;
-    border-radius: 25px;
+    font-size: 1.5em;
+    border-radius: 11px;
     margin-bottom: 30px;
+    border-width: 1px;
+    border-color: gray;
 }
 
 div.startScreenMainButtons button:last{

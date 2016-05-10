@@ -109,16 +109,14 @@
                  *                             Has form of [{'segment' : nextVectorPathSegment, 'p' : probabilityForVectorSelection}]
                  * @param {number} id          Identifier of the vector
                  * @param {number} weight      The weight of the vector
-                 * @param {number} maxDistance The maximum distance an enemy may have traveled when reaching the start of the segment
                  */
-                function VectorPathSegment(x,y,magnitude,links,id,weight,prevLinks,maxDistance){
+                function VectorPathSegment(x,y,magnitude,links,id,weight,prevLinks){
                     this.x = typeof x !== 'undefined' ? x : null;
                     this.y = typeof y !== 'undefined' ? y : null;
                     this.m = typeof magnitude !== 'undefined' ? magnitude : null;
                     this.links = typeof links !== 'undefined' ? links : [];
                     this.id = typeof id !== 'undefined' ? id : null;
                     this.weight = typeof weight !== 'undefined' ? weight : null;
-                    this.maxDistance = typeof maxDistance !== 'undefined' ? maxDistance : null;
                 }
                     
                 VectorPathSegment.prototype = {
@@ -443,7 +441,7 @@
                     return (dx * dx + dy * dy <= (cr * cr));
                 }
                 /**
-                 * Ranks an array of enemy objects by the distance they have travelled
+                 * Ranks an array of enemy objects by the distance they have left to travel to the end base
                  * @author Ignacy Debicki
                  * @param   {Array} enemies Array of enemy objects
                  * @returns {Array} Array of sorted by distance (Descending) enemies.
@@ -496,6 +494,7 @@
                 this.experience = 0;
                 this.experienceMultiplier = 1;
                 this.experienceGained = 0;
+                this.prevSize = 0;
                 
                 $("document").ready(function(){
                     //set self to hidden
@@ -719,16 +718,15 @@
                  * @author Ignacy Debicki
                  * @param {Array}  points         Array of points
                  * @param {number} idOffset       Offset of vector id. (default 0)
-                 * @param {numer}  pathRadius     The path radius
-                 * @returns {object} The root object of the path and the last object of the path in format {'root':root,'last':lastSegments}
+                 * @param {number} pathRadius     The path radius
+                 * @returns {object} The root object of the path and the last object of the path in format {'root':root,'last':lastSegments,"nextId":nextId}
                  */
                 function calculateVectorPaths(points,idOffset,pathRadius){
                     idOffset = typeof idOffset !== 'undefined' ? idOffset : 0;
                     var root = null;
                     var lastSegments = [];
                     for (var i=0;i<points.length-1;i++){
-                        var id = idOffset*100+i;
-                        var currentSegment = new VectorPathSegment();
+                        
                         var p1 = points[i].slice();
                         var p2 = points[i+1].slice();
                         
@@ -736,18 +734,20 @@
                             if (typeof(p2[0])!=="number"){
                                 p2 = p2[0].start;
                             }
+                            var currentSegment = new VectorPathSegment();
                             parseElement({"x":p1[0],"y":p1[1]},{"x":p2[0],"y":p2[1]},2*pathRadius,pathRadius);
                             var vector = calculateVector(p1,p2);
                             currentSegment.x=vector.x;
                             currentSegment.y=vector.y;
                             currentSegment.m=vector.m;
-                            currentSegment.id = id;
+                            currentSegment.id = idOffset;
                             if (lastSegments.length==0){
                                 root=currentSegment;
                             }else{
                                 extendPath(lastSegments,currentSegment,1);
                             }
-                        lastSegments=[currentSegment];
+                            lastSegments=[currentSegment];
+                            idOffset++;
                         }else{
                             
                             //handle split
@@ -758,15 +758,15 @@
                                 var pointArray = [start.slice()];
                                 pointArray = pointArray.concat(p1[j].slice());
                                 pointArray.push(p2.slice());
-                                var pathSegments = calculateVectorPaths(pointArray.slice(),idOffset+j,pathRadius);
-                                
+                                var pathSegments = calculateVectorPaths(pointArray.slice(),idOffset,pathRadius);
                                 extendPath(lastSegments,pathSegments.root,pathProbability);
                                 endingSegments = endingSegments.concat(pathSegments.last.slice());
+                                idOffset = pathSegments['nextId'];
                             }
                             lastSegments=endingSegments.slice();
                         }
                     }
-                    return {'root':root,'last':lastSegments};
+                    return {'root':root,'last':lastSegments,'nextId':idOffset};
                 }
                 /**
                  * Extends the links of the vectorPathSegments to contain root with probability prob
@@ -1093,6 +1093,79 @@
                         
                     });
                     $("#sideBarTowerSlots").css("max-height",maxAvailableHeight);
+                    //Change background to match
+                    if ($("#towerContainer").height !== this.prevHeight){
+                        if (Array.isArray(gameObjectVars.SBimages)){
+                                if (gameObjectVars.SBimages[0][1]==false || gameObjectVars.SBimages[1][1]==false || gameObjectVars.SBimages[2][1]==false){
+                                gameObjectVars.SBimages = [[new Image(),false],[new Image(),false],[new Image(),false]];
+                                gameObjectVars.SBimages[0][0].src = "gameComponents/images/top.jpg";
+                                gameObjectVars.SBimages[1][0].src = "gameComponents/images/middle.jpg";
+                                gameObjectVars.SBimages[2][0].src = "gameComponents/images/bottom.jpg";
+                                gameObjectVars.SBimages[0][0].onload = function() {
+                                        console.log('t');
+                                    gameObjectVars.SBimages[0][1]=true;
+                                    }
+                                gameObjectVars.SBimages[2][0].onload = function(){
+                                        console.log('b');
+                                    gameObjectVars.SBimages[2][1]=true;
+                                    }
+                                gameObjectVars.SBimages[1][0].onload=function() {
+                                        var ticks = 0
+                                        gameObjectVars.SBimages[1][1]=true;
+                                        while((!(gameObjectVars.SBimages[2][1] && gameObjectVars.SBimages[0][1]))&& ticks<1000000){ticks++;if(ticks%100000==0){console.log(ticks); }}
+                                        console.log(ticks)
+                                        setShopBackground();
+                                    }
+                            }else{
+                                setShopBackground();
+                            } 
+                        }else{
+                            gameObjectVars.SBimages = [[new Image(),false],[new Image(),false],[new Image(),false]];
+                            gameObjectVars.SBimages[0][0].src = "gameComponents/images/top.jpg";
+                            gameObjectVars.SBimages[1][0].src = "gameComponents/images/middle.jpg";
+                            gameObjectVars.SBimages[2][0].src = "gameComponents/images/bottom.jpg";
+                            gameObjectVars.SBimages[0][0].onload = function() {
+                                    console.log('t');
+                                gameObjectVars.SBimages[0][1]=true;
+                                }
+                            gameObjectVars.SBimages[2][0].onload = function(){
+                                    console.log('b');
+                                gameObjectVars.SBimages[2][1]=true;
+                                }
+                            gameObjectVars.SBimages[1][0].onload=function() {
+                                    var ticks = 0
+                                    gameObjectVars.SBimages[1][1]=true;
+                                    while((!(gameObjectVars.SBimages[2][1] && gameObjectVars.SBimages[0][1]))&& ticks<1000000){ticks++;if(ticks%100000==0){console.log(ticks); }}
+                                    console.log(ticks)
+                                    setShopBackground();
+                                }
+                        }
+                        
+                        
+                        gameObjectVars.prevHeight=$("#towerContainer").height
+                    }
+                    
+                }
+                /**
+                 * Creates a background for the shop
+                 * @author Ignacy Debicki
+                 */
+                function setShopBackground(){
+                    var c = document.createElement('canvas');
+                    c.width = $("#sideBarTowerSlots").innerWidth();
+                    c.height = $("#sideBarTowerSlots")[0].scrollHeight;
+                    var ctx=c.getContext("2d");
+                    var height = c.height;
+                    var p = 20;
+                    ctx.drawImage(gameObjectVars.SBimages[0][0], 0, 0, c.width, 20);
+                    while(height>p+20){
+                        ctx.drawImage(gameObjectVars.SBimages[1][0], 0, p, c.width, 20);
+                        p+=20;
+                    }
+                    ctx.drawImage(gameObjectVars.SBimages[2][0], 0, c.height-20, c.width, 20);
+                    var img = c.toDataURL("image/shopBG.jpg");
+                    console.log(img,c.height,c.width);
+                    $("#towerContainer").css('background-image', 'url(' + img + ')');
                 }
                 /**
                  * Sets the new max health of the base
@@ -1477,7 +1550,7 @@
                     towerSideBarDiv.append(towerSideBarImage)
                                     .append(towerDescription);
 
-                    $("#sideBarTowerSlots").append(towerSideBarDiv);
+                    $("#towerContainer").append(towerSideBarDiv);
                 }
                 /**
                  * Loads the tower resource and places it in the tower resource dictionary
@@ -1784,7 +1857,7 @@
                 /**
                  * Loads the projectile resource into the projectile resource dictionary
                  * @author Ignacy Debicki
-                 * @param   {string} projectileName NAme of projectile to be loaded
+                 * @param   {string} projectileName Name of projectile to be loaded
                  * @returns {object} Projectile div template
                  */
                 function loadProjectile(projectileName){
@@ -2153,7 +2226,9 @@
                 
             </div>
             <div class="sideBarDiv" id="sideBarTowerSlots">
-                <span class="sideBarDivTitle">Buy towers</span>
+                <div id="towerContainer">
+                    <span class="sideBarDivTitle">Buy towers</span>
+                </div>
             </div>
         </div>
         <div id="gameSpace">

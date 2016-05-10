@@ -455,7 +455,7 @@ function mark_fr_as_read($userFrom){
  */
 function block_user($user){
     $conn = request_connection();
-    $stmtCheck = $conn->prepare('DELETE FROM Friend WHERE ((user_sender = :userTo AND user_reciever = :userFrom) OR (user_sender = :userFrom AND user_reciever = :userTo)) AND (accepted = 1 OR accepted IS NULL)');
+    $stmtCheck = $conn->prepare('DELETE FROM Friend WHERE ((user_sender = :userTo AND user_reciever = :userFrom) OR (user_sender = :userFrom AND user_reciever = :userTo))');
     $stmtCheck->execute(array(':userFrom' => $_SESSION["user"],':userTo' => $user));
     $stmt = $conn->prepare('INSERT INTO Friend (user_sender,user_reciever,accepted,opened) VALUES(:userFrom,:userTo,0,1)');
     $stmt->execute(array(':userFrom' => $_SESSION["user"],':userTo' => $user));
