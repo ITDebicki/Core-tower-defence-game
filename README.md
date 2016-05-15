@@ -1,7 +1,7 @@
 # Core-tower-defence-game
 This is my F454 A2 computing project. 
 
-If you want you can try out the game at https://www.itdebicki.com/ca/main.html
+If you want you can try out the game at https://itdebicki.com/ca/main.html
 
 
 The version I submitted with my controlled assesment can be found under the 'ca' branch.
