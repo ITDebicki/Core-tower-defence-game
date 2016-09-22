@@ -423,7 +423,7 @@
                  * @param {string} direction Optional. Direction to spin. Accepts "right" or "left". By default chooses shortest path
                  */
                 function rotateToIndex(index,direction){
-                    if (direction !== "left" || direction !== "right"){
+                    if (direction !== "left" && direction !== "right"){
                         //determine quickest direction
                         if (currentIndex-index>rotatorArray.length/2){
                             direction="right";
