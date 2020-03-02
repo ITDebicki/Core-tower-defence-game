@@ -10,7 +10,7 @@ Feel free to fork and take the code. I will be working on it periodically as a s
 
 The recommended browser to play this game on is chrome version 46 or newer
 
-My current expansion work will relate to:
+Potential expansion work:
 
 - Balance the maps properly
 - Fix some graphical errors
